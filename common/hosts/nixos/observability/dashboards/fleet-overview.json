@@ -1,0 +1,180 @@
+{
+  "title": "Fleet Overview",
+  "uid": "fleet-overview",
+  "tags": ["OS-nixCfg", "fleet"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Hosts up",
+      "id": 1,
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "fleet:hosts_up:count", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Hosts down",
+      "id": 2,
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "fleet:hosts_down:count or vector(0)", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "type": "stat",
+      "title": "Failed systemd units (fleet)",
+      "id": 3,
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(fleet:systemd_failed_units:count)", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          }
+        }
+      },
+      "options": { "colorMode": "background" }
+    },
+    {
+      "type": "stat",
+      "title": "Hosts with stale flake.lock (>14d)",
+      "id": 4,
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "count(nix_flake_lock_age_seconds > 14*86400)", "refId": "A" }
+      ],
+      "options": { "colorMode": "background" }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU usage (per host)",
+      "id": 5,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory used % (per host)",
+      "id": 6,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 } }
+    },
+    {
+      "type": "table",
+      "title": "Per-host status",
+      "id": 7,
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "up{job=\"node\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "up"
+        },
+        {
+          "expr": "(time() - nix_last_rebuild_timestamp_seconds) / 86400",
+          "format": "table",
+          "instant": true,
+          "refId": "rebuild_age_days"
+        },
+        {
+          "expr": "nix_flake_lock_age_seconds / 86400",
+          "format": "table",
+          "instant": true,
+          "refId": "lock_age_days"
+        },
+        {
+          "expr": "fleet:systemd_failed_units:count",
+          "format": "table",
+          "instant": true,
+          "refId": "failed_units"
+        }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "instance": 0,
+              "class": 1,
+              "Value #up": 2,
+              "Value #rebuild_age_days": 3,
+              "Value #lock_age_days": 4,
+              "Value #failed_units": 5
+            },
+            "renameByName": {
+              "Value #up": "up",
+              "Value #rebuild_age_days": "rebuild age (days)",
+              "Value #lock_age_days": "lock age (days)",
+              "Value #failed_units": "failed units"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

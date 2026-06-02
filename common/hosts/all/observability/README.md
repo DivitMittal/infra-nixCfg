@@ -121,6 +121,24 @@ Configure repo secrets:
 
 Without these the step is a no-op.
 
+## Local preview (services-flake)
+
+For iterating on dashboards, alert rules, or scrape configs without rebuilding L2, the full stack can be booted on the developer's laptop via [services-flake](https://github.com/juspay/services-flake):
+
+```bash
+observe                  # devshell shortcut (preferred)
+# or:
+nix run .#observability
+```
+
+This brings up the same LGTM-A pipeline as the obs-host — Prometheus, Loki, Tempo, Grafana, Alertmanager, OTEL Collector, blackbox_exporter, and node_exporter — wired together with the **same generators** under [`lib/observability/`](../../../../lib/observability), so a config that works locally also works on L2.
+
+Once healthy, open **http://127.0.0.1:3000** (`admin` / `admin`). Datasources and dashboards are provisioned from [`common/hosts/nixos/observability/dashboards/`](../../nixos/observability/dashboards/). Panels referencing fleet-only metrics (e.g. `nix_store_size_bytes`) will show "No data" — only `node_exporter` self-metrics will be live.
+
+State lives under `$HOME/.local/share/process-compose/` (the per-service `dataDir` is managed by services-flake) and is wiped between runs unless you launch with `--keep-tui`. Retention is shortened (24h metrics, 12h logs, 1h traces) so a long-running preview doesn't blow up the disk. Alertmanager's webhook URLs fall back to `/dev/null` — no notifications fire unless you set `NTFY_TOPIC_URL` / `DISCORD_WEBHOOK` in the environment before launching.
+
+Implementation: [`flake/services.nix`](../../../../flake/services.nix).
+
 ## Ports (defaults)
 
 | Service             | Port  |

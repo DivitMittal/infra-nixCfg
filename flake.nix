@@ -122,6 +122,14 @@
       };
     };
 
+    ## services-flake — process-compose-driven dev services (local LGTM stack)
+    process-compose-flake = {
+      url = "github:Platonic-Systems/process-compose-flake";
+    };
+    services-flake = {
+      url = "github:juspay/services-flake";
+    };
+
     ## Secrets
     agenix = {
       url = "github:ryantm/agenix";

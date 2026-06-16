@@ -26,4 +26,10 @@
     kanata-tray = import ./hosts/darwin/kanata-tray.nix;
     spotifyd = import ./hosts/darwin/spotifyd.nix;
   };
+
+  flake.nixosModules = {
+    # Kernel Forge is deliberately NOT part of an `all`/default bundle: it must be
+    # attached explicitly per host (proving host first, hardware escalation later).
+    kernel-forge = import ./hosts/nixos/kernel-forge.nix;
+  };
 }

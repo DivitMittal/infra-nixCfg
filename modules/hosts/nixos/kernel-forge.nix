@@ -7,6 +7,8 @@
   cfg = config.os.kernelForge;
 
   inherit (lib) literalExpression mkEnableOption mkIf mkMerge mkOption types;
+
+  patchCatalog = import ./kernel-forge/patches {inherit lib;};
 in {
   ## Kernel Forge
   # Kernel Forge is a proving-host-first kernel engineering track for this flake.
@@ -38,13 +40,13 @@ in {
     enablePatchQueue = mkOption {
       type = types.bool;
       default = true;
-      description = "Declare the patch queue surface now; wiring follows with the patch catalog under ./kernel-forge/patches.";
+      description = "Apply the kernel instrumentation profile (structured Kconfig deltas) from the patch catalog.";
     };
 
     enableBackports = mkOption {
       type = types.bool;
       default = false;
-      description = "Stable-backport track; off until a currently-applicable backport is verified.";
+      description = "Apply the stable backport track from the patch catalog; fails evaluation if the catalog is empty.";
     };
 
     enableV4l2Loopback = mkOption {
@@ -89,6 +91,12 @@ in {
           assertion = lib.elem config.hostSpec.hostName cfg.allowedHostNames;
           message = "Host ${config.hostSpec.hostName} must be listed in os.kernelForge.allowedHostNames before enabling the forge track; this guards against accidental attachment to production hosts.";
         }
+        {
+          # Explicit failure instead of a silent no-op: enabling the backport
+          # track with an empty catalog would otherwise build an unpatched kernel.
+          assertion = cfg.enableBackports -> patchCatalog.backports != [];
+          message = "os.kernelForge.enableBackports is enabled but the backport track is empty; add a verified entry to modules/hosts/nixos/kernel-forge/patches/default.nix or disable the flag.";
+        }
       ];
 
       # mkForce is deliberate; the forge track owns the kernel on hosts that
@@ -96,6 +104,9 @@ in {
       boot.kernelPackages = lib.mkForce cfg.kernelPackages;
       boot.kernelParams = cfg.extraKernelParams;
       boot.extraModulePackages = cfg.extraModulePackages;
+      boot.kernelPatches =
+        lib.optionals cfg.enablePatchQueue patchCatalog.instrumentation
+        ++ lib.optionals cfg.enableBackports patchCatalog.backports;
     }
 
     (mkIf cfg.enableTracingToolchain {

@@ -52,7 +52,7 @@ in {
     enableV4l2Loopback = mkOption {
       type = types.bool;
       default = false;
-      description = "Declare v4l2loopback driver integration now; wiring follows in a later change.";
+      description = "Build the v4l2loopback out-of-tree module against the forge kernel and load it at boot (virtual camera / capture pipelines).";
     };
 
     enableEvdi = mkOption {
@@ -108,6 +108,17 @@ in {
         lib.optionals cfg.enablePatchQueue patchCatalog.instrumentation
         ++ lib.optionals cfg.enableBackports patchCatalog.backports;
     }
+
+    # Runtime verification inside the proving host: `modinfo v4l2loopback`
+    # (shows the forge-built module metadata) and `lsmod | grep v4l2loopback`
+    # (confirms it loaded at boot) — both must succeed.
+    (mkIf cfg.enableV4l2Loopback {
+      # Out-of-tree module packages must come from config.boot.kernelPackages so
+      # they are compiled against the forge kernel actually selected (post-mkForce),
+      # not against whatever pkgs default the host would otherwise use.
+      boot.extraModulePackages = [config.boot.kernelPackages.v4l2loopback];
+      boot.kernelModules = ["v4l2loopback"];
+    })
 
     (mkIf cfg.enableTracingToolchain {
       environment.systemPackages = [

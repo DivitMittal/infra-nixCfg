@@ -58,7 +58,7 @@ in {
     enableEvdi = mkOption {
       type = types.bool;
       default = false;
-      description = "Declare EVDI driver integration now; wiring follows in a later change.";
+      description = "Build the evdi (DisplayLink) out-of-tree DRM module against the forge kernel; build + modinfo is the proving criterion, runtime load is hardware/userland dependent.";
     };
 
     enableTracingToolchain = mkOption {
@@ -118,6 +118,23 @@ in {
       # not against whatever pkgs default the host would otherwise use.
       boot.extraModulePackages = [config.boot.kernelPackages.v4l2loopback];
       boot.kernelModules = ["v4l2loopback"];
+    })
+
+    (mkIf cfg.enableEvdi {
+      # evdi tracks kernel internals closely and is the canary for master-kernel
+      # breakage. Fail evaluation loudly if the selected kernel package set does
+      # not expose it, rather than silently shipping a system without the track.
+      assertions = [
+        {
+          assertion = config.boot.kernelPackages ? evdi;
+          message = "os.kernelForge.enableEvdi = true, but the selected kernelPackages set does not expose an `evdi` package for this kernel; pin a compatible kernel or disable the evdi track.";
+        }
+      ];
+
+      boot.extraModulePackages = [config.boot.kernelPackages.evdi];
+      # No boot.kernelModules entry on purpose: loading evdi is only meaningful
+      # with DisplayLink hardware/userland present. On the VM proving host the
+      # acceptance criterion is build success + `modinfo evdi`.
     })
 
     (mkIf cfg.enableTracingToolchain {

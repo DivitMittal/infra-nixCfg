@@ -54,6 +54,14 @@
       hostName = "ASL1N";
       system = "aarch64-linux";
     };
+    KFORGE = mkCfg {
+      inherit class;
+      hostName = "KFORGE";
+      system = "x86_64-linux";
+      # Proving host for the Kernel Forge track; profile appended last so it
+      # deliberately overrides host defaults. Never attached to a deploy node.
+      additionalModules = [./profiles/kernel-forge-extreme.nix];
+    };
     VPS1 = mkCfg {
       inherit class;
       hostName = "VPS1";

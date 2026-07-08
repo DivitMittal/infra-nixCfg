@@ -139,7 +139,10 @@ in {
 
     (mkIf cfg.enableTracingToolchain {
       environment.systemPackages = [
-        cfg.kernelPackages.perf
+        # nixpkgs detached perf from linuxPackages (the old attribute is a
+        # deprecation alias); take it from the master channel so it stays
+        # aligned with the default master-track kernel.
+        pkgs.master.perf
         pkgs.bpftools
         pkgs.bpftrace
         pkgs.bcc

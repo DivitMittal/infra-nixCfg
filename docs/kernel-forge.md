@@ -1,6 +1,8 @@
 # Kernel Forge
 
-Status: design phase. This document records the scope, architecture, and workflow
+Status: active. The proving host (`KFORGE`) is registered; validation and
+escalation are documented in [kernel-forge-validation.md](./kernel-forge-validation.md).
+This document records the scope, architecture, and workflow
 for the **Kernel Forge** track — a kernel-engineering surface inside this
 multi-platform Nix flake for patch-queue work, backport practice, and out-of-tree
 driver integration.
@@ -30,7 +32,7 @@ any single driver experiment.
 
 - **Explicit attachment.** The module is exported as
   `flake.nixosModules.kernel-forge` in `modules/default.nix` and is deliberately
-  *not* part of any `all`/default bundle. A host opts in by listing the module
+  _not_ part of any `all`/default bundle. A host opts in by listing the module
   in its `additionalModules` and setting `os.kernelForge.enable = true`. Two
   assertions guard attachment: `acknowledgeBreakage` must be true, and
   `config.hostSpec.hostName` must appear in `allowedHostNames`. Production
@@ -53,19 +55,19 @@ any single driver experiment.
 
 All options live under `os.kernelForge.*`.
 
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `enable` | `bool` | `false` | Master-track kernel selection, patch queue, driver integration, and instrumentation tooling; opt-in per host. |
-| `acknowledgeBreakage` | `bool` | `false` | Guard: the forge kernel track can and will break; the host owner must opt in explicitly. |
-| `allowedHostNames` | `listOf str` | `[]` | Hosts allowed to run the forge track; assertion enforces membership. |
-| `kernelPackages` | `raw` | `pkgs.master.linuxPackages_latest` | Kernel package set for the forge track; master/latest by default for maximum patch-queue relevance. |
-| `enablePatchQueue` | `bool` | `true` | Declare the patch queue surface now; wiring follows with the patch catalog under `./kernel-forge/patches`. |
-| `enableBackports` | `bool` | `false` | Stable-backport track; off until a currently-applicable backport is verified. |
-| `enableV4l2Loopback` | `bool` | `false` | Declare v4l2loopback driver integration now; wiring follows in a later change. |
-| `enableEvdi` | `bool` | `false` | Declare EVDI driver integration now; wiring follows in a later change. |
-| `enableTracingToolchain` | `bool` | `true` | eBPF/ftrace/perf userland for kernel instrumentation profiles. |
-| `extraKernelParams` | `listOf str` | `[]` | Additional kernel parameters for a host-specific forge profile. |
-| `extraModulePackages` | `listOf raw` | `[]` | Additional kernel module derivations appended to `boot.extraModulePackages`. |
+| Option                   | Type         | Default                            | Description                                                                                                   |
+| ------------------------ | ------------ | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `enable`                 | `bool`       | `false`                            | Master-track kernel selection, patch queue, driver integration, and instrumentation tooling; opt-in per host. |
+| `acknowledgeBreakage`    | `bool`       | `false`                            | Guard: the forge kernel track can and will break; the host owner must opt in explicitly.                      |
+| `allowedHostNames`       | `listOf str` | `[]`                               | Hosts allowed to run the forge track; assertion enforces membership.                                          |
+| `kernelPackages`         | `raw`        | `pkgs.master.linuxPackages_latest` | Kernel package set for the forge track; master/latest by default for maximum patch-queue relevance.           |
+| `enablePatchQueue`       | `bool`       | `true`                             | Apply the kernel instrumentation profile (structured Kconfig deltas) from the patch catalog.                  |
+| `enableBackports`        | `bool`       | `false`                            | Apply the stable backport track from the patch catalog; fails evaluation if the catalog is empty.             |
+| `enableV4l2Loopback`     | `bool`       | `false`                            | Build the v4l2loopback out-of-tree module against the forge kernel and load it at boot.                       |
+| `enableEvdi`             | `bool`       | `false`                            | Build the evdi (DisplayLink) DRM module against the forge kernel; build + modinfo is the proving criterion.   |
+| `enableTracingToolchain` | `bool`       | `true`                             | eBPF/ftrace/perf userland for kernel instrumentation profiles.                                                |
+| `extraKernelParams`      | `listOf str` | `[]`                               | Additional kernel parameters for a host-specific forge profile.                                               |
+| `extraModulePackages`    | `listOf raw` | `[]`                               | Additional kernel module derivations appended to `boot.extraModulePackages`.                                  |
 
 When `enableTracingToolchain` is true, the forge track also installs
 `perf`, `bpftools`, `bpftrace`, `bcc`, `trace-cmd`, `pciutils`, `usbutils`,

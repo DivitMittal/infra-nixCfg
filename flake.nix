@@ -140,8 +140,8 @@
       };
     };
     OS-nixCfg-secrets = {
-      #url = "git+ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git?ref=master";
-      url = "path:/Users/div/Projects/Cfgs/OS-nixCfg-secrets";
+      url = "git+ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git?ref=master";
+      #url = "path:/Users/div/Projects/Cfgs/OS-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
@@ -181,8 +181,8 @@
 
     ## Terminal Emulator
     term-nixCfg = {
-      url = "path:/Users/div/Projects/Cfgs/term-nixCfg";
-      #url = "github:DivitMittal/term-nixCfg";
+      url = "github:DivitMittal/term-nixCfg";
+      #url = "path:/Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -197,8 +197,8 @@
 
     ## Firefox
     firefox-nixCfg = {
-      url = "path:/Users/div/Projects/Cfgs/firefox-nixCfg";
-      #url = "github:DivitMittal/firefox-nixCfg";
+      url = "github:DivitMittal/firefox-nixCfg";
+      #url = "path:/Users/div/Projects/Cfgs/firefox-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -212,8 +212,8 @@
 
     ## AI
     ai-nixCfg = {
-      url = "path:/Users/div/Projects/Cfgs/ai-nixCfg";
-      #url = "github:DivitMittal/ai-nixCfg";
+      url = "github:DivitMittal/ai-nixCfg";
+      #url = "path:/Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -281,8 +281,8 @@
       };
     };
     android-kvm = {
-      url = "path:/Users/div/Projects/hid/android-kvm";
-      #url = "github:DivitMittal/android-kvm";
+      url = "github:DivitMittal/android-kvm";
+      #url = "path:/Users/div/Projects/hid/android-kvm";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
@@ -321,8 +321,8 @@
     };
     ## Hammerspoon
     hammerspoon-nix = {
-      #url = "github:DivitMittal/hammerspoon-nix";
-      url = "path:/Users/div/Projects/Cfgs/hammerspoon-nix";
+      url = "github:DivitMittal/hammerspoon-nix";
+      # url = "path:/Users/div/Projects/Cfgs/hammerspoon-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -349,8 +349,8 @@
     };
 
     brew-nix = {
-      #url = "github:BatteredBunny/brew-nix";
-      url = "github:DivitMittal/brew-nix/fix/7zip-26-dangerous-links";
+      url = "github:BatteredBunny/brew-nix";
+      #url = "github:DivitMittal/brew-nix/fix/7zip-26-dangerous-links";
       #url = "path:/Users/div/Developer/Forks/brew-nix";
       inputs = {
         brew-api.follows = "brew-api";

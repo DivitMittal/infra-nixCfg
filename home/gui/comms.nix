@@ -47,10 +47,7 @@
       then pkgs.brewCasks.whatsapp
       else null;
 
-    vesktop =
-      if hostPlatform.isDarwin
-      then pkgs.brewCasks.vesktop
-      else pkgs.vesktop;
+    inherit (pkgs) vesktop;
 
     telegram =
       if hostPlatform.isDarwin

@@ -13,6 +13,7 @@ in {
 
   age.secrets = {
     "api/github.txt" = mkSecret "api/github.age";
+    "github/general.txt" = mkSecret "github/general.age";
     "weechat/sec.conf" = mkSecret "weechat/sec.conf.age";
     "nix.conf" = mkSecret "nix.conf.age";
     "id_passage" = mkSecret "passage.age";

@@ -298,6 +298,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    ## Windows
+    ## nix-darwin-style declarative config for Windows hosts (L1/L2's Windows
+    ## boot slot), evaluated inside WSL and applied via Scoop/WinGet/DSC v3.
+    ## EXPERIMENTAL — single-maintainer, pre-1.0, no releases as of migration.
+    ## Replaces most of DivitMittal/playbooks-4-windows (Ansible). See that
+    ## repo's feat/nix-win-migration branch for the reduced Ansible surface
+    ## (cold bootstrap + MSYS2 only) this input is meant to sit alongside.
+    nix-win = {
+      url = "github:jacobbrugh/nix-win";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     ## Theming — cyberpunk palette wired via lib/palette.nix
     stylix = {
       url = "github:danth/stylix";

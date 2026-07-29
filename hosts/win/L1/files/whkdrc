@@ -1,0 +1,8 @@
+# whkd configuration — Window Hotkey Daemon
+# Format: <modifiers>+<key> : <command>
+
+# Reload whkd config
+alt + o : taskkill /f /im whkd.exe && start whkd
+
+# Launch Wezterm
+win + ctrl + shift + alt + return : start wezterm

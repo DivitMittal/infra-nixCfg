@@ -1,0 +1,34 @@
+" Tridactyl configuration — vim-like Firefox keybindings
+
+" ── General ───────────────────────────────────────────────────────────────────
+set theme dark
+set modeindicatorshowkeys true
+set hintchars asdfgqwertzxcvb
+set hintfiltermode vimperator-reflow
+
+" ── Search engines ────────────────────────────────────────────────────────────
+set searchurls.g    https://www.google.com/search?q=%s
+set searchurls.ddg  https://duckduckgo.com/?q=%s
+set searchurls.gh   https://github.com/search?q=%s
+set searchurls.mdn  https://developer.mozilla.org/en-US/search?q=%s
+set searchurls.yt   https://www.youtube.com/results?search_query=%s
+set searchengine    ddg
+
+" ── Unbind defaults that conflict ─────────────────────────────────────────────
+unbind <C-f>
+unbind <C-b>
+
+" ── Navigation ────────────────────────────────────────────────────────────────
+bind J  tabprev
+bind K  tabnext
+bind gX tabclose
+
+" ── URL manipulation ──────────────────────────────────────────────────────────
+bind yy clipboard yank
+
+" ── Quickmarks ────────────────────────────────────────────────────────────────
+" Add with: quickmark <letter> <url>
+
+" ── Excmds ────────────────────────────────────────────────────────────────────
+" Open config for editing
+bind ,rc editor

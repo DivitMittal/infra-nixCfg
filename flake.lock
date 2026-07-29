@@ -2087,6 +2087,26 @@
         "type": "github"
       }
     },
+    "nix-win": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780348406,
+        "narHash": "sha256-EXORcqrMFwdqgL92tCKvyj1M97OPSgw/a7ktN2mVgAk=",
+        "owner": "jacobbrugh",
+        "repo": "nix-win",
+        "rev": "2507b659e15e84f5ac3b48396042e46a766b6634",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jacobbrugh",
+        "repo": "nix-win",
+        "type": "github"
+      }
+    },
     "nixos-apple-silicon": {
       "inputs": {
         "flake-compat": "flake-compat_5",
@@ -2864,6 +2884,7 @@
         "nix-index-database": "nix-index-database",
         "nix-on-droid": "nix-on-droid",
         "nix-topology": "nix-topology",
+        "nix-win": "nix-win",
         "nixos-apple-silicon": "nixos-apple-silicon",
         "nixos-hardware": "nixos-hardware",
         "nixos-wsl": "nixos-wsl",

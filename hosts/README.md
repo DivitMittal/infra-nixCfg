@@ -25,6 +25,10 @@ hosts/
 ├── droid/                      # Android (nix-on-droid)
 │   ├── enum.nix
 │   └── M1/                     # aarch64-linux Android
+├── system-manager/             # non-NixOS Linux (numtide/system-manager)
+│   ├── enum.nix
+│   ├── Linux1/                 # generic Linux host with Nix installed
+│   └── VPS3/                   # LXC VPS, not a KVM/NixOS install target
 └── iso/                        # ISO builds (NixOS install media)
     ├── enum.nix
     ├── iso/                    # x86_64-linux vanilla
@@ -34,7 +38,7 @@ hosts/
 
 ## Host Directory Layout
 
-Files are auto-imported via `lib.custom.scanPaths`. The host's primary
+Files are imported by `mkCfg` using `inputs.import-tree`. The host's primary
 module is `<hostName>.nix`; supplementary files vary by platform.
 
 Typical NixOS host:
@@ -72,6 +76,84 @@ hostname/
 ```bash
 hts  # System rebuild
 ```
+
+## Non-NixOS Linux with system-manager
+
+Use `numtide/system-manager` for existing Linux machines that should be managed
+from this flake but are not full NixOS installations. These hosts are declared in
+`.#systemConfigs` and live under `hosts/system-manager/`.
+
+Current examples:
+
+- `Linux1` is a generic non-NixOS Linux host with Nix already installed.
+- `VPS3` is an LXC VPS. It intentionally avoids NixOS/KVM-only concepts such as
+  `nixos-anywhere`, `disko`, GRUB, kernel/initrd modules, and bootloader
+  management.
+
+Build the profiles explicitly because `nix flake check` does not necessarily
+force-build custom `systemConfigs` outputs:
+
+```bash
+nix build --show-trace --accept-flake-config .#systemConfigs.Linux1
+nix build --show-trace --accept-flake-config .#systemConfigs.VPS3
+```
+
+Enter the devshell to use the pinned `system-manager` CLI and wrappers. The
+`sms` passthrough is available only on systems where upstream packages
+`system-manager` for the current platform; from unsupported platforms, use the
+build/eval checks locally and run activation from a supported Linux/aarch64-darwin
+environment.
+
+```bash
+nix develop
+sms build --flake .#Linux1
+sms build --flake .#VPS3
+```
+
+Run remote preflight checks against an existing Linux SSH target:
+
+```bash
+bootstrap-system-manager VPS3 --target root@203.0.113.10 --check
+```
+
+Then switch only after the checks pass:
+
+```bash
+bootstrap-system-manager VPS3 --target root@203.0.113.10 --switch
+# or directly:
+sms --target-host root@203.0.113.10 switch --flake .#VPS3 --sudo
+```
+
+`--check` and `--switch` need `nix` reachable on the target's non-interactive
+SSH `PATH`. On a fresh VPS with no Nix installed and no interest in a
+system-wide Nix install, provision
+[`davhau/nix-portable`](https://github.com/DavHau/nix-portable) first — it is a
+single static, rootless binary with flakes enabled out of the box, so no
+`curl | sh` installer or daemon setup is required on the target:
+
+```bash
+bootstrap-system-manager VPS3 --target root@203.0.113.10 --install-nix-portable
+bootstrap-system-manager VPS3 --target root@203.0.113.10 --check
+bootstrap-system-manager VPS3 --target root@203.0.113.10 --switch
+```
+
+`--install-nix-portable` downloads the release matching the target's `uname -m`
+and installs it as `/usr/local/bin/nix` (plus the other `nix-*` multi-call
+names) so it resolves the same way a real Nix install would for both
+non-interactive SSH commands and `system-manager --target-host`. It requires
+root on the target and only touches that one binary and its symlinks — nothing
+else on the host changes, and there is no long-running daemon to manage.
+
+For distributions outside system-manager's supported set (currently NixOS,
+Ubuntu, and Debian), set this in the host module after confirming the risk:
+
+```nix
+system-manager.allowAnyDistro = true;
+```
+
+For LXC providers, also confirm the container supports the systemd features your
+host module uses. Keep initial LXC profiles package-focused until systemd service
+activation has been tested on that provider.
 
 ## Remote NixOS Bootstrap
 

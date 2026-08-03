@@ -18,8 +18,10 @@
         darwin = inputs.nix-darwin.lib.darwinSystem;
         droid = inputs.nix-on-droid.lib.nixOnDroidConfiguration;
         home = inputs.home-manager.lib.homeManagerConfiguration;
+        "system-manager" = inputs.system-manager.lib.makeSystemConfig;
         iso = nixos;
       };
+      isSystemManager = class == "system-manager";
       inherit (ctx.pkgs.stdenvNoCC) hostPlatform;
       inherit (lib.attrsets) optionalAttrs mergeAttrsList;
       pkgs = ctx.pkgs.extend (
@@ -63,10 +65,15 @@
         commonDir = self + "/common";
         inherit (lib.lists) optionals;
       in
-        [{hostSpec = {inherit hostName;};}]
-        ++ optionals (class != "droid") [(inputs.import-tree (commonDir + "/all"))]
-        ++ optionals (class == "droid") [(commonDir + "/all/hostSpec.nix")]
-        ++ optionals (class != "home" && class != "droid") [(inputs.import-tree (commonDir + "/hosts/all"))]
+        [
+          ({hostSpec = {inherit hostName;};}
+            // optionalAttrs isSystemManager {
+              nixpkgs.hostPlatform = system;
+            })
+        ]
+        ++ optionals (class != "droid" && !isSystemManager) [(inputs.import-tree (commonDir + "/all"))]
+        ++ optionals (class == "droid" || isSystemManager) [(commonDir + "/all/hostSpec.nix")]
+        ++ optionals (class != "home" && class != "droid" && !isSystemManager) [(inputs.import-tree (commonDir + "/hosts/all"))]
         ++ optionals (class == "home") [
           (inputs.import-tree (commonDir + "/home"))
           self.outputs.homeManagerModules.default
@@ -82,8 +89,17 @@
         ]
         ++ optionals (class == "darwin") [self.outputs.darwinModules.default]
         ++ additionalModules;
-    in
-      configGenerator.${class} (mergeAttrsList [
+      systemManagerArgs = {
+        inherit modules specialArgs;
+        overlays = [
+          self.outputs.overlays.default
+          (_: _: {
+            master = inputs.nixpkgs-master.legacyPackages.${system};
+            stable = inputs."nixpkgs-2605".legacyPackages.${system};
+          })
+        ];
+      };
+      cfgArgs = mergeAttrsList [
         {inherit pkgs modules;}
         (optionalAttrs (class != "droid" && class != "home") {inherit specialArgs;})
         (optionalAttrs (class != "droid") {lib = lib';})
@@ -97,7 +113,13 @@
             extraSpecialArgs = specialArgs // {lib = lib';};
           }
         )
-      ]));
+      ];
+    in
+      configGenerator.${class} (
+        if isSystemManager
+        then systemManagerArgs
+        else cfgArgs
+      ));
 in {
   _module.args = {
     inherit mkCfg;

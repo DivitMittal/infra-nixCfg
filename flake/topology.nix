@@ -12,7 +12,12 @@
       modules = [
         {
           networks.home = {
-            name = "Home Network";
+            name = "R1 LAN";
+            cidrv4 = "192.168.2.0/24";
+          };
+
+          networks.ont = {
+            name = "ONT Network";
             cidrv4 = "192.168.1.0/24";
           };
 
@@ -22,8 +27,13 @@
           };
 
           networks.mobile = {
-            name = "Mobile Network";
+            name = "Android USB Tethering";
             cidrv4 = "10.0.0.0/8";
+          };
+
+          networks.tailnet = {
+            name = "Tailscale Tailnet";
+            cidrv4 = "100.64.0.0/10";
           };
 
           networks.internet = {
@@ -43,20 +53,61 @@
           };
 
           nodes.router = {
-            name = "Home Router";
+            name = "R1";
             deviceType = "router";
-            hardware.info = "Consumer Router";
+            hardware.info = "Lenovo S100, Intel Atom, 2 GiB RAM, x86_64 OpenWrt; 8 GiB overlay + 290 GiB internal storage; 500 GB USB WD exFAT NAS via ksmbd";
+            interfaces.eth1 = {
+              network = "home";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "tp-link-switch";
+                  interface = "uplink";
+                }
+              ];
+            };
+            interfaces.eth2 = {
+              network = "ont";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "ont";
+                  interface = "lan";
+                }
+              ];
+            };
+            interfaces.tailscale0 = {
+              network = "tailnet";
+              type = "virtual";
+              virtual = true;
+            };
+          };
+
+          nodes.ont = {
+            name = "ONT";
+            deviceType = "router";
+            hardware.info = "DMZ host at 192.168.1.1";
+            interfaces.lan = {
+              network = "ont";
+              type = "ethernet";
+            };
             interfaces.wan = {
               network = "internet";
               type = "wan";
             };
-            interfaces.lan = {
+          };
+
+          nodes.tp-link-switch = {
+            name = "TP-Link Gigabit Switch";
+            deviceType = "switch";
+            hardware.info = "R1 DHCP clients and static-IP LAN clients";
+            interfaces.uplink = {
               network = "home";
               type = "ethernet";
             };
-            interfaces.wlan = {
+            interfaces.lan1 = {
               network = "home";
-              type = "wifi";
+              type = "ethernet";
             };
           };
 
@@ -68,12 +119,6 @@
             interfaces.en0 = {
               network = "home";
               type = "wifi";
-              physicalConnections = [
-                {
-                  node = "router";
-                  interface = "wlan";
-                }
-              ];
             };
             # Virtual bridge for the Colima x86_64 VM
             interfaces.col0 = {
@@ -155,16 +200,6 @@
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";
-              physicalConnections = [
-                {
-                  node = "router";
-                  interface = "wlan";
-                }
-              ];
-            };
-            interfaces.mobile0 = {
-              network = "mobile";
-              type = "mobile";
             };
           };
         }

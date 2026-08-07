@@ -63,10 +63,6 @@ fetch.github = "aome510/spotify-player"
 src.github = "ndavd/agevault"
 fetch.github = "ndavd/agevault"
 
-[ccs-bar]
-src.github = "kaitranntt/ccs"
-fetch.github = "kaitranntt/ccs"
-
 [dmgwiz]
 src.github = "citruz/dmgwiz"
 fetch.github = "citruz/dmgwiz"

@@ -2653,6 +2653,22 @@
         "type": "github"
       }
     },
+    "openwrt-nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785380699,
+        "narHash": "sha256-sitGBwUGEzUqHCKu3Z8a9/sX6fi/HgJA80HA2vjVNSk=",
+        "owner": "lonerOrz",
+        "repo": "openwrt-nix",
+        "rev": "35bb94dda9b890db5569e4b0b37d50ba482fcfe8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lonerOrz",
+        "repo": "openwrt-nix",
+        "type": "github"
+      }
+    },
     "pi-nix": {
       "inputs": {
         "bun2nix": "bun2nix_2",
@@ -2873,6 +2889,7 @@
         "nixpkgs-master": "nixpkgs-master",
         "nur": "nur",
         "nvchad4nix": "nvchad4nix",
+        "openwrt-nix": "openwrt-nix",
         "ragenix": "ragenix",
         "spicetify-nix": "spicetify-nix",
         "spotatui": "spotatui",

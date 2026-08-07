@@ -272,6 +272,11 @@
       url = "github:nix-community/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## OpenWrt UCI compiler and safe SSH deployer
+    openwrt-nix = {
+      url = "github:lonerOrz/openwrt-nix";
+      flake = false;
+    };
     ## Android
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid";

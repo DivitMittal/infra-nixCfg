@@ -23,4 +23,7 @@
   # kolu moved from ai-nixCfg to term-nixCfg upstream (ai-nixCfg dropped its
   # own copy 2026-07-15); term-nixCfg's own multiplexers/kolu.nix wrapper now
   # sets package/tuiPackage/padiTuiPackage, so nothing kolu-specific is needed here.
+
+  ## Wispr Flow dictation
+  homebrew.casks = lib.optionals hostPlatform.isDarwin ["wispr-flow"];
 }

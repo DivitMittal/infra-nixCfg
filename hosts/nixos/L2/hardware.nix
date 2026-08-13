@@ -5,6 +5,4 @@
   boot.extraModulePackages = [];
 
   networking.useDHCP = lib.mkDefault true;
-
-  hardware.parallels.enable = true;
 }

@@ -64,7 +64,6 @@
       inherit
         (pkgs.customDarwin)
         tccutil # macOS TCC/privacy permissions cli
-        zerobrew-bin
         ;
     }
     ++ [(pkgs.perl.withPackages (ps: [ps.Tk ps.Appcpanminus]))]; # perl with Tk support + cpanm

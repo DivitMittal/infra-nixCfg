@@ -19,6 +19,7 @@
   };
 
   home.packages = lib.optionals hostPlatform.isDarwin [
+    pkgs.customDarwin.zerobrew-bin
     (pkgs.writeShellScriptBin "brew-ultimate" ''
       echo "Running brew update..."
       brew update

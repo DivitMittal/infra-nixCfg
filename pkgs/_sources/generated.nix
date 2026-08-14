@@ -110,6 +110,14 @@
     };
     date = "2026-07-29";
   };
+  iSMC = {
+    pname = "iSMC";
+    version = "0.17.2";
+    src = fetchurl {
+      url = "https://github.com/dkorunic/iSMC/releases/download/v0.17.2/iSMC_Darwin_all.tar.gz";
+      sha256 = "sha256-BpM7vB2UKL5fSeo5OidWScWJxnAoIie7VDWNL0f2JUE=";
+    };
+  };
   launchdeck-aarch64 = {
     pname = "launchdeck-aarch64";
     version = "0.1.3";

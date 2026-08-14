@@ -194,6 +194,21 @@
     },
     "version": "63823db38b4287e9a9ab2bed87b6095665fee63a"
   },
+  "iSMC": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "iSMC",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-BpM7vB2UKL5fSeo5OidWScWJxnAoIie7VDWNL0f2JUE=",
+      "type": "url",
+      "url": "https://github.com/dkorunic/iSMC/releases/download/v0.17.2/iSMC_Darwin_all.tar.gz"
+    },
+    "version": "0.17.2"
+  },
   "launchdeck-aarch64": {
     "cargoLock": null,
     "date": null,

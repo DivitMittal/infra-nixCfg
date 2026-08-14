@@ -197,3 +197,9 @@ fetch.url = "https://github.com/lucasgelfond/zerobrew/releases/download/v$ver/zb
 src.github = "lucasgelfond/zerobrew"
 src.prefix = "v"
 fetch.url = "https://github.com/lucasgelfond/zerobrew/releases/download/v$ver/zbx-darwin-x64"
+
+[iSMC]
+src.github = "dkorunic/iSMC"
+src.prefix = "v"
+# Universal binary tarball covers both aarch64/x86_64-darwin — single asset, no per-arch split.
+fetch.url = "https://github.com/dkorunic/iSMC/releases/download/v$ver/iSMC_Darwin_all.tar.gz"

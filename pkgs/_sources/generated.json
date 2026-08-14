@@ -296,6 +296,51 @@
     },
     "version": "dda22dba0990645ed7961899a87ae5b1ea36d2e7"
   },
+  "nchat-aarch64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "nchat-aarch64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-xNYpQOok2Ts5E5ITbjzbDBLmOA+eN/hnk/QUYObSvAU=",
+      "type": "url",
+      "url": "https://github.com/d99kris/nchat/releases/download/v5.17.26/nchat-5.17.26-macos-arm64.tar.gz"
+    },
+    "version": "5.17.26"
+  },
+  "nchat-aarch64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "nchat-aarch64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-ooIsPj6PM8fHG8HrgDtRhK4CV8YychpS/o9w0GgjDqU=",
+      "type": "url",
+      "url": "https://github.com/d99kris/nchat/releases/download/v5.17.26/nchat-5.17.26-linux-arm64-glibc.tar.gz"
+    },
+    "version": "5.17.26"
+  },
+  "nchat-x86_64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "nchat-x86_64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-9wyc1euQhQ/1/kazpzkXkLR5Jwak3xTasmlEZljuUAU=",
+      "type": "url",
+      "url": "https://github.com/d99kris/nchat/releases/download/v5.17.26/nchat-5.17.26-linux-x86_64-glibc.tar.gz"
+    },
+    "version": "5.17.26"
+  },
   "option-analysis": {
     "cargoLock": null,
     "date": "2026-06-07",
@@ -406,6 +451,66 @@
       "url": "https://github.com/reaper-oss/sws/releases/download/v2.14.0.7/reaper_sws-x86_64.dylib"
     },
     "version": "2.14.0.7"
+  },
+  "simplex-chat-cli-aarch64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "simplex-chat-cli-aarch64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-soN7jR54IoW9rvypi2HwPLA4SUirQydbG+17KWRZNZA=",
+      "type": "url",
+      "url": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-macos-aarch64"
+    },
+    "version": "7.0.0"
+  },
+  "simplex-chat-cli-aarch64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "simplex-chat-cli-aarch64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-cKQ5aZBTwdm3+D/vnc3V45GltmSKKKeXtOG3MKCLHBs=",
+      "type": "url",
+      "url": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-ubuntu-24_04-aarch64"
+    },
+    "version": "7.0.0"
+  },
+  "simplex-chat-cli-x86_64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "simplex-chat-cli-x86_64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-JSxWasGrrRg85sjoJM24Mg7n3UIMnl+XM4XS8g5tW1Y=",
+      "type": "url",
+      "url": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-macos-x86-64"
+    },
+    "version": "7.0.0"
+  },
+  "simplex-chat-cli-x86_64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "simplex-chat-cli-x86_64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-hScqVYzWkFnw36mWNLLFztsX83RGDJzsRNl3evEAUME=",
+      "type": "url",
+      "url": "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-ubuntu-24_04-x86_64"
+    },
+    "version": "7.0.0"
   },
   "smcFanControl": {
     "cargoLock": null,
@@ -529,6 +634,66 @@
       "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v0.19.1/uniclipboard-cli-0.19.1-x86_64-unknown-linux-musl.tar.gz"
     },
     "version": "0.19.1"
+  },
+  "wacli-aarch64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "wacli-aarch64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-9NFiyKMfts3Z6tWV5U6AqlPUFwi5xXUhcX7Lt6xuMPc=",
+      "type": "url",
+      "url": "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_darwin_arm64.tar.gz"
+    },
+    "version": "0.15.2"
+  },
+  "wacli-aarch64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "wacli-aarch64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-W4h4WqLF2ahta2Z51IIqTEkBEAOtivOVgIl5fXoLggc=",
+      "type": "url",
+      "url": "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_linux_arm64.tar.gz"
+    },
+    "version": "0.15.2"
+  },
+  "wacli-x86_64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "wacli-x86_64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-ciAH20RPzn9MFsp5L8IlPlnueRU4P1ArRUw9l3Gm0ps=",
+      "type": "url",
+      "url": "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_darwin_amd64.tar.gz"
+    },
+    "version": "0.15.2"
+  },
+  "wacli-x86_64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "wacli-x86_64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-a6iOzss0qLxilVvArC1BSAvVXMKX/GG2hRNeH7IWuvY=",
+      "type": "url",
+      "url": "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_linux_amd64.tar.gz"
+    },
+    "version": "0.15.2"
   },
   "warpd": {
     "cargoLock": null,

@@ -16,6 +16,7 @@ in {
     enableFishIntegration = false;
     enableZshIntegration = false;
     enableBashIntegration = false;
+    enableNushellIntegration = false;
 
     defaultCommand = "${pkgs.fd}/bin/fd ${fd_opts}";
 

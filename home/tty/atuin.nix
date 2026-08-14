@@ -10,7 +10,7 @@
     enableFishIntegration = config.programs.fish.enable;
     enableZshIntegration = config.programs.zsh.enable;
     enableBashIntegration = false;
-    enableNushellIntegration = false;
+    enableNushellIntegration = config.programs.nushell.enable;
 
     settings = {
       ## where to store your database, default is your system data directory

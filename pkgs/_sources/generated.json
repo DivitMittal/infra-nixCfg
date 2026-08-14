@@ -275,6 +275,51 @@
     },
     "version": "v1.0.0"
   },
+  "moviebox-tui-aarch64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "moviebox-tui-aarch64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-0w+9XPoSG9G3fQMw3xN349512dcq6UWVMHcBlTIXk+w=",
+      "type": "url",
+      "url": "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_Linux_arm64.tar.gz"
+    },
+    "version": "0.1.8"
+  },
+  "moviebox-tui-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "moviebox-tui-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-wznJ99xu6WbAn7yZam9LDl4DJqJPOxurPAU4PrqVh6Q=",
+      "type": "url",
+      "url": "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_macOS_Universal.tar.gz"
+    },
+    "version": "0.1.8"
+  },
+  "moviebox-tui-x86_64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "moviebox-tui-x86_64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-7RkvZ1z8UknJYLNTAZJNDNWw4CXepVieeFcvEdqqdkE=",
+      "type": "url",
+      "url": "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_Linux_x64.tar.gz"
+    },
+    "version": "0.1.8"
+  },
   "mutt": {
     "cargoLock": null,
     "date": "2026-07-31",

@@ -204,6 +204,22 @@ src.prefix = "v"
 # Universal binary tarball covers both aarch64/x86_64-darwin — single asset, no per-arch split.
 fetch.url = "https://github.com/dkorunic/iSMC/releases/download/v$ver/iSMC_Darwin_all.tar.gz"
 
+# MovieBox-Tui — Rust TUI for streaming (macOS ships one universal tarball; Linux is per-arch)
+[moviebox-tui-darwin]
+src.github = "mesamirh/MovieBox-Tui"
+src.prefix = "v"
+fetch.url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v$ver/MovieBox_macOS_Universal.tar.gz"
+
+[moviebox-tui-x86_64-linux]
+src.github = "mesamirh/MovieBox-Tui"
+src.prefix = "v"
+fetch.url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v$ver/MovieBox_Linux_x64.tar.gz"
+
+[moviebox-tui-aarch64-linux]
+src.github = "mesamirh/MovieBox-Tui"
+src.prefix = "v"
+fetch.url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v$ver/MovieBox_Linux_arm64.tar.gz"
+
 [simplex-chat-cli-x86_64-darwin]
 src.github = "simplex-chat/simplex-chat"
 src.prefix = "v"

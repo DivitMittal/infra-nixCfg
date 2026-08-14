@@ -153,6 +153,30 @@
       sha256 = "sha256-EA0FllpEhcp2VxVLMVqLCpmlvt0F+xnuKzMsaMXzfDw=";
     };
   };
+  moviebox-tui-aarch64-linux = {
+    pname = "moviebox-tui-aarch64-linux";
+    version = "0.1.8";
+    src = fetchurl {
+      url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_Linux_arm64.tar.gz";
+      sha256 = "sha256-0w+9XPoSG9G3fQMw3xN349512dcq6UWVMHcBlTIXk+w=";
+    };
+  };
+  moviebox-tui-darwin = {
+    pname = "moviebox-tui-darwin";
+    version = "0.1.8";
+    src = fetchurl {
+      url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_macOS_Universal.tar.gz";
+      sha256 = "sha256-wznJ99xu6WbAn7yZam9LDl4DJqJPOxurPAU4PrqVh6Q=";
+    };
+  };
+  moviebox-tui-x86_64-linux = {
+    pname = "moviebox-tui-x86_64-linux";
+    version = "0.1.8";
+    src = fetchurl {
+      url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_Linux_x64.tar.gz";
+      sha256 = "sha256-7RkvZ1z8UknJYLNTAZJNDNWw4CXepVieeFcvEdqqdkE=";
+    };
+  };
   mutt = {
     pname = "mutt";
     version = "dda22dba0990645ed7961899a87ae5b1ea36d2e7";

@@ -5,31 +5,31 @@ _: {
     # Community strings are generated on-device (see reconcile.d hook below)
     # instead of being declared here, so they never land in git.
     settings.snmpd = {
-      agent.agent = {
+      agent = {
         _type = "agent";
         agentaddress = "161";
       };
 
-      view.all = {
+      all = {
         _type = "view";
         viewname = "all";
         type = "included";
         oid = ".1";
       };
 
-      group.ro_group = {
+      ro_group = {
         _type = "group";
         secname = "ro";
         version = "v2c";
       };
 
-      group.rw_group = {
+      rw_group = {
         _type = "group";
         secname = "rw";
         version = "v2c";
       };
 
-      access.ro_access = {
+      ro_access = {
         _type = "access";
         group = "ro_group";
         context = "none";
@@ -41,7 +41,7 @@ _: {
         notify = "none";
       };
 
-      access.rw_access = {
+      rw_access = {
         _type = "access";
         group = "rw_group";
         context = "none";

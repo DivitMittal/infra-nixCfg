@@ -31,9 +31,57 @@ hosts/
 │   ├── iso/                    # x86_64-linux vanilla
 │   ├── t2-iso/                 # x86_64-linux T2
 │   └── as-iso/                 # aarch64-linux Apple Silicon
-└── netboot/                    # PXE/TFTP netboot images (RAM-resident, minimal)
+├── netboot/                    # PXE/TFTP netboot images (RAM-resident, minimal)
+│   ├── enum.nix
+│   └── t1-netboot/              # x86_64-linux — facter report + install source for T1
+├── openwrt/                    # OpenWrt router configurations
+│   ├── enum.nix
+│   └── R1/                      # primary router
+│       ├── R1.nix              # primary configuration
+│       └── modules/            # auto-imported UCI modules
+└── switch/                     # Terraform-managed (terranix) switches
     ├── enum.nix
-    └── t1-netboot/              # x86_64-linux — facter report + install source for T1
+    └── S1/                      # TP-Link TL-SG105E, mgmt 192.168.2.2
+        └── default.nix         # terranix module (VLANs, PVIDs, ...)
+```
+
+## Switch Configurations (terranix)
+
+`hosts/switch/` holds plain-attrset terranix modules for switches that don't
+run OpenWrt/NixOS but expose a Terraform-manageable API — currently S1, a
+TP-Link Easy Smart switch managed via
+[terraform-provider-tplink-easysmart](https://github.com/lucavb/terraform-provider-tplink-easysmart).
+Each host is registered in `hosts/switch/enum.nix` under
+`flake.switchConfigurations.<name>` and compiled to `config.tf.json` by
+`flake/terranix.nix`.
+
+Unlike the NixOS-style hosts above, these aren't `mkCfg`-generated systems —
+there's nothing to activate on the switch itself, so `terraform`/`tofu` runs
+from the workstation against the switch's web UI.
+
+```bash
+nix run .#switch-S1              # plan (default, read-only)
+nix run .#switch-S1 -- apply
+```
+
+The admin password is decrypted at run time from
+`OS-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
+`secrets/manifest.nix`, same convention as every other secret consumed via
+`common/home/age.nix`) using the `~/.ssh/agenix/id_ed25519` identity, and
+exported as `TF_VAR_switch_s1_password` — it is never stored in this repo.
+State lives outside the repo, in
+`$XDG_STATE_HOME/os-nixcfg/terraform/switch-S1`.
+
+`secrets/lan/R1.age` is a symlink to `secrets/lan/S1.age` — R1's OpenWrt
+root password (set over SSH during `nix run .#openwrt-ont <target>`, see
+`flake/openwrt.nix`) intentionally shares S1's admin password, one
+ciphertext for both.
+
+To create the secret itself (from inside `OS-nixCfg-secrets`, after entering
+its devshell so `ragenix`/`RULES` are set up):
+
+```bash
+ragenix -e secrets/lan/S1.age
 ```
 
 ## Host Directory Layout

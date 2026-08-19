@@ -77,8 +77,10 @@
           (inputs.import-tree (self + "/hosts/${class}/${hostName}"))
         ]
         ++ optionals (class == "iso") [(inputs.import-tree (commonDir + "/hosts/nixos"))]
-        ++ optionals (class == "nixos") [
+        ++ optionals (class == "nixos" || class == "iso") [
           inputs.nix-topology.nixosModules.default
+        ]
+        ++ optionals (class == "nixos") [
           inputs.disko.nixosModules.disko
         ]
         ++ optionals (class == "darwin") [self.outputs.darwinModules.default]

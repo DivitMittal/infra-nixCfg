@@ -140,8 +140,8 @@
       };
     };
     OS-nixCfg-secrets = {
-      url = "git+ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git?ref=master";
-      #url = "path:/Users/div/Projects/Cfgs/OS-nixCfg-secrets";
+      #url = "git+ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git?ref=master";
+      url = "path:/Users/div/Projects/Cfgs/OS-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
@@ -280,6 +280,16 @@
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
     nixos-apple-silicon = {
       url = "github:nix-community/nixos-apple-silicon";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    ## OpenWrt UCI compiler and safe SSH deployer
+    openwrt-nix = {
+      url = "github:lonerOrz/openwrt-nix";
+      flake = false;
+    };
+    ## Terraform config generator, used for the S1 switch (Nix instead of HCL)
+    terranix = {
+      url = "github:terranix/terranix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ## Android

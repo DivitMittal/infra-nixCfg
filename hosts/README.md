@@ -15,6 +15,7 @@ hosts/
 ├── nixos/                      # NixOS systems
 │   ├── enum.nix
 │   ├── L2/                     # x86_64-linux desktop
+│   ├── T1/                     # x86_64-linux HP t640 thin client (PXE/facter, see below)
 │   ├── T2/                     # x86_64-linux T2 MacBook
 │   ├── ASL1N/                  # aarch64-linux on ASL1
 │   ├── colima/                 # x86_64-linux VM
@@ -25,11 +26,14 @@ hosts/
 ├── droid/                      # Android (nix-on-droid)
 │   ├── enum.nix
 │   └── M1/                     # aarch64-linux Android
-└── iso/                        # ISO builds (NixOS install media)
+├── iso/                        # ISO builds (NixOS install media)
+│   ├── enum.nix
+│   ├── iso/                    # x86_64-linux vanilla
+│   ├── t2-iso/                 # x86_64-linux T2
+│   └── as-iso/                 # aarch64-linux Apple Silicon
+└── netboot/                    # PXE/TFTP netboot images (RAM-resident, minimal)
     ├── enum.nix
-    ├── iso/                    # x86_64-linux vanilla
-    ├── t2-iso/                 # x86_64-linux T2
-    └── as-iso/                 # aarch64-linux Apple Silicon
+    └── t1-netboot/              # x86_64-linux — facter report + install source for T1
 ```
 
 ## Host Directory Layout
@@ -163,6 +167,183 @@ bootstrap-remote VPS1 --target root@148.113.8.216 --port 20041 --yes-destroy-dis
 bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --check
 bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 ```
+
+### T1 (HP t640 thin client) — PXE/facter bootstrap
+
+`T1` is a diskless-by-default thin client bootstrapped over PXE. Unlike the VPS
+hosts, it has no known-good `hardware-configuration.nix`: hardware detection
+comes from [nixos-facter](https://github.com/nix-community/nixos-facter)
+(`hardware.facter.reportPath` in `hosts/nixos/T1/hardware.nix`, module
+upstreamed into nixpkgs). `hosts/nixos/T1/facter.json` starts as a `{}`
+placeholder — `hardware.facter.enable` stays off until it's replaced with a
+real report, so evaluation is safe before you've touched the hardware.
+
+`t1-netboot` (`.#nixosConfigurations.t1-netboot`) is a minimal PXE ramdisk
+image — no desktop stack, just enough to run `nixos-facter` and act as the
+`nixos-anywhere` install source. It is not a deploy-rs target; it is only ever
+booted over the network.
+
+1. Build the netboot artifacts and serve them from your TFTP/PXE server:
+
+   ```bash
+   nix build .#nixosConfigurations.t1-netboot.config.system.build.netbootRamdisk
+   nix build .#nixosConfigurations.t1-netboot.config.system.build.kernel
+   nix eval --raw .#nixosConfigurations.t1-netboot.config.system.build.netbootIpxeScript
+   ```
+
+2. PXE-boot the T640 into that image, then generate the real hardware report
+   from within it:
+
+   ```bash
+   nixos-facter -o facter.json
+   ```
+
+   Copy the resulting `facter.json` back over
+   `hosts/nixos/T1/facter.json` (e.g. `scp` it out, or serve it with a
+   temporary `python3 -m http.server` and `curl` it from your workstation),
+   replacing the `{}` placeholder, and commit it.
+
+3. Confirm the target disk (`lsblk` from the PXE shell — `hosts/nixos/T1/disko.nix`
+   assumes `/dev/sda`, adjust if the report says otherwise), then install for
+   real from the still-PXE-booted host:
+
+   ```bash
+   bootstrap-remote T1 --target root@<pxe-booted-ip> --disk /dev/sda --check
+   bootstrap-remote T1 --target root@<pxe-booted-ip> --disk /dev/sda --yes-destroy-disk
+   ```
+
+4. Once installed to local disk, T1 behaves like any other NixOS host —
+   rebuild via `hts` locally, or wire it into `hosts/deploy.nix` for deploy-rs
+   if you want remote deploys later.
+
+### T1 as an edge router: multi-PPPoE OpenWrt/ImmortalWrt VM
+
+Besides being a plain NixOS host, T1 also hosts a multi-PPPoE OpenWrt/
+ImmortalWrt router as a VM, using T1's two (or more) physical NICs via
+macvtap passthrough — one toward the ISP, one toward the home LAN. The
+router VM itself terminates two PPPoE lines on the WAN side (each behind its
+own `kmod-macvlan` MAC-VLAN device) and load-balances them with `mwan3`.
+
+Why a hand-rolled `qemu-kvm` service instead of `microvm.nix` or Proxmox:
+`microvm.nix` only boots **NixOS** guests (it turns `nixosConfigurations`
+into disk images — no path for a foreign OS image), and Proxmox doesn't
+offer a categorically different hypervisor tier (same KVM stack under Debian
+plus a UI). Running `qemu-system-x86_64 -enable-kvm` directly gets the same
+KVM acceleration with no framework mismatch. See
+`hosts/nixos/T1/router-vm.nix` for the full systemd-networkd (macvtap
+netdevs) + systemd service definition, and `flake/openwrt-images.nix` for
+the image build (multi-PPPoE `uci-defaults` script, `mwan3` config,
+packages).
+
+**This is unverified on real hardware** — T1 isn't physically bootstrapped in
+this branch, and the two physical NIC names in `router-vm.nix`
+(`wanPhysIface` / `lanPhysIface`) are placeholders. Confirm the real names
+via `ip link` and adjust before relying on this.
+
+#### Building both images
+
+```bash
+nix build .#openwrt-t640-router
+nix build .#immortalwrt-t640-router
+```
+
+Both are `x86_64-linux`-only outputs (the upstream ImageBuilders only support
+an `x86_64-linux` builder host — build these from a Linux machine or a
+Linux remote builder, not from macOS directly). `router-vm.nix` defaults to
+booting `immortalwrt-t640-router`; switch to `openwrt-t640-router` by
+changing the one `routerImagePackage` line.
+
+#### VM service lifecycle
+
+```bash
+systemctl status openwrt-router-vm
+systemctl restart openwrt-router-vm   # e.g. after switching the image package
+journalctl -u openwrt-router-vm -f    # serial console output (qemu -serial mon:stdio)
+```
+
+`ExecStartPre` idempotently decompresses the current image package's
+`.img.gz` into `/var/lib/openwrt-router/disk.img`, re-extracting only when
+the source store path changes (tracked via a stamp file) — so restarting the
+service doesn't re-run a fresh install every time. `Restart=always` keeps the
+router VM up across crashes/kernel panics inside the guest.
+
+#### First-boot: entering real PPPoE credentials
+
+The image intentionally does **not** bake real PPPoE credentials into the
+Nix store or this repo, matching this project's existing no-secrets-in-store
+convention. `95-multi-pppoe`'s `uci-defaults` script wires up both PPPoE
+lines with clearly-commented `CHANGEME` placeholder credentials, wan
+firewall zone membership, and `mwan3` load-balancing — but you must enter the
+real username/password for each line once, after the VM's first boot, via
+LuCI (`Network > Interfaces > wan1`/`wan2` > Edit) or:
+
+```sh
+uci set network.wan1.username='...'
+uci set network.wan1.password='...'
+uci set network.wan2.username='...'
+uci set network.wan2.password='...'
+uci commit network && /etc/init.d/network reload
+```
+
+#### Switching mwan3 from balanced to failover
+
+The default `mwan3` policy (`balanced`) weights both PPPoE lines equally
+(`metric='1'`, `weight='3'` on both members). To switch to primary/backup
+failover instead, give the backup line a higher metric than the primary
+(mwan3 prefers lower metrics) — e.g. from the LuCI mwan3 app, or:
+
+```sh
+uci set mwan3.wan2_m1_w3.metric='2'   # wan1 stays primary at metric 1
+uci commit mwan3
+mwan3 restart
+```
+
+### Firmware/UEFI/BIOS updates (fwupd)
+
+`services.fwupd` is enabled for T1 and T2 (real x86_64 UEFI hardware; see
+`common/hosts/nixos/fwupd.nix` for why L2 and ASL1N are excluded). fwupd/LVFS
+is the standard cross-vendor tool for this on Linux — Nix can declare the
+daemon and its policy, but not a specific firmware version: firmware is
+flashed into hardware, not a Nix-store artifact, so applying an update is
+still an operator-run step after rebuilding:
+
+```bash
+fwupdmgr refresh       # pull latest LVFS metadata
+fwupdmgr get-updates   # list what's available for this machine
+fwupdmgr update        # apply
+```
+
+HP's LVFS coverage for the t640 thin-client line is effectively nonexistent
+today (HP's LVFS presence concentrates on EliteBook/EliteDesk/Z-workstation
+hardware), so `get-updates` reporting nothing on T1 is expected, not broken.
+
+#### Applying firmware updates over PXE
+
+`t1-netboot` also has `services.fwupd.enable = true;`, so you can check/apply
+firmware from the PXE shell — useful before T1 has an installed system, or as
+a rescue path afterwards. Important caveats:
+
+- **"Over PXE" only gets you the environment.** The actual flash happens
+  locally: fwupd stages a capsule, then on the _next_ reboot the T640's own
+  firmware reads and applies it before the OS loads — nothing is written to
+  the flash chip mid-session over the network.
+- **Requires genuine UEFI-mode PXE boot end-to-end** (UEFI PXE ROM →
+  `ipxe.efi` → kernel), not legacy BIOS PXE — otherwise there's no
+  `efivarfs`/capsule runtime for fwupd to use. Whether your PXE/TFTP/DHCP
+  server boots clients in UEFI mode is configured outside this flake (e.g. in
+  `OS-nixCfg-openwrt-router`), not here.
+- **No persistent mounts in netboot**, so fwupd can't auto-detect the ESP.
+  Mount the target disk's real ESP at `/boot` manually first (matches T1's
+  installed-system convention, so no `EspLocation` override is needed once
+  it's mounted there):
+
+  ```bash
+  lsblk -f                        # find the ESP partition, e.g. /dev/sda1
+  mount /dev/sda1 /boot
+  fwupdmgr refresh
+  fwupdmgr get-updates
+  fwupdmgr update                 # stages the capsule; reboot to apply
+  ```
 
 ### Steady-state deploys
 

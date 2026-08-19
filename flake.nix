@@ -263,6 +263,16 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## OpenWrt/ImmortalWrt image builders (Nix-native wrappers around the
+    ## upstream binary ImageBuilder, x86_64-linux only — see flake/openwrt-images.nix)
+    openwrt-imagebuilder = {
+      url = "github:astro/nix-openwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    immortalwrt-imagebuilder = {
+      url = "github:codgician/nix-immortalwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-wsl = {
       url = "github:nix-community/nixos-wsl/main";
       inputs.nixpkgs.follows = "nixpkgs";

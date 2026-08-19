@@ -19,6 +19,7 @@
         droid = inputs.nix-on-droid.lib.nixOnDroidConfiguration;
         home = inputs.home-manager.lib.homeManagerConfiguration;
         iso = nixos;
+        netboot = nixos;
       };
       inherit (ctx.pkgs.stdenvNoCC) hostPlatform;
       inherit (lib.attrsets) optionalAttrs mergeAttrsList;

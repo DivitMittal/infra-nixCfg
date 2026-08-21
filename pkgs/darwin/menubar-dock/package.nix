@@ -2,21 +2,11 @@
   lib,
   stdenv,
   sources,
-  python3,
 }:
 stdenv.mkDerivation (_finalAttrs: {
   pname = "menubar-dock";
   version = lib.removePrefix "v" sources.menubar-dock.version;
   inherit (sources.menubar-dock) src;
-
-  nativeBuildInputs = [python3];
-
-  # Strip the build-fix script into the unpacked source so postPatch can run
-  # it without needing Nix to embed it via a tricky heredoc.
-  postUnpack = ''
-    cp ${./strip-pods.py} $sourceRoot/strip-pods.py
-    chmod +x $sourceRoot/strip-pods.py
-  '';
 
   # The upstream project was authored for Xcode IDE only and requires a few
   # fixups to build from the CLI:
@@ -27,54 +17,106 @@ stdenv.mkDerivation (_finalAttrs: {
   # 2. Strip the CocoaPods integration: the Podfile declares zero pods, but
   #    the project still has `[CP] Check Pods Manifest.lock` build phases,
   #    `baseConfigurationReference = ...Pods-*.xcconfig`, and `Pods_*.framework`
-  #    link references that all require `pod install` to satisfy. The script
-  #    `strip-pods.py` (in the same directory) handles this and also replaces
-  #    the broken shared scheme with one that targets `MenuBarDock`.
+  #    link references that all require `pod install` to satisfy. Done with
+  #    `sed` directly on project.pbxproj instead of a helper script, and a
+  #    fresh shared scheme is written to replace the broken one.
   # 3. Inject SUPPORTED_PLATFORMS = macosx; everywhere — the project predates
   #    Xcode 14+'s stricter scheme validation, which rejects schemes whose
   #    buildables have no supported platforms declared.
   postPatch = ''
-    unset DEVELOPER_DIR SDKROOT
+        unset DEVELOPER_DIR SDKROOT
 
-    find_xcode_developer_dir() {
-      if [[ -x /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild ]]; then
-        echo /Applications/Xcode.app/Contents/Developer
-        return 0
-      fi
-      for d in /Applications/Xcode-*/Contents/Developer; do
-        if [[ -x "$d/usr/bin/xcodebuild" ]]; then
-          echo "$d"
-          return 0
+        find_xcode_developer_dir() {
+          if [[ -x /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild ]]; then
+            echo /Applications/Xcode.app/Contents/Developer
+            return 0
+          fi
+          for d in /Applications/Xcode-*/Contents/Developer; do
+            if [[ -x "$d/usr/bin/xcodebuild" ]]; then
+              echo "$d"
+              return 0
+            fi
+          done
+          return 1
+        }
+
+        if dev="$(find_xcode_developer_dir)"; then
+          export DEVELOPER_DIR="$dev"
+        else
+          export DEVELOPER_DIR="$(/usr/bin/xcode-select -p)"
         fi
-      done
-      return 1
-    }
 
-    if dev="$(find_xcode_developer_dir)"; then
-      export DEVELOPER_DIR="$dev"
-    else
-      export DEVELOPER_DIR="$(/usr/bin/xcode-select -p)"
-    fi
+        if [[ ! -x "$DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
+          echo "xcodebuild not found under '$DEVELOPER_DIR'." >&2
+          echo "Install full Xcode (not just CommandLineTools) or set xcode-select." >&2
+          exit 1
+        fi
 
-    if [[ ! -x "$DEVELOPER_DIR/usr/bin/xcodebuild" ]]; then
-      echo "xcodebuild not found under '$DEVELOPER_DIR'." >&2
-      echo "Install full Xcode (not just CommandLineTools) or set xcode-select." >&2
-      exit 1
-    fi
+        pbxproj="MenuBarDock.xcodeproj/project.pbxproj"
 
-    python3 "$PWD/strip-pods.py" "$PWD/MenuBarDock.xcodeproj"
+        # - drop the `[CP] Check Pods Manifest.lock` build-phase reference and its
+        #   orphaned PBXShellScriptBuildPhase block (needs `pod install` output)
+        # - drop baseConfigurationReference lines pointing at Pods-*.xcconfig
+        # - drop PBXBuildFile/PBXFileReference entries and list refs for
+        #   Pods_*.framework (the CocoaPods umbrella framework wrappers)
+        # - inject SUPPORTED_PLATFORMS + a clang++-driver LD into every
+        #   buildSettings block (Xcode 26 rejects schemes without either)
+        sed -E -i \
+          -e '/[A-F0-9]{24} \/\* \[CP\] Check Pods Manifest\.lock \*\/,/d' \
+          -e '/[A-F0-9]{24} \/\* \[CP\] Check Pods Manifest\.lock \*\/ = \{/,/^\t\t\};$/d' \
+          -e '/baseConfigurationReference = [A-F0-9]{24} \/\* Pods-[^ ]+\.xcconfig \*\//d' \
+          -e '/[A-F0-9]{24} \/\* Pods_[A-Za-z]+\.framework in Frameworks \*\/ = \{isa = PBXBuildFile;/d' \
+          -e '/[A-F0-9]{24} \/\* Pods_[A-Za-z]+\.framework \*\/ = \{isa = PBXFileReference;/d' \
+          -e '/[A-F0-9]{24} \/\* Pods_[A-Za-z]+\.framework( in Frameworks)? \*\/,/d' \
+          -e 's/buildSettings = \{/buildSettings = {\n\t\t\t\tSUPPORTED_PLATFORMS = macosx;\n\t\t\t\tLD = "$(DT_TOOLCHAIN_DIR)\/usr\/bin\/clang++";/' \
+          "$pbxproj"
+
+        # The shared scheme (`Menu Bar Dock.xcscheme`) references "Menu Bar Dock"
+        # / "Menu Bar Dock.xcodeproj" — names that don't match the actual target
+        # (`MenuBarDock`) or project (`MenuBarDock.xcodeproj`). Xcode 26 rejects
+        # this as "scheme not configured for the build action". Replace it with
+        # a working scheme that targets `MenuBarDock`.
+        scheme_dir="MenuBarDock.xcodeproj/xcshareddata/xcschemes"
+        mkdir -p "$scheme_dir"
+        cat >"$scheme_dir/MenuBarDock.xcscheme" <<'EOF'
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Scheme
+       LastUpgradeVersion = "2620"
+       version = "1.3">
+       <BuildAction
+          parallelizeBuildables = "YES"
+          buildImplicitDependencies = "YES">
+          <BuildActionEntries>
+             <BuildActionEntry
+                buildForTesting = "YES"
+                buildForRunning = "YES"
+                buildForProfiling = "YES"
+                buildForArchiving = "YES"
+                buildForAnalyzing = "YES">
+                <BuildableReference
+                   BuildableIdentifier = "primary"
+                   BlueprintIdentifier = "38412EFB222B3E2F00D3FA0C"
+                   BuildableName = "MenuBarDock.app"
+                   BlueprintName = "MenuBarDock"
+                   ReferencedContainer = "container:MenuBarDock.xcodeproj">
+                </BuildableReference>
+             </BuildActionEntry>
+          </BuildActionEntries>
+       </BuildAction>
+    </Scheme>
+    EOF
   '';
 
-  # Build the MenuBarDock target via the synthetic scheme written by
-  # strip-pods.py. The original shared scheme (`Menu Bar Dock.xcscheme`)
-  # references "Menu Bar Dock" / "Menu Bar Dock.xcodeproj" — names that don't
-  # match the actual target (`MenuBarDock`) or project (`MenuBarDock.xcodeproj`),
-  # so Xcode 26 rejects it as "scheme not configured for the build action".
+  # Build the MenuBarDock target via the synthetic scheme written above.
+  # The original shared scheme (`Menu Bar Dock.xcscheme`) references
+  # "Menu Bar Dock" / "Menu Bar Dock.xcodeproj" — names that don't match the
+  # actual target (`MenuBarDock`) or project (`MenuBarDock.xcodeproj`), so
+  # Xcode 26 rejects it as "scheme not configured for the build action".
   #
   # We use `-derivedDataPath build` because Xcode's default DerivedData path
   # (`~/Library/Developer/Xcode/DerivedData/`) isn't writable in the nix
   # sandbox. `-derivedDataPath` requires `-scheme` (passing only `-target` is
-  # rejected). The synthetic scheme generated by strip-pods.py targets the
+  # rejected). The synthetic scheme written in postPatch targets the
   # MenuBarDock product by its real name.
   buildPhase = ''
     runHook preBuild

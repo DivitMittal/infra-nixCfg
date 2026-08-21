@@ -315,7 +315,7 @@ run_preflight_checks() {
 
   if [[ ! -f "$PWD/flake.nix" ]]; then
     red "No flake.nix in current directory ($PWD)."
-    yellow "cd into the OS-nixCfg repo root before running bootstrap-remote."
+    yellow "cd into the infra-nixCfg repo root before running bootstrap-remote."
     exit 1
   fi
   green "Repository root: $PWD"

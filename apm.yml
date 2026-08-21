@@ -1,4 +1,4 @@
-name: OS-nixCfg
+name: infra-nixCfg
 version: 1.0.0
 description: Multi-platform Nix flake (darwin, NixOS/WSL, nix-on-droid, home-manager) with universal mkCfg builder
 author: DivitMittal
@@ -23,7 +23,7 @@ dependencies:
         - --context
         - claude-code
         - --project
-        - ~/OS-nixCfg
+        - ~/infra-nixCfg
     - name: nixos
       registry: false
       transport: stdio

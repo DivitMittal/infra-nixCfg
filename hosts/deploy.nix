@@ -1,4 +1,4 @@
-# Central deploy-rs registry for OS-nixCfg.
+# Central deploy-rs registry for infra-nixCfg.
 #
 # Lives under ./hosts (not ./flake) because flake-parts modules imported via
 # ./hosts reliably expose `flake.deploy.nodes` to the top-level `deploy`

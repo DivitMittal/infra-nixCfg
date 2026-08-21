@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# First-time bootstrap for an OS-nixCfg host.
+# First-time bootstrap for an infra-nixCfg host.
 #
 # Daily rebuilds go through utils/hosts_rebuild.sh (hts) and
 # utils/home_rebuild.sh (hms). Those assume their respective rebuild tool is
@@ -27,7 +27,7 @@ run_preflight_checks() {
 
   if [[ ! -f "$PWD/flake.nix" ]]; then
     red "No flake.nix in current directory ($PWD)."
-    yellow "cd into the OS-nixCfg repo root before running bootstrap."
+    yellow "cd into the infra-nixCfg repo root before running bootstrap."
     exit 1
   fi
   green "Repository root: $PWD"

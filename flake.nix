@@ -1,5 +1,5 @@
 {
-  description = "OS-nixCfg's flake";
+  description = "infra-nixCfg's flake";
 
   outputs = {nixpkgs, ...} @ inputs: let
     inherit (inputs.flake-parts.lib) mkFlake;
@@ -181,8 +181,8 @@
 
     ## Terminal Emulator
     term-nixCfg = {
-      url = "github:DivitMittal/term-nixCfg";
-      #url = "path:/Users/div/Projects/Cfgs/term-nixCfg";
+      #url = "github:DivitMittal/term-nixCfg";
+      url = "path:/Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -212,8 +212,8 @@
 
     ## AI
     ai-nixCfg = {
-      url = "github:DivitMittal/ai-nixCfg";
-      #url = "path:/Users/div/Projects/Cfgs/ai-nixCfg";
+      #url = "github:DivitMittal/ai-nixCfg";
+      url = "path:/Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -222,6 +222,20 @@
         treefmt-nix.follows = "treefmt-nix";
         git-hooks.follows = "git-hooks";
         actions-nix.follows = "actions-nix";
+      };
+    };
+
+    ## Quant / algo trading
+    quant-nixCfg = {
+      #url = "github:DivitMittal/quant-nixCfg";
+      url = "path:/Users/div/Projects/Cfgs/quant-nixCfg";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
+        devshell.follows = "devshell";
+        treefmt-nix.follows = "treefmt-nix";
+        git-hooks.follows = "git-hooks";
       };
     };
 
@@ -295,6 +309,11 @@
 
     lan-mouse = {
       url = "github:feschber/lan-mouse";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    areofyl-fetch = {
+      url = "github:areofyl/fetch";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

@@ -1,5 +1,5 @@
 ---
-description: Project-wide knowledge base for the OS-nixCfg multi-platform Nix flake
+description: Project-wide knowledge base for the infra-nixCfg multi-platform Nix flake
 applyTo: "**"
 ---
 

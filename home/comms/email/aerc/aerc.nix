@@ -5,7 +5,7 @@
   ...
 }: {
   imports = [
-    inputs.OS-nixCfg-secrets.homeManagerConfigurations.aercAccounts
+    inputs.infra-nixCfg-secrets.homeManagerConfigurations.aercAccounts
   ];
 
   programs.aerc = {

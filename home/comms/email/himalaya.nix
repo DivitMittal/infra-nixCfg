@@ -4,7 +4,7 @@
   ...
 }: {
   imports = [
-    inputs.OS-nixCfg-secrets.homeManagerConfigurations.himalayaAccounts
+    inputs.infra-nixCfg-secrets.homeManagerConfigurations.himalayaAccounts
   ];
 
   programs.himalaya = {

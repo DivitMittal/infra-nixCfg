@@ -45,5 +45,5 @@ hosts/darwin/
 ## NOTES
 
 - deploy-rs not used here (Android only); builds via `hts -v --show-trace`.
-- allowUnsupportedSystem=false inherited; requires access to OS-nixCfg-secrets for hostSpec.
+- allowUnsupportedSystem=false inherited; requires access to infra-nixCfg-secrets for hostSpec.
 - Path filters in CI: darwin workflow ignores nixos/droid/home-only changes.

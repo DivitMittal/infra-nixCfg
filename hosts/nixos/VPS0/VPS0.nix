@@ -4,8 +4,8 @@
   inputs,
   ...
 }: let
-  secretsPath = inputs.OS-nixCfg-secrets + "/secrets";
-  # Single authorized identity (== the agenix recipient pubkey in OS-nixCfg-secrets/secrets/secrets.nix).
+  secretsPath = inputs.infra-nixCfg-secrets + "/secrets";
+  # Single authorized identity (== the agenix recipient pubkey in infra-nixCfg-secrets/secrets/secrets.nix).
   sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHiaeSJP9C/rfe4nldhwrXjCJ3qP4qTWreR4lHMr/1BI";
 in {
   # --- Boot: Oracle Cloud A1 Flex uses UEFI; install GRUB as removable media because EFI vars are unavailable. ---
@@ -65,7 +65,7 @@ in {
   # QEMU guest agent — clean hypervisor-driven lifecycle/shutdown
   services.qemuGuest.enable = true;
 
-  # --- Login passwords via agenix (yescrypt hashes from OS-nixCfg-secrets) ---
+  # --- Login passwords via agenix (yescrypt hashes from infra-nixCfg-secrets) ---
   # The age private key is seeded at /var/lib/agenix/id_ed25519 during provisioning.
   age.identityPaths = ["/var/lib/agenix/id_ed25519"];
   age.secrets."users/div".file = secretsPath + "/users/div.age";

@@ -12,7 +12,7 @@
   self,
   ...
 }: let
-  username = inputs.OS-nixCfg-secrets.user.username;
+  username = inputs.infra-nixCfg-secrets.user.username;
 
   activateNixOnDroid = configuration:
     inputs.deploy-rs.lib.aarch64-linux.activate.custom

@@ -3,7 +3,7 @@
   config,
   ...
 }: let
-  secretsPath = inputs.OS-nixCfg-secrets + "/secrets";
+  secretsPath = inputs.infra-nixCfg-secrets + "/secrets";
   mkSecret = path: {file = secretsPath + "/${path}";};
 in {
   imports = [inputs.ragenix.homeManagerModules.default];

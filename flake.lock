@@ -32,7 +32,7 @@
         "type": "github"
       }
     },
-    "OS-nixCfg-secrets": {
+    "infra-nixCfg-secrets": {
       "inputs": {
         "actions-nix": [
           "actions-nix"
@@ -67,12 +67,12 @@
         "rev": "7694aebd5e5e44e27d3d6d288baa352338b2889a",
         "revCount": 211,
         "type": "git",
-        "url": "ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git"
+        "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       },
       "original": {
         "ref": "master",
         "type": "git",
-        "url": "ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git"
+        "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       }
     },
     "OS-nixCfg_2": {
@@ -2829,7 +2829,7 @@
     "root": {
       "inputs": {
         "Emacs-Cfg": "Emacs-Cfg",
-        "OS-nixCfg-secrets": "OS-nixCfg-secrets",
+        "infra-nixCfg-secrets": "infra-nixCfg-secrets",
         "PKMS": "PKMS",
         "TLTR": "TLTR",
         "Vim-Cfg": "Vim-Cfg",
@@ -3480,7 +3480,7 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
-          "OS-nixCfg-secrets",
+          "infra-nixCfg-secrets",
           "nixpkgs"
         ]
       },

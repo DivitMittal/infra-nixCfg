@@ -34,7 +34,7 @@ Multi-platform Nix flake (flake-parts) covering darwin, NixOS/WSL, nix-on-droid,
 | Home modules      | home/\*, common/home                         | Drop-in via scanPaths; platform subdirs under gui/       |
 | Packages/overlays | overlays/custom.nix, pkgs/\*                 | packagesFromDirectoryRecursive; darwin binaries separate |
 | Scripts           | utils/\*.sh                                  | Shared functions in common.sh; tags successful builds    |
-| Secrets           | common/all/hostSpec.nix (from private input) | Needs OS-nixCfg-secrets + SSH key                        |
+| Secrets           | common/all/hostSpec.nix (from private input) | Needs infra-nixCfg-secrets + SSH key                     |
 
 ## CODE MAP (key files)
 
@@ -81,6 +81,6 @@ nix flake check           # full flake checks
 
 ## NOTES
 
-- Secrets required: private input `OS-nixCfg-secrets` + age key at `${HOME}/.ssh/agenix/id_ed25519`.
+- Secrets required: private input `infra-nixCfg-secrets` + age key at `${HOME}/.ssh/agenix/id_ed25519`.
 - CI uses Cachix (divitmittal) + Determinate magic-nix-cache.
 - Top complexity hotspots: home/tty/find/yazi/{yazi.nix,keymap.nix}, macOS defaults, starship prompt.

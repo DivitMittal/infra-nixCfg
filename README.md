@@ -95,7 +95,7 @@ flowchart LR
     nd[nix-darwin]
     nod[nix-on-droid]
     sty[stylix]
-    sec["OS-nixCfg-secrets<br/>(private)"]
+    sec["infra-nixCfg-secrets<br/>(private)"]
     more["…+15 more"]
   end
 
@@ -198,18 +198,18 @@ Focused visualization of network segments and connectivity:
 Secrets (API keys, passwords, sensitive configurations) are managed via [agenix](https://github.com/ryantm/agenix) or specificaly [ragenix](https://github.com/yaxitech/ragenix).
 
 1.  Secrets are encrypted using `ssh` keys. My public key is explicitly available to `ragenix`.
-2.  The encrypted files reside in a **private** GitHub repository: `DivitMittal/OS-nixCfg-secrets`. This repository is referenced as a flake input.
+2.  The encrypted files reside in a **private** GitHub repository: `DivitMittal/infra-nixCfg-secrets`. This repository is referenced as a flake input.
 3.  During the Nix build process, `agenix` decrypts these files using my private key.
 4.  The decrypted files are placed in the Nix store & symlinked to their target locations.
 
-⚠️ **Building this configuration requires access to the private `DivitMittal/OS-nixCfg-secrets` repo and the corresponding [age](https://github.com/FiloSottile/age) private `ssh` key.**
+⚠️ **Building this configuration requires access to the private `DivitMittal/infra-nixCfg-secrets` repo and the corresponding [age](https://github.com/FiloSottile/age) private `ssh` key.**
 
 ## Satellite Repositories
 
 - [DivitMittal/ai-nixCfg](https://github.com/DivitMittal/ai-nixCfg): AI/LLM tool configurations extracted for modularity (CLI tools, cloud services, MCP servers, REPL configurations).
 - [DivitMittal/quant-nixCfg](https://github.com/DivitMittal/quant-nixCfg): Experimental sandbox + Nix home-manager modules/packages for open-source algo trading and quant workflows.
 - [DivitMittal/playbooks-4-windows](https://github.com/DivitMittal/playbooks-4-windows): Ansible IaC for the Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & T2); manages Scoop/Winget/MSYS2 packages, registry, and dotfiles.
-- `DivitMittal/OS-nixCfg-secrets`: (Private) Contains encrypted secrets managed by `agenix` & `ragenix`.
+- `DivitMittal/infra-nixCfg-secrets`: (Private) Contains encrypted secrets managed by `agenix` & `ragenix`.
 - [DivitMittal/Vim-Cfg](https://github.com/DivitMittal/Vim-Cfg): Pure lua standalone Neovim configuration, deployed via `nix4nvchad`.
 - [DivitMittal/Emacs-Cfg](https://github.com/DivitMittal/Emacs-Cfg): An elisp doomemacs configuration, used as an input via `nix-doom-emacs-unstraightened`.
 - [DivitMittal/TLTR](https://github.com/DivitMittal/TLTR): Cross-platform complex multi-layer keyboard layout tailored for programmers.

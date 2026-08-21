@@ -139,9 +139,9 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    OS-nixCfg-secrets = {
-      url = "git+ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git?ref=master";
-      #url = "path:/Users/div/Projects/Cfgs/OS-nixCfg-secrets";
+    infra-nixCfg-secrets = {
+      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=master";
+      #url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";

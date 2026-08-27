@@ -1,4 +1,4 @@
-_: {
+{inputs}: {
   # Custom overlay that provides additional packages from local directories
   #
   # Performance note: packagesFromDirectoryRecursive is efficient as it:
@@ -32,5 +32,12 @@ _: {
           ];
         };
     });
+    # nixpkgs' vicinae has had no binary cache on x86_64-darwin since NixOS
+    # 26.11 dropped that system; build from vicinae's own bundled flake
+    # (backed by vicinae.cachix.org) there instead, nixpkgs everywhere else.
+    vicinae =
+      if super.stdenv.hostPlatform.system == "x86_64-darwin"
+      then inputs.vicinae.packages.x86_64-darwin.default
+      else super.vicinae;
   };
 }

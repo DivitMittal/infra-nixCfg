@@ -7,7 +7,12 @@
   sshdTmpDirectory = "${config.user.home}/.sshd-tmp";
   sshdDirectory = "${config.user.home}/.sshd";
   pathToPubKey = "${sshdDirectory}/ssh_host_rsa_key.pub";
-  port = 8022;
+  # M1 and M1N are separate Android app sandboxes sharing the device's network
+  # namespace — same port would collide if both sshd's run at once.
+  port =
+    if config.hostSpec.hostName == "M1N"
+    then 8023
+    else 8022;
 in {
   environment.packages = lib.attrsets.attrValues {
     sshd-start = pkgs.writeScriptBin "sshd-start" ''

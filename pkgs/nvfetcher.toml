@@ -276,3 +276,24 @@ fetch.url = "https://github.com/d99kris/nchat/releases/download/v$ver/nchat-$ver
 src.github = "d99kris/nchat"
 src.prefix = "v"
 fetch.url = "https://github.com/d99kris/nchat/releases/download/v$ver/nchat-$ver-linux-arm64-glibc.tar.gz"
+
+# diskwatch — read-only disk diagnostics TUI (Linux ships static musl binaries; no version in asset name)
+[diskwatch-aarch64-darwin]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-macos-aarch64.tar.gz"
+
+[diskwatch-x86_64-darwin]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-macos-x86_64.tar.gz"
+
+[diskwatch-aarch64-linux]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-linux-aarch64-static.tar.gz"
+
+[diskwatch-x86_64-linux]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-linux-x86_64-static.tar.gz"

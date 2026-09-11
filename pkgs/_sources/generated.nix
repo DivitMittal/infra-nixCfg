@@ -90,6 +90,38 @@
     };
     date = "2026-07-02";
   };
+  diskwatch-aarch64-darwin = {
+    pname = "diskwatch-aarch64-darwin";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-macos-aarch64.tar.gz";
+      sha256 = "sha256-AXoVXcUX/h8xeP/VuEbvI8oVoroGCeZVO8DsHyadbDc=";
+    };
+  };
+  diskwatch-aarch64-linux = {
+    pname = "diskwatch-aarch64-linux";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-linux-aarch64-static.tar.gz";
+      sha256 = "sha256-0YK21bu7TiXCiYQwHkqCVKjUa+8kWEK2sOwMvixtjgY=";
+    };
+  };
+  diskwatch-x86_64-darwin = {
+    pname = "diskwatch-x86_64-darwin";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-macos-x86_64.tar.gz";
+      sha256 = "sha256-02Nt4CL6omQrFwID1tCE/rkFRs/+RHKs4fAR9gVncUk=";
+    };
+  };
+  diskwatch-x86_64-linux = {
+    pname = "diskwatch-x86_64-linux";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-linux-x86_64-static.tar.gz";
+      sha256 = "sha256-tkC6IfpRk6edUkVIzycmzATou8IOq4Yg2EuXtPPeEPM=";
+    };
+  };
   dmgwiz = {
     pname = "dmgwiz";
     version = "v1.1.0";

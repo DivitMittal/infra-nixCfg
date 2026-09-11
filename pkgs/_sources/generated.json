@@ -158,6 +158,66 @@
     },
     "version": "948a1fb84c15a71910456561cec384a978b13412"
   },
+  "diskwatch-aarch64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "diskwatch-aarch64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-AXoVXcUX/h8xeP/VuEbvI8oVoroGCeZVO8DsHyadbDc=",
+      "type": "url",
+      "url": "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-macos-aarch64.tar.gz"
+    },
+    "version": "0.5.2"
+  },
+  "diskwatch-aarch64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "diskwatch-aarch64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-0YK21bu7TiXCiYQwHkqCVKjUa+8kWEK2sOwMvixtjgY=",
+      "type": "url",
+      "url": "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-linux-aarch64-static.tar.gz"
+    },
+    "version": "0.5.2"
+  },
+  "diskwatch-x86_64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "diskwatch-x86_64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-02Nt4CL6omQrFwID1tCE/rkFRs/+RHKs4fAR9gVncUk=",
+      "type": "url",
+      "url": "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-macos-x86_64.tar.gz"
+    },
+    "version": "0.5.2"
+  },
+  "diskwatch-x86_64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "diskwatch-x86_64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-tkC6IfpRk6edUkVIzycmzATou8IOq4Yg2EuXtPPeEPM=",
+      "type": "url",
+      "url": "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-linux-x86_64-static.tar.gz"
+    },
+    "version": "0.5.2"
+  },
   "dmgwiz": {
     "cargoLock": null,
     "date": null,

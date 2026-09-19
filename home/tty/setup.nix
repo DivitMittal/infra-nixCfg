@@ -7,8 +7,6 @@
   disabledModules =
     [
       "${inputs.term-nixCfg}/config/home/tty/multiplexers/herdr.nix"
-      "${inputs.term-nixCfg}/config/home/tty/multiplexers/kolu.nix"
-      "${inputs.term-nixCfg.inputs.kolu}/nix/home/module.nix"
     ]
     ++ lib.optionals hostPlatform.isDarwin [
       "${inputs.ai-nixCfg}/config/home/browser.nix"
@@ -22,8 +20,7 @@
 
   aiNixCfg.voice.installDarwinApps = false;
 
-  services.kolu = {
-    tuiPackage = lib.mkForce inputs.ai-nixCfg.inputs.kolu.packages.${hostPlatform.system}.kaval-tui;
-    padiTuiPackage = lib.mkForce inputs.ai-nixCfg.inputs.kolu.packages.${hostPlatform.system}.padi-tui;
-  };
+  # kolu moved from ai-nixCfg to term-nixCfg upstream (ai-nixCfg dropped its
+  # own copy 2026-07-15); term-nixCfg's own multiplexers/kolu.nix wrapper now
+  # sets package/tuiPackage/padiTuiPackage, so nothing kolu-specific is needed here.
 }

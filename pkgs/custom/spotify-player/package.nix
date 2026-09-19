@@ -27,7 +27,7 @@ rustPlatform.buildRustPackage {
 
   inherit (sources.spotify-player) src;
 
-  cargoHash = "sha256-TmGdJXKOsTL9HVyEEe3PtiLMSDJV/TRokRBVAUdHL7I=";
+  cargoHash = "sha256-CSZ5sZ+d7Jhi43ipaWXKupYPFgWCbCx4RMTQN8emu9o=";
 
   nativeBuildInputs = [
     pkg-config

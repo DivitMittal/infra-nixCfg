@@ -2883,7 +2883,8 @@
         "tidalcycles-nix": "tidalcycles-nix",
         "treefmt-nix": "treefmt-nix_6",
         "yazi": "yazi",
-        "yazi-plugins": "yazi-plugins"
+        "yazi-plugins": "yazi-plugins",
+        "areofyl-fetch": "areofyl-fetch"
       }
     },
     "rust-overlay": {
@@ -3686,6 +3687,26 @@
       "original": {
         "owner": "yazi-rs",
         "repo": "plugins",
+        "type": "github"
+      }
+    },
+    "areofyl-fetch": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787337215,
+        "narHash": "sha256-bh2A56wVoMlKW8wK4bU9yXa0c7Eksn6WrH1tXOArSyA=",
+        "owner": "areofyl",
+        "repo": "fetch",
+        "rev": "901848cd6db265ab0414340cd9423dff7f6e8792",
+        "type": "github"
+      },
+      "original": {
+        "owner": "areofyl",
+        "repo": "fetch",
         "type": "github"
       }
     }

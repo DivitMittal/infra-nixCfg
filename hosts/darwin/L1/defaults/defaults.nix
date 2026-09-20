@@ -127,6 +127,7 @@
       AppleAccentColor = 0;
       AppleHighlightColor = "1.000000 0.733333 0.721569 Red";
       AppleMenuBarFontSize = "large";
+      NSConvolutionOverride1 = 1.0;
     };
 
     ## Accessibility

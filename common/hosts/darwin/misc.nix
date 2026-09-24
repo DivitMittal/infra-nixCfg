@@ -54,36 +54,39 @@
   };
   system.configurationRevision = self.rev or self.dirtyRev or null;
 
-  environment.systemPackages = lib.attrsets.attrValues {
-    inherit
-      (pkgs)
-      blueutil # bluetooth cli
-      ;
-    inherit
-      (pkgs.customDarwin)
-      tccutil # macOS TCC/privacy permissions cli
-      zerobrew-bin
-      ;
+  environment.systemPackages =
+    lib.attrsets.attrValues {
+      inherit
+        (pkgs)
+        blueutil # bluetooth cli
+        net-snmp
+        ;
+      inherit
+        (pkgs.customDarwin)
+        tccutil # macOS TCC/privacy permissions cli
+        zerobrew-bin
+        ;
 
-    brew-ultimate = pkgs.writeShellScriptBin "brew-ultimate" ''
-      echo "Running brew update..."
-      brew update
+      brew-ultimate = pkgs.writeShellScriptBin "brew-ultimate" ''
+        echo "Running brew update..."
+        brew update
 
-      echo "Running brew upgrade..."
-      brew upgrade
+        echo "Running brew upgrade..."
+        brew upgrade
 
-      echo "Running brew autoremove..."
-      brew autoremove
+        echo "Running brew autoremove..."
+        brew autoremove
 
-      echo "Running brew cleanup..."
-      brew cleanup -s --prune=0
+        echo "Running brew cleanup..."
+        brew cleanup -s --prune=0
 
-      echo "Removing brew cache..."
-      rm -rf "$(brew --cache)"
+        echo "Removing brew cache..."
+        rm -rf "$(brew --cache)"
 
-      echo "Brew maintenance complete!"
-    '';
-  };
+        echo "Brew maintenance complete!"
+      '';
+    }
+    ++ [(pkgs.perl.withPackages (ps: [ps.Tk ps.Appcpanminus]))]; # perl with Tk support + cpanm
 
   environment.variables = {
     ## Fix SSL certificate verification (including for Homebrew)

@@ -99,8 +99,9 @@ src.github = "vincentneo/LosslessSwitcher"
 fetch.url = "https://github.com/vincentneo/LosslessSwitcher/releases/download/$ver/LosslessSwitcher2.app.zip"
 
 [menubar-dock]
-src.github = "joaquinpiedracueva/menubar-dock"
-fetch.github = "joaquinpiedracueva/menubar-dock"
+src.github = "EthanSK/Menu-Bar-Dock"
+# Tag "v4.8.0" → asset "Menu-Bar-Dock-v4.8.0.zip" (signed & notarized universal .app)
+fetch.url = "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/$ver/Menu-Bar-Dock-$ver.zip"
 
 [MultiSoundChanger]
 src.github = "aonez/MultiSoundChanger"

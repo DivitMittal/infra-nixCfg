@@ -182,7 +182,7 @@
     ## Terminal Emulator
     term-nixCfg = {
       #url = "github:DivitMittal/term-nixCfg";
-      url = "path:/Users/div/Projects/Cfgs/term-nixCfg";
+      url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -213,7 +213,7 @@
     ## AI
     ai-nixCfg = {
       #url = "github:DivitMittal/ai-nixCfg";
-      url = "path:/Users/div/Projects/Cfgs/ai-nixCfg";
+      url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -228,7 +228,7 @@
     ## Quant / algo trading
     quant-nixCfg = {
       #url = "github:DivitMittal/quant-nixCfg";
-      url = "path:/Users/div/Projects/Cfgs/quant-nixCfg";
+      url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";

@@ -27,6 +27,7 @@ in {
       "TLTR"
       "PKMS"
     ];
+    systemManagerPackage = inputs.system-manager.packages.${pkgs.stdenvNoCC.hostPlatform.system}.default or null;
   in {
     devshells.default = {
       devshell = rec {
@@ -61,6 +62,9 @@ in {
           }
           ++ [
             inputs.deploy-rs.packages.${pkgs.stdenvNoCC.hostPlatform.system}.default # Deploy-rs for remote deployment
+          ]
+          ++ lib.optionals (systemManagerPackage != null) [
+            systemManagerPackage # System Manager for non-NixOS Linux hosts
           ];
       };
       commands = [
@@ -105,6 +109,25 @@ in {
             deploy ".#''${host}-home" "$@"
           '';
           category = "home-manager";
+        }
+        {
+          name = "bootstrap-system-manager";
+          help = "Remote first activation for non-NixOS Linux hosts using system-manager";
+          command = "${self}/utils/bootstrap_system_manager.sh \"$@\"";
+          category = "bootstrap";
+        }
+        {
+          name = "sms";
+          help = "Run the pinned system-manager CLI";
+          command = ''
+            if ! command -v system-manager >/dev/null 2>&1; then
+              echo "system-manager is not packaged for ${pkgs.stdenvNoCC.hostPlatform.system}; run this from a supported Linux/aarch64-darwin environment." >&2
+              exit 1
+            fi
+
+            system-manager "$@"
+          '';
+          category = "hosts";
         }
         {
           name = "m1-adb-forward";

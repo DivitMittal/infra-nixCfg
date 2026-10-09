@@ -294,6 +294,14 @@
         home-manager.follows = "home-manager";
       };
     };
+    # Termux Launcher's fork, tracking the app's bundled bootstrap (com.termux.launcher.nix edition)
+    nix-on-droid-launcher = {
+      url = "github:PickleHik3/nix-on-droid/launcher-nix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
     android-kvm = {
       url = "github:DivitMittal/android-kvm";
       #url = "path:/Users/div/Projects/hid/android-kvm";

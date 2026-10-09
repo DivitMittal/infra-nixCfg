@@ -10,6 +10,8 @@
         (pkgs.brewCasks)
         pearcleaner # macOS all-in-one cleaner
         hot # CPU temperature monitor for menubar
+        stats # macOS system monitor in menubar (CPU/GPU/mem/disk/sensors)
+        hiddenbar # hide/show menubar icons
         linearmouse # mouse/trackpad customization
         music-decoy # prevent macOS Music from auto-launching on media keys
         finetune # audio fine-tuning and volume control

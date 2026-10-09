@@ -18,6 +18,7 @@ _: {
 
     masApps = {
       ## General
+      "Plash" = 1494023538;
       # "Texty" = 1538996043;
 
       ## Safari Extensions

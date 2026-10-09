@@ -35,7 +35,7 @@ flowchart TB
 | --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------- |
 | `common/all/`                     | every config (incl. droid via `hostSpec.nix` only) | nix daemon settings, garbage-collection, substituters         |
 | `common/hosts/all/`               | every host (not home, not droid)                   | shells, users, system packages                                |
-| `common/hosts/<class>/`           | one platform                                       | `darwin/brew.nix`, `nixos/networking.nix`, `droid/termux.nix` |
+| `common/hosts/<class>/`           | one platform                                       | `darwin/misc.nix`, `nixos/networking.nix`, `droid/termux.nix` |
 | `hosts/<class>/<name>/`           | one specific host                                  | `nixos/T2/disko.nix`, `darwin/L1/services/kanata.nix`         |
 | `common/home/` + `home/<domain>/` | every home-manager config                          | shells, editors, prompts, GUIs                                |
 

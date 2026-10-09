@@ -194,6 +194,36 @@
     },
     "version": "986f5a79d43b75d93d84b8d57bc338853b51a0e0"
   },
+  "hyperhdr-aarch64": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "hyperhdr-aarch64",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-yC6e8HeX3rs5vKp/mGXCLFSjvk/eQbcoTSNMzeQbPPc=",
+      "type": "url",
+      "url": "https://github.com/awawa-dev/HyperHDR/releases/download/v22.0.0.0/HyperHDR-22.0.0-macOS-arm64.dmg"
+    },
+    "version": "22.0.0"
+  },
+  "hyperhdr-x86_64": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "hyperhdr-x86_64",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-plCH3tvZiibd5/IxkGE42WqaG3VmRsmUcjHUEbHkIlQ=",
+      "type": "url",
+      "url": "https://github.com/awawa-dev/HyperHDR/releases/download/v22.0.0.0/HyperHDR-22.0.0-macOS-x86_64.dmg"
+    },
+    "version": "22.0.0"
+  },
   "launchdeck-aarch64": {
     "cargoLock": null,
     "date": null,

@@ -198,3 +198,17 @@ fetch.url = "https://github.com/lucasgelfond/zerobrew/releases/download/v$ver/zb
 src.github = "lucasgelfond/zerobrew"
 src.prefix = "v"
 fetch.url = "https://github.com/lucasgelfond/zerobrew/releases/download/v$ver/zbx-darwin-x64"
+
+# HyperHDR — tags are 4-part ("v22.0.0.0") but DMG assets use 3 parts
+# ("HyperHDR-22.0.0-macOS-x86_64.dmg"); assumes the 4th component stays 0
+[hyperhdr-aarch64]
+src.github = "awawa-dev/HyperHDR"
+src.from_pattern = 'v(\d+\.\d+\.\d+)\.0'
+src.to_pattern = '\1'
+fetch.url = "https://github.com/awawa-dev/HyperHDR/releases/download/v$ver.0/HyperHDR-$ver-macOS-arm64.dmg"
+
+[hyperhdr-x86_64]
+src.github = "awawa-dev/HyperHDR"
+src.from_pattern = 'v(\d+\.\d+\.\d+)\.0'
+src.to_pattern = '\1'
+fetch.url = "https://github.com/awawa-dev/HyperHDR/releases/download/v$ver.0/HyperHDR-$ver-macOS-x86_64.dmg"

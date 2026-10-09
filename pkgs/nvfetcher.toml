@@ -197,3 +197,103 @@ fetch.url = "https://github.com/lucasgelfond/zerobrew/releases/download/v$ver/zb
 src.github = "lucasgelfond/zerobrew"
 src.prefix = "v"
 fetch.url = "https://github.com/lucasgelfond/zerobrew/releases/download/v$ver/zbx-darwin-x64"
+
+[iSMC]
+src.github = "dkorunic/iSMC"
+src.prefix = "v"
+# Universal binary tarball covers both aarch64/x86_64-darwin — single asset, no per-arch split.
+fetch.url = "https://github.com/dkorunic/iSMC/releases/download/v$ver/iSMC_Darwin_all.tar.gz"
+
+# MovieBox-Tui — Rust TUI for streaming (macOS ships one universal tarball; Linux is per-arch)
+[moviebox-tui-darwin]
+src.github = "mesamirh/MovieBox-Tui"
+src.prefix = "v"
+fetch.url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v$ver/MovieBox_macOS_Universal.tar.gz"
+
+[moviebox-tui-x86_64-linux]
+src.github = "mesamirh/MovieBox-Tui"
+src.prefix = "v"
+fetch.url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v$ver/MovieBox_Linux_x64.tar.gz"
+
+[moviebox-tui-aarch64-linux]
+src.github = "mesamirh/MovieBox-Tui"
+src.prefix = "v"
+fetch.url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v$ver/MovieBox_Linux_arm64.tar.gz"
+
+[simplex-chat-cli-x86_64-darwin]
+src.github = "simplex-chat/simplex-chat"
+src.prefix = "v"
+fetch.url = "https://github.com/simplex-chat/simplex-chat/releases/download/v$ver/simplex-chat-macos-x86-64"
+
+[simplex-chat-cli-aarch64-darwin]
+src.github = "simplex-chat/simplex-chat"
+src.prefix = "v"
+fetch.url = "https://github.com/simplex-chat/simplex-chat/releases/download/v$ver/simplex-chat-macos-aarch64"
+
+[simplex-chat-cli-x86_64-linux]
+src.github = "simplex-chat/simplex-chat"
+src.prefix = "v"
+fetch.url = "https://github.com/simplex-chat/simplex-chat/releases/download/v$ver/simplex-chat-ubuntu-24_04-x86_64"
+
+[simplex-chat-cli-aarch64-linux]
+src.github = "simplex-chat/simplex-chat"
+src.prefix = "v"
+fetch.url = "https://github.com/simplex-chat/simplex-chat/releases/download/v$ver/simplex-chat-ubuntu-24_04-aarch64"
+
+# wacli — WhatsApp CLI (multi-arch tarballs)
+[wacli-x86_64-darwin]
+src.github = "openclaw/wacli"
+src.prefix = "v"
+fetch.url = "https://github.com/openclaw/wacli/releases/download/v$ver/wacli_$ver_darwin_amd64.tar.gz"
+
+[wacli-aarch64-darwin]
+src.github = "openclaw/wacli"
+src.prefix = "v"
+fetch.url = "https://github.com/openclaw/wacli/releases/download/v$ver/wacli_$ver_darwin_arm64.tar.gz"
+
+[wacli-x86_64-linux]
+src.github = "openclaw/wacli"
+src.prefix = "v"
+fetch.url = "https://github.com/openclaw/wacli/releases/download/v$ver/wacli_$ver_linux_amd64.tar.gz"
+
+[wacli-aarch64-linux]
+src.github = "openclaw/wacli"
+src.prefix = "v"
+fetch.url = "https://github.com/openclaw/wacli/releases/download/v$ver/wacli_$ver_linux_arm64.tar.gz"
+
+# nchat — Telegram CLI (no upstream x86_64-darwin binary; macos-arm64 + linux glibc only)
+[nchat-aarch64-darwin]
+src.github = "d99kris/nchat"
+src.prefix = "v"
+fetch.url = "https://github.com/d99kris/nchat/releases/download/v$ver/nchat-$ver-macos-arm64.tar.gz"
+
+[nchat-x86_64-linux]
+src.github = "d99kris/nchat"
+src.prefix = "v"
+fetch.url = "https://github.com/d99kris/nchat/releases/download/v$ver/nchat-$ver-linux-x86_64-glibc.tar.gz"
+
+[nchat-aarch64-linux]
+src.github = "d99kris/nchat"
+src.prefix = "v"
+fetch.url = "https://github.com/d99kris/nchat/releases/download/v$ver/nchat-$ver-linux-arm64-glibc.tar.gz"
+
+# diskwatch — read-only disk diagnostics TUI (Linux ships static musl binaries; no version in asset name)
+[diskwatch-aarch64-darwin]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-macos-aarch64.tar.gz"
+
+[diskwatch-x86_64-darwin]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-macos-x86_64.tar.gz"
+
+[diskwatch-aarch64-linux]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-linux-aarch64-static.tar.gz"
+
+[diskwatch-x86_64-linux]
+src.github = "matthart1983/diskwatch"
+src.prefix = "v"
+fetch.url = "https://github.com/matthart1983/diskwatch/releases/download/v$ver/diskwatch-linux-x86_64-static.tar.gz"

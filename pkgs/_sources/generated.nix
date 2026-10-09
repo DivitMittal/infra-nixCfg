@@ -90,6 +90,38 @@
     };
     date = "2026-07-02";
   };
+  diskwatch-aarch64-darwin = {
+    pname = "diskwatch-aarch64-darwin";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-macos-aarch64.tar.gz";
+      sha256 = "sha256-AXoVXcUX/h8xeP/VuEbvI8oVoroGCeZVO8DsHyadbDc=";
+    };
+  };
+  diskwatch-aarch64-linux = {
+    pname = "diskwatch-aarch64-linux";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-linux-aarch64-static.tar.gz";
+      sha256 = "sha256-0YK21bu7TiXCiYQwHkqCVKjUa+8kWEK2sOwMvixtjgY=";
+    };
+  };
+  diskwatch-x86_64-darwin = {
+    pname = "diskwatch-x86_64-darwin";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-macos-x86_64.tar.gz";
+      sha256 = "sha256-02Nt4CL6omQrFwID1tCE/rkFRs/+RHKs4fAR9gVncUk=";
+    };
+  };
+  diskwatch-x86_64-linux = {
+    pname = "diskwatch-x86_64-linux";
+    version = "0.5.2";
+    src = fetchurl {
+      url = "https://github.com/matthart1983/diskwatch/releases/download/v0.5.2/diskwatch-linux-x86_64-static.tar.gz";
+      sha256 = "sha256-tkC6IfpRk6edUkVIzycmzATou8IOq4Yg2EuXtPPeEPM=";
+    };
+  };
   dmgwiz = {
     pname = "dmgwiz";
     version = "v1.1.0";
@@ -109,6 +141,14 @@
       sha256 = "sha256-wcHYqiW7XwieRszQ2XOPwTv714T0maqSRGbGkPBZlh4=";
     };
     date = "2026-07-29";
+  };
+  iSMC = {
+    pname = "iSMC";
+    version = "0.17.2";
+    src = fetchurl {
+      url = "https://github.com/dkorunic/iSMC/releases/download/v0.17.2/iSMC_Darwin_all.tar.gz";
+      sha256 = "sha256-BpM7vB2UKL5fSeo5OidWScWJxnAoIie7VDWNL0f2JUE=";
+    };
   };
   launchdeck-aarch64 = {
     pname = "launchdeck-aarch64";
@@ -145,6 +185,30 @@
       sha256 = "sha256-EA0FllpEhcp2VxVLMVqLCpmlvt0F+xnuKzMsaMXzfDw=";
     };
   };
+  moviebox-tui-aarch64-linux = {
+    pname = "moviebox-tui-aarch64-linux";
+    version = "0.1.8";
+    src = fetchurl {
+      url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_Linux_arm64.tar.gz";
+      sha256 = "sha256-0w+9XPoSG9G3fQMw3xN349512dcq6UWVMHcBlTIXk+w=";
+    };
+  };
+  moviebox-tui-darwin = {
+    pname = "moviebox-tui-darwin";
+    version = "0.1.8";
+    src = fetchurl {
+      url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_macOS_Universal.tar.gz";
+      sha256 = "sha256-wznJ99xu6WbAn7yZam9LDl4DJqJPOxurPAU4PrqVh6Q=";
+    };
+  };
+  moviebox-tui-x86_64-linux = {
+    pname = "moviebox-tui-x86_64-linux";
+    version = "0.1.8";
+    src = fetchurl {
+      url = "https://github.com/mesamirh/MovieBox-Tui/releases/download/v0.1.8/MovieBox_Linux_x64.tar.gz";
+      sha256 = "sha256-7RkvZ1z8UknJYLNTAZJNDNWw4CXepVieeFcvEdqqdkE=";
+    };
+  };
   mutt = {
     pname = "mutt";
     version = "dda22dba0990645ed7961899a87ae5b1ea36d2e7";
@@ -156,6 +220,30 @@
       sha256 = "sha256-sVRXaENy/KkmsmhUJLs/6jJlr0qMkGyOxBezHChUna8=";
     };
     date = "2026-07-31";
+  };
+  nchat-aarch64-darwin = {
+    pname = "nchat-aarch64-darwin";
+    version = "5.17.26";
+    src = fetchurl {
+      url = "https://github.com/d99kris/nchat/releases/download/v5.17.26/nchat-5.17.26-macos-arm64.tar.gz";
+      sha256 = "sha256-xNYpQOok2Ts5E5ITbjzbDBLmOA+eN/hnk/QUYObSvAU=";
+    };
+  };
+  nchat-aarch64-linux = {
+    pname = "nchat-aarch64-linux";
+    version = "5.17.26";
+    src = fetchurl {
+      url = "https://github.com/d99kris/nchat/releases/download/v5.17.26/nchat-5.17.26-linux-arm64-glibc.tar.gz";
+      sha256 = "sha256-ooIsPj6PM8fHG8HrgDtRhK4CV8YychpS/o9w0GgjDqU=";
+    };
+  };
+  nchat-x86_64-linux = {
+    pname = "nchat-x86_64-linux";
+    version = "5.17.26";
+    src = fetchurl {
+      url = "https://github.com/d99kris/nchat/releases/download/v5.17.26/nchat-5.17.26-linux-x86_64-glibc.tar.gz";
+      sha256 = "sha256-9wyc1euQhQ/1/kazpzkXkLR5Jwak3xTasmlEZljuUAU=";
+    };
   };
   option-analysis = {
     pname = "option-analysis";
@@ -215,6 +303,38 @@
     src = fetchurl {
       url = "https://github.com/reaper-oss/sws/releases/download/v2.14.0.7/reaper_sws-x86_64.dylib";
       sha256 = "sha256-c0enRIXFN+dMDdxTQ3hFv0almTF0dfrSHILNigJp2Js=";
+    };
+  };
+  simplex-chat-cli-aarch64-darwin = {
+    pname = "simplex-chat-cli-aarch64-darwin";
+    version = "7.0.0";
+    src = fetchurl {
+      url = "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-macos-aarch64";
+      sha256 = "sha256-soN7jR54IoW9rvypi2HwPLA4SUirQydbG+17KWRZNZA=";
+    };
+  };
+  simplex-chat-cli-aarch64-linux = {
+    pname = "simplex-chat-cli-aarch64-linux";
+    version = "7.0.0";
+    src = fetchurl {
+      url = "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-ubuntu-24_04-aarch64";
+      sha256 = "sha256-cKQ5aZBTwdm3+D/vnc3V45GltmSKKKeXtOG3MKCLHBs=";
+    };
+  };
+  simplex-chat-cli-x86_64-darwin = {
+    pname = "simplex-chat-cli-x86_64-darwin";
+    version = "7.0.0";
+    src = fetchurl {
+      url = "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-macos-x86-64";
+      sha256 = "sha256-JSxWasGrrRg85sjoJM24Mg7n3UIMnl+XM4XS8g5tW1Y=";
+    };
+  };
+  simplex-chat-cli-x86_64-linux = {
+    pname = "simplex-chat-cli-x86_64-linux";
+    version = "7.0.0";
+    src = fetchurl {
+      url = "https://github.com/simplex-chat/simplex-chat/releases/download/v7.0.0/simplex-chat-ubuntu-24_04-x86_64";
+      sha256 = "sha256-hScqVYzWkFnw36mWNLLFztsX83RGDJzsRNl3evEAUME=";
     };
   };
   smcFanControl = {
@@ -281,6 +401,38 @@
     src = fetchurl {
       url = "https://github.com/UniClipboard/UniClipboard/releases/download/v0.19.1/uniclipboard-cli-0.19.1-x86_64-unknown-linux-musl.tar.gz";
       sha256 = "sha256-zXBnmc7Ivscs/hxIi/13C2KTQ6iCRXxtIHnimls18fM=";
+    };
+  };
+  wacli-aarch64-darwin = {
+    pname = "wacli-aarch64-darwin";
+    version = "0.15.2";
+    src = fetchurl {
+      url = "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_darwin_arm64.tar.gz";
+      sha256 = "sha256-9NFiyKMfts3Z6tWV5U6AqlPUFwi5xXUhcX7Lt6xuMPc=";
+    };
+  };
+  wacli-aarch64-linux = {
+    pname = "wacli-aarch64-linux";
+    version = "0.15.2";
+    src = fetchurl {
+      url = "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_linux_arm64.tar.gz";
+      sha256 = "sha256-W4h4WqLF2ahta2Z51IIqTEkBEAOtivOVgIl5fXoLggc=";
+    };
+  };
+  wacli-x86_64-darwin = {
+    pname = "wacli-x86_64-darwin";
+    version = "0.15.2";
+    src = fetchurl {
+      url = "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_darwin_amd64.tar.gz";
+      sha256 = "sha256-ciAH20RPzn9MFsp5L8IlPlnueRU4P1ArRUw9l3Gm0ps=";
+    };
+  };
+  wacli-x86_64-linux = {
+    pname = "wacli-x86_64-linux";
+    version = "0.15.2";
+    src = fetchurl {
+      url = "https://github.com/openclaw/wacli/releases/download/v0.15.2/wacli_0.15.2_linux_amd64.tar.gz";
+      sha256 = "sha256-a6iOzss0qLxilVvArC1BSAvVXMKX/GG2hRNeH7IWuvY=";
     };
   };
   warpd = {

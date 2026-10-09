@@ -6,6 +6,12 @@
   ...
 }: {
   home.packages = lib.attrsets.attrValues {
+    inherit
+      (pkgs.custom)
+      simplex-chat-cli # SimpleX messaging CLI
+      wacli # WhatsApp CLI
+      nchat # Telegram CLI
+      ;
     telegram-tui = inputs.tgt.packages.${hostPlatform.system}.default;
     inherit
       (pkgs)

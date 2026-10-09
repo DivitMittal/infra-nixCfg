@@ -3,5 +3,5 @@
   lib,
   ...
 }: {
-  homebrew.formulae = lib.optionals hostPlatform.isDarwin ["wine@staging"];
+  homebrew.casks = lib.optionals hostPlatform.isDarwin ["wine@staging"];
 }

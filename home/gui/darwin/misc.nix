@@ -35,4 +35,10 @@
       smc = pkgs.customDarwin.smc; # Intel-only SMC fan/temp reading CLI
     }
   );
+
+  homebrew.casks = [
+    "hiddenbar" # hide menubar items
+    "macs-fan-control" # fan speed control & temperature monitor
+    "wezterm@nightly" # nightly build alongside term-nixCfg's stable brewCasks.wezterm
+  ];
 }

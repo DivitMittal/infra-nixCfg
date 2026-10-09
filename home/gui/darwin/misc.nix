@@ -41,4 +41,11 @@
     "macs-fan-control" # fan speed control & temperature monitor
     "wezterm@nightly" # nightly build alongside term-nixCfg's stable brewCasks.wezterm
   ];
+
+  homebrew.mas = [
+    {
+      name = "Plash"; # website as desktop wallpaper
+      id = 1494023538;
+    }
+  ];
 }

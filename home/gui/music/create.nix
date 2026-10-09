@@ -28,5 +28,13 @@
   homebrew.casks = lib.optionals hostPlatform.isDarwin [
     "native-access" # Native Instruments (Kontakt, Komplete)
     "inmusic-software-center" # inMusic (Akai Professional, AIR Music Technology)
+    "mpluginmanager" # MeldaProduction
+  ];
+
+  homebrew.mas = lib.optionals hostPlatform.isDarwin [
+    # {
+    #   name = "Capo"; # song transcription / slow-down
+    #   id = 696977615;
+    # }
   ];
 }

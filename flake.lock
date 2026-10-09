@@ -236,11 +236,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791572254,
-        "narHash": "sha256-LTKxXAXq58Vbv/MVIY/JGIuryyk88mDa6Vejr04Fyds=",
+        "lastModified": 1791580486,
+        "narHash": "sha256-dFyBgg9BMFqvbL/+MNj9VPNf9uaNw8jxwVgHox2KUrw=",
         "ref": "refs/heads/master",
-        "rev": "71b5775617a48ded8bb2d5c13cb48afac54d3e43",
-        "revCount": 356,
+        "rev": "13e9c938931db7976c018f3078bcc91e38101fdf",
+        "revCount": 358,
         "type": "git",
         "url": "file:///Users/div/Projects/Cfgs/ai-nixCfg"
       },
@@ -3547,11 +3547,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791411296,
-        "narHash": "sha256-p3o+/3JjT/eayqiJynTECPO9dof+k/f3+R74hWEkvgM=",
+        "lastModified": 1791580480,
+        "narHash": "sha256-6M+TU8Uf5FrM2MvxgqUhXt4E2dwZDt2GBsd1NqEKIVI=",
         "ref": "refs/heads/master",
-        "rev": "8865e93e54d6400438a53fdf473fac46ddf543a1",
-        "revCount": 182,
+        "rev": "4031d1ba85fc4797d48da468a947fd2f46ced9ba",
+        "revCount": 184,
         "type": "git",
         "url": "file:///Users/div/Projects/Cfgs/term-nixCfg"
       },

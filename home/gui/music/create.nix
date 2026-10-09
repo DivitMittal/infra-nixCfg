@@ -22,4 +22,11 @@
       then pkgs.brewCasks.musescore
       else pkgs.musescore;
   };
+
+  ## Vendor plugin/instrument managers; they install into system plugin dirs,
+  ## so they go through brew rather than brew-nix
+  homebrew.casks = lib.optionals hostPlatform.isDarwin [
+    "native-access" # Native Instruments (Kontakt, Komplete)
+    "inmusic-software-center" # inMusic (Akai Professional, AIR Music Technology)
+  ];
 }

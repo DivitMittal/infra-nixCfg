@@ -352,19 +352,10 @@
         actions-nix.follows = "actions-nix";
       };
     };
-    ## Declarative homebrew setup
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew"; # Bootstrapping homebrew
-    homebrew-core = {
-      url = "github:homebrew/homebrew-core";
-      flake = false;
-    };
-    homebrew-cask = {
-      url = "github:homebrew/homebrew-cask";
-      flake = false;
-    };
-    macos-fuse-t-cask = {
-      url = "github:macos-fuse-t/homebrew-cask";
-      flake = false;
+    ## Declarative homebrew setup (via home-manager)
+    home-manager-brew = {
+      url = "github:koalalorenzo/home-manager-brew";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     brew-nix = {

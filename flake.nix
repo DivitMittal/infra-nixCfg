@@ -306,6 +306,16 @@
         import-tree.follows = "import-tree";
       };
     };
+    ## declarative Android/GrapheneOS device state over adb (apps, permissions,
+    ## settings) from a controller machine — complements nix-on-droid, which
+    ## manages the Termux/proot environment on-device instead
+    nix-android = {
+      url = "github:devindudeman/nix-android";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+      };
+    };
 
     lan-mouse = {
       url = "github:feschber/lan-mouse";

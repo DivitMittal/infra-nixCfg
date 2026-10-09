@@ -41,8 +41,12 @@
       FUSE_T_LIB="/usr/local/lib/libfuse-t.dylib"
       FUSE_SYMLINK="/usr/local/lib/libfuse.2.dylib"
       if [ -f "$FUSE_T_LIB" ] && [ ! -e "$FUSE_SYMLINK" ]; then
-        echo "Creating fuse-t compatibility symlink..."
-        ln -sf "$FUSE_T_LIB" "$FUSE_SYMLINK"
+        if [ -w "$(dirname "$FUSE_SYMLINK")" ]; then
+          echo "Creating fuse-t compatibility symlink..."
+          run ln -sf "$FUSE_T_LIB" "$FUSE_SYMLINK"
+        else
+          warnEcho "Cannot write $FUSE_SYMLINK; run: sudo ln -sf $FUSE_T_LIB $FUSE_SYMLINK"
+        fi
       fi
     ''
   );

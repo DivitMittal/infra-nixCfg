@@ -29,6 +29,15 @@
       force-window = true;
     };
   };
+  ## HyperHDR — ambient lighting (Ambilight) driven by screen/video capture
+  home.packages = [
+    (
+      if hostPlatform.isDarwin
+      then pkgs.customDarwin.hyperhdr-bin
+      else pkgs.hyperhdr
+    )
+  ];
+
   home.shellAliases = lib.mkIf hostPlatform.isDarwin {
     mpv = "stolendata-mpv";
   };

@@ -110,6 +110,22 @@
     };
     date = "2026-09-24";
   };
+  hyperhdr-aarch64 = {
+    pname = "hyperhdr-aarch64";
+    version = "22.0.0";
+    src = fetchurl {
+      url = "https://github.com/awawa-dev/HyperHDR/releases/download/v22.0.0.0/HyperHDR-22.0.0-macOS-arm64.dmg";
+      sha256 = "sha256-yC6e8HeX3rs5vKp/mGXCLFSjvk/eQbcoTSNMzeQbPPc=";
+    };
+  };
+  hyperhdr-x86_64 = {
+    pname = "hyperhdr-x86_64";
+    version = "22.0.0";
+    src = fetchurl {
+      url = "https://github.com/awawa-dev/HyperHDR/releases/download/v22.0.0.0/HyperHDR-22.0.0-macOS-x86_64.dmg";
+      sha256 = "sha256-plCH3tvZiibd5/IxkGE42WqaG3VmRsmUcjHUEbHkIlQ=";
+    };
+  };
   launchdeck-aarch64 = {
     pname = "launchdeck-aarch64";
     version = "0.1.4";

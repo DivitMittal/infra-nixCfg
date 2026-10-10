@@ -9,6 +9,7 @@
       inherit
         (pkgs.brewCasks)
         pearcleaner # macOS all-in-one cleaner
+        hiddenbar # hide menubar items
         hot # CPU temperature monitor for menubar
         linearmouse # mouse/trackpad customization
         music-decoy # prevent macOS Music from auto-launching on media keys
@@ -36,8 +37,11 @@
     }
   );
 
+  ## Kept on Homebrew (brew-nix can't handle them):
+  ## - macs-fan-control: moves itself to /Applications, privileged SMC helper
+  ## - wezterm@nightly: unversioned nightly download (hash can't be pinned),
+  ##   and its WezTerm.app would clash with term-nixCfg's stable brewCasks.wezterm
   homebrew.casks = [
-    "hiddenbar" # hide menubar items
     "macs-fan-control" # fan speed control & temperature monitor
     "wezterm@nightly" # nightly build alongside term-nixCfg's stable brewCasks.wezterm
   ];

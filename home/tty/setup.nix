@@ -1,4 +1,5 @@
 {
+  pkgs,
   hostPlatform,
   inputs,
   lib,
@@ -25,5 +26,5 @@
   # sets package/tuiPackage/padiTuiPackage, so nothing kolu-specific is needed here.
 
   ## Wispr Flow dictation
-  homebrew.casks = lib.optionals hostPlatform.isDarwin ["wispr-flow"];
+  home.packages = lib.optionals hostPlatform.isDarwin [pkgs.brewCasks.wispr-flow];
 }

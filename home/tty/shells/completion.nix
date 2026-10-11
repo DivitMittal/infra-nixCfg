@@ -72,6 +72,6 @@ in {
     enableBashIntegration = false;
     enableZshIntegration = config.programs.zsh.enable;
     enableFishIntegration = config.programs.fish.enable;
-    enableNushellIntegration = false;
+    enableNushellIntegration = config.programs.nushell.enable;
   };
 }

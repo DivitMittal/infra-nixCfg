@@ -21,6 +21,7 @@ in {
     enableBashIntegration = false;
     enableZshIntegration = false;
     enableFishIntegration = false;
+    enableNushellIntegration = false;
 
     settings.ui.theme = "noctalia-cyberpunk";
 

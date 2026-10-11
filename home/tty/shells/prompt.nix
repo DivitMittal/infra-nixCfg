@@ -31,7 +31,7 @@ in {
     enableFishIntegration = config.programs.fish.enable;
     enableZshIntegration = false;
     enableBashIntegration = false;
-    enableNushellIntegration = false;
+    enableNushellIntegration = config.programs.nushell.enable;
     enableInteractive = true;
 
     settings = {
@@ -129,6 +129,7 @@ in {
         format = "via $indicator ";
         bash_indicator = "🐑";
         fish_indicator = "🐠";
+        nu_indicator = "🦬";
         powershell_indicator = "_";
         unknown_indicator = "❓";
         zsh_indicator = "🦓";

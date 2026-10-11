@@ -17,6 +17,7 @@
   imports = [
     inputs.ai-nixCfg.homeManagerConfigurations.Cfg
     inputs.term-nixCfg.homeManagerConfigurations.tty
+    ./cliproxyapi.nix
   ];
 
   aiNixCfg.voice.installDarwinApps = false;

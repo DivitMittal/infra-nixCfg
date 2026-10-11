@@ -19,5 +19,6 @@ in {
     "id_passage" = mkSecret "passage.age";
     "google/client_id.age" = mkSecret "google/client_id.age";
     "google/client_secret.age" = mkSecret "google/client_secret.age";
+    "ai/openrouter.age" = mkSecret "ai/openrouter.age";
   };
 }

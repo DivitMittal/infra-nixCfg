@@ -394,6 +394,16 @@
       flake = false;
     };
 
+    ## Launcher (Raycast alternative)
+    vicinae = {
+      url = "github:vicinaehq/vicinae";
+      # Don't follow nixpkgs: x86_64-darwin has had no nixpkgs binary cache
+      # since NixOS 26.11 dropped that system, so on x86_64-darwin we build
+      # vicinae from this flake's own bundled derivation (backed by
+      # vicinae.cachix.org) instead of nixpkgs; nixpkgs everywhere else.
+      inputs.systems.follows = "systems";
+    };
+
     ## Topology
     nix-topology = {
       url = "github:oddlama/nix-topology";
@@ -436,12 +446,14 @@
       "https://yazi.cachix.org"
       "https://wezterm.cachix.org"
       "https://cache.numtide.com"
+      "https://vicinae.cachix.org"
       #"https://cache.lix.systems"
     ];
     extra-trusted-public-keys = [
       "yazi.cachix.org-1:Dcdz63NZKfvUCbDGngQDAZq6kOroIrFoyO064uvLh8k="
       "wezterm.cachix.org-1:kAbhjYUC9qvblTE+s7S+kl5XM1zVa4skO+E/1IDWdH0="
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
       #"cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
     ];
   };

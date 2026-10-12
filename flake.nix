@@ -391,7 +391,15 @@
     };
     TLTR = {
       url = "github:DivitMittal/TLTR";
-      flake = false;
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-x86_64-darwin.follows = "nixpkgs-2605";
+        flake-parts.follows = "flake-parts";
+        devshell.follows = "devshell";
+        treefmt-nix.follows = "treefmt-nix";
+        git-hooks.follows = "git-hooks";
+        actions-nix.follows = "actions-nix";
+      };
     };
 
     ## Topology

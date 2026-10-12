@@ -12,8 +12,5 @@
   services.kanata-tray = {
     enable = false;
     package = inputs.kanata-tray.packages.${hostPlatform.system}.kanata-tray;
-    environment = {
-      KANATA_RSCROLL = "1";
-    };
   };
 }

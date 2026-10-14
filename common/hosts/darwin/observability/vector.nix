@@ -23,42 +23,55 @@
 
   hostname = config.networking.hostName;
 
-  vectorTomlConfig = ''
-    [sources.unified_log]
-    type    = "exec"
-    mode    = "scheduled"
-    scheduled.exec_interval_secs = 30
-    command = [
-      "/usr/bin/log",
-      "show",
-      "--style", "ndjson",
-      "--last", "30s",
-      "--predicate", "subsystem != 'com.apple.duetactivityscheduler'"
-    ]
-    decoding.codec = "json"
+  vectorConfig = {
+    sources.unified_log = {
+      type = "exec";
+      mode = "scheduled";
+      scheduled.exec_interval_secs = 30;
+      command = [
+        "/usr/bin/log"
+        "show"
+        "--style"
+        "ndjson"
+        "--last"
+        "30s"
+        "--predicate"
+        "subsystem != 'com.apple.duetactivityscheduler'"
+      ];
+      decoding.codec = "json";
+    };
 
-    [sources.exporter_logs]
-    type    = "file"
-    include = ["/var/log/node-exporter.*.log", "/var/log/nix-exporter.*.log"]
-    read_from = "end"
+    sources.exporter_logs = {
+      type = "file";
+      include = ["/var/log/node-exporter.*.log" "/var/log/nix-exporter.*.log"];
+      read_from = "end";
+    };
 
-    [transforms.add_labels]
-    type    = "remap"
-    inputs  = ["unified_log", "exporter_logs"]
-    source  = '''
-      .host  = "${hostname}"
-      .class = "darwin"
-    '''
+    transforms.add_labels = {
+      type = "remap";
+      inputs = ["unified_log" "exporter_logs"];
+      source = ''
+        .host  = "${hostname}"
+        .class = "darwin"
+      '';
+    };
 
-    [sinks.loki]
-    type     = "loki"
-    inputs   = ["add_labels"]
-    endpoint = "http://${serverAddr}:${toString ports.loki}"
-    encoding.codec = "json"
-    labels = { host = "{{ host }}", class = "{{ class }}", job = "macos-log" }
-  '';
+    sinks.loki = {
+      type = "loki";
+      inputs = ["add_labels"];
+      endpoint = "http://${serverAddr}:${toString ports.loki}";
+      encoding.codec = "json";
+      labels = {
+        host = "{{ host }}";
+        class = "{{ class }}";
+        job = "macos-log";
+      };
+    };
+  };
 
-  configFile = pkgs.writeText "vector.toml" vectorTomlConfig;
+  ## Generated rather than hand-written TOML: a Nix `''` string can't hold
+  ## TOML's `'''` multi-line literal for the remap source
+  configFile = (pkgs.formats.toml {}).generate "vector.toml" vectorConfig;
 in {
   config = lib.mkIf (cfg.enable && cfg.role == "agent") {
     launchd.daemons.vector = {

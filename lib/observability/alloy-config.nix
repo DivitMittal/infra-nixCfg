@@ -53,7 +53,7 @@ in
         url = "http://${serverAddr}:${toString ports.loki}/loki/api/v1/push"
       }
       external_labels = {
-        fleet = "OS-nixCfg",
+        fleet = "infra-nixCfg",
       }
     }
 

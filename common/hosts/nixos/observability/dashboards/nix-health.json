@@ -1,7 +1,7 @@
 {
   "title": "Nix Health",
   "uid": "nix-health",
-  "tags": ["OS-nixCfg", "nix"],
+  "tags": ["infra-nixCfg", "nix"],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,

@@ -71,6 +71,7 @@
       secrets = {
         alertmanagerEnvFile = null;
         grafanaAdminPasswordFile = null;
+        grafanaSecretKeyFile = null;
       };
     };
 
@@ -95,13 +96,14 @@
 
       ## ─── Metrics ─────────────────────────────────────────────────────────
       services.prometheus."prom" = {
+        enable = true;
         port = cfg.ports.prometheus;
         listenAddress = "127.0.0.1";
         extraConfig = {
           global = {
             scrape_interval = "30s";
             evaluation_interval = "30s";
-            external_labels.fleet = "OS-nixCfg-local";
+            external_labels.fleet = "infra-nixCfg-local";
           };
           scrape_configs = scrapeConfigs;
           rule_files = [(toString rulesFile)];
@@ -123,6 +125,7 @@
       ## services-flake's defaults already set server/common/schema_config to
       ## point at the per-instance dataDir; we only override retention here.
       services.loki."loki" = {
+        enable = true;
         httpAddress = "127.0.0.1";
         httpPort = cfg.ports.loki;
         extraConfig = {
@@ -139,6 +142,7 @@
       ## Default storage paths come from services-flake; we extend the OTLP
       ## listener config and wire the metrics-generator remote_write to prom.
       services.tempo."tempo" = {
+        enable = true;
         httpAddress = "127.0.0.1";
         httpPort = cfg.ports.tempo;
         extraConfig = {
@@ -146,7 +150,7 @@
             grpc.endpoint = "0.0.0.0:${toString cfg.ports.tempoOtlpGrpc}";
             http.endpoint = "0.0.0.0:${toString cfg.ports.tempoOtlpHttp}";
           };
-          compactor.compaction.block_retention = cfg.retention.traces;
+          backend_worker.compaction.block_retention = cfg.retention.traces;
           metrics_generator = {
             registry.external_labels.source = "tempo";
             storage.remote_write = [
@@ -163,6 +167,7 @@
 
       ## ─── UI ──────────────────────────────────────────────────────────────
       services.grafana."grafana" = {
+        enable = true;
         http_port = cfg.ports.grafana;
         domain = "localhost";
         protocol = "http";
@@ -182,13 +187,18 @@
         alertmanager = {
           command = pkgs.writeShellApplication {
             name = "start-alertmanager";
-            runtimeInputs = [pkgs.prometheus-alertmanager];
+            runtimeInputs = [pkgs.prometheus-alertmanager pkgs.envsubst];
+            ## Fill the `''${VAR:-default}` receiver URLs like the NixOS module
+            ## does; single node, so no cluster gossip listener
             text = ''
-              mkdir -p "''${DATA_DIR:-$PC_TEMP_DIR/alertmanager}"
+              data="''${DATA_DIR:-./data/alertmanager}"
+              mkdir -p "$data"
+              envsubst -i ${alertmanagerConfigFile} -o "$data/alertmanager.yaml"
               exec alertmanager \
-                --config.file=${alertmanagerConfigFile} \
+                --config.file="$data/alertmanager.yaml" \
                 --web.listen-address=127.0.0.1:${toString cfg.ports.alertmanager} \
-                --storage.path="''${DATA_DIR:-$PC_TEMP_DIR/alertmanager}"
+                --cluster.listen-address= \
+                --storage.path="$data"
             '';
           };
           readiness_probe = {

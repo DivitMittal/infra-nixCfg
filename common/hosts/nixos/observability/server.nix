@@ -23,25 +23,34 @@
   libObs = ../../../../lib/observability;
 
   scrapeConfigs = import (libObs + "/prometheus-scrape-configs.nix") {inherit cfg lib;};
-  rulesFile = import (libObs + "/prometheus-rules.nix") {inherit pkgs cfg;};
+  rulesFile = import (libObs + "/prometheus-rules.nix") {inherit pkgs;};
 
   blackboxConfig = import (libObs + "/blackbox-config.nix") {inherit pkgs;};
-  blackboxTargets = import (libObs + "/blackbox-targets.nix") {inherit cfg lib;};
+  blackboxTargets = import (libObs + "/blackbox-targets.nix") {inherit cfg;};
 
-  lokiConfig = import (libObs + "/loki-config.nix") {inherit cfg pkgs;};
-  tempoConfig = import (libObs + "/tempo-config.nix") {inherit cfg pkgs;};
-  otelcolConfig = import (libObs + "/otelcol-config.nix") {inherit cfg pkgs;};
-  alertmanagerConfig = import (libObs + "/alertmanager-config.nix") {inherit cfg pkgs;};
+  lokiConfig = import (libObs + "/loki-config.nix") {inherit cfg;};
+  tempoConfig = import (libObs + "/tempo-config.nix") {inherit cfg;};
+  otelcolConfig = import (libObs + "/otelcol-config.nix") {inherit cfg;};
+  alertmanagerConfig = import (libObs + "/alertmanager-config.nix") {};
 
   grafanaProvisioning = import (libObs + "/grafana-provisioning.nix") {
     inherit cfg pkgs;
     dashboardsSrc = ./dashboards;
   };
+
+  ## nixpkgs no longer defaults Grafana's secret_key; without an agenix file,
+  ## generate one on first start and keep it next to Grafana's state
+  generatedSecretKeyFile = "/var/lib/observability/grafana/secret_key";
+  grafanaSecretKeyFile =
+    if cfg.secrets.grafanaSecretKeyFile != null
+    then toString cfg.secrets.grafanaSecretKeyFile
+    else generatedSecretKeyFile;
 in {
   config = lib.mkIf (cfg.enable && cfg.role == "server") {
     ## Persistent state lives under a single root for easy backups.
     systemd.tmpfiles.rules = [
-      "d /var/lib/observability 0750 root root - -"
+      ## 0755 so each service user can traverse to its own 0750 subdir
+      "d /var/lib/observability 0755 root root - -"
       "d /var/lib/observability/prometheus 0750 prometheus prometheus - -"
       "d /var/lib/observability/loki 0750 loki loki - -"
       "d /var/lib/observability/tempo 0750 tempo tempo - -"
@@ -59,7 +68,7 @@ in {
         scrape_interval = "30s";
         evaluation_interval = "30s";
         external_labels = {
-          fleet = "OS-nixCfg";
+          fleet = "infra-nixCfg";
         };
       };
       inherit scrapeConfigs;
@@ -106,6 +115,9 @@ in {
       enable = true;
       port = ports.alertmanager;
       configuration = alertmanagerConfig;
+      ## Receiver URLs are `${VAR:-default}` placeholders that envsubst fills
+      ## at start; amtool at build time would reject them as invalid URLs
+      checkConfig = false;
       ## Decrypt notifier secrets at activation time, expose as env to alertmgr.
       environmentFile =
         if cfg.secrets.alertmanagerEnvFile != null
@@ -127,6 +139,7 @@ in {
         security =
           {
             admin_user = "admin";
+            secret_key = "$__file{${grafanaSecretKeyFile}}";
           }
           // lib.optionalAttrs (cfg.secrets.grafanaAdminPasswordFile != null) {
             admin_password = "$__file{${toString cfg.secrets.grafanaAdminPasswordFile}}";
@@ -139,6 +152,24 @@ in {
         datasources.settings = grafanaProvisioning.datasources;
         dashboards.settings = grafanaProvisioning.dashboards;
       };
+    };
+
+    systemd.services.grafana-secret-key = lib.mkIf (cfg.secrets.grafanaSecretKeyFile == null) {
+      description = "Generate Grafana secret_key";
+      requiredBy = ["grafana.service"];
+      before = ["grafana.service"];
+      after = ["systemd-tmpfiles-setup.service"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = ''
+        if [ ! -s ${generatedSecretKeyFile} ]; then
+          umask 077
+          ${pkgs.openssl}/bin/openssl rand -hex 32 > ${generatedSecretKeyFile}
+          chown grafana:grafana ${generatedSecretKeyFile}
+        fi
+      '';
     };
 
     ## Fleet-level blackbox targets (consumed by the scrape job)

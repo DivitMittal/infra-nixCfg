@@ -1,6 +1,6 @@
 # Observability Subsystem
 
-A declarative Prometheus + Loki + Tempo + Grafana + Alertmanager + OTEL Collector stack for the OS-nixCfg fleet, with Nix-specific metrics ("rebuild durations", "flake-lock age", "store size growth") that turn a generic LGTM deployment into a real Nix-platform-engineering story.
+A declarative Prometheus + Loki + Tempo + Grafana + Alertmanager + OTEL Collector stack for the infra-nixCfg fleet, with Nix-specific metrics ("rebuild durations", "flake-lock age", "store size growth") that turn a generic LGTM deployment into a real Nix-platform-engineering story.
 
 ## Architecture
 
@@ -50,12 +50,13 @@ Replace `address` values with your real Tailscale / WireGuard hostnames.
 
 ## Secrets
 
-Two optional secrets, both managed via agenix:
+Three optional secrets, all managed via agenix:
 
-| Secret                           | Purpose                             |
-| -------------------------------- | ----------------------------------- |
-| `observability/alertmanager.env` | `NTFY_TOPIC_URL`, `DISCORD_WEBHOOK` |
-| `observability/grafana-admin`    | Initial Grafana admin password      |
+| Secret                             | Purpose                                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `observability/alertmanager.env`   | `NTFY_TOPIC_URL`, `DISCORD_WEBHOOK`                                                            |
+| `observability/grafana-admin`      | Initial Grafana admin password                                                                 |
+| `observability/grafana-secret-key` | Grafana `secret_key` (if unset, generated once at `/var/lib/observability/grafana/secret_key`) |
 
 Wire them in `hosts/nixos/L2/observability.nix`.
 

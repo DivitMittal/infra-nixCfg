@@ -23,8 +23,7 @@
     else serverHost.address;
 
   alloyConfig = import ../../../../lib/observability/alloy-config.nix {
-    inherit cfg pkgs lib;
-    inherit serverAddr textfileDir;
+    inherit cfg pkgs serverAddr;
   };
 
   isAgentLike = cfg.enable && (cfg.role == "agent" || cfg.role == "server");

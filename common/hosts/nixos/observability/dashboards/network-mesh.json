@@ -1,7 +1,7 @@
 {
   "title": "Network Mesh",
   "uid": "network-mesh",
-  "tags": ["OS-nixCfg", "network"],
+  "tags": ["infra-nixCfg", "network"],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,

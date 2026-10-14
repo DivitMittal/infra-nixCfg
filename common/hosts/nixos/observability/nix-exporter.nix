@@ -20,7 +20,7 @@
 }: let
   cfg = config.services.observability;
   textfileDir = "/var/lib/observability/node-textfile";
-  flakeLockPath = "/etc/nixos/flake.lock"; # canonical fallback; the script also probes $HOME/Projects/OS-nixCfg/flake.lock
+  flakeLockPath = "/etc/nixos/flake.lock"; # canonical fallback; the script also probes $HOME/Projects{,/Cfgs}/infra-nixCfg/flake.lock
 
   script = pkgs.writeShellApplication {
     name = "nix-exporter";
@@ -74,7 +74,7 @@
       fi
 
       ## flake.lock age — try a couple of probable paths.
-      for candidate in ${flakeLockPath} /home/*/Projects/OS-nixCfg/flake.lock /root/OS-nixCfg/flake.lock; do
+      for candidate in ${flakeLockPath} /home/*/Projects/Cfgs/infra-nixCfg/flake.lock /home/*/Projects/infra-nixCfg/flake.lock /root/infra-nixCfg/flake.lock; do
         if [[ -e "$candidate" ]]; then
           lock_mtime=$(stat -c %Y "$candidate")
           now=$(date +%s)

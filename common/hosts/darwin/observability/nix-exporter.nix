@@ -60,7 +60,7 @@
       done
 
       ## flake.lock age — search the user's projects dir
-      for candidate in /Users/*/OS-nixCfg/flake.lock /Users/*/Projects/OS-nixCfg/flake.lock; do
+      for candidate in /Users/*/Projects/Cfgs/infra-nixCfg/flake.lock /Users/*/Projects/infra-nixCfg/flake.lock; do
         if [[ -e "$candidate" ]]; then
           lock_mtime=$(bsd_mtime "$candidate")
           now=$(date +%s)

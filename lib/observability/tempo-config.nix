@@ -4,6 +4,7 @@
 ## (preferred — the collector tail-samples first).
 {cfg}: let
   inherit (cfg) ports;
+  stateDir = "/var/lib/observability/tempo";
 in {
   server = {
     http_listen_port = ports.tempo;
@@ -16,25 +17,30 @@ in {
     http.endpoint = "0.0.0.0:${toString ports.tempoOtlpHttp}";
   };
 
-  ingester = {
-    max_block_duration = "5m";
-    trace_idle_period = "10s";
-  };
-
-  compactor.compaction = {
+  ## Tempo 3 dropped the ingester and compactor; retention is applied by the
+  ## backend worker
+  backend_worker.compaction = {
     block_retention = cfg.retention.traces;
     compacted_block_retention = "10m";
   };
 
   storage.trace = {
     backend = "local";
-    local.path = "/var/lib/observability/tempo/blocks";
-    wal.path = "/var/lib/observability/tempo/wal";
+    local.path = "${stateDir}/blocks";
+    wal.path = "${stateDir}/wal";
   };
+
+  ## Tempo 3 components that otherwise default to /var/tempo
+  live_store = {
+    wal.path = "${stateDir}/live-store/traces";
+    shutdown_marker_dir = "${stateDir}/live-store/shutdown-marker";
+  };
+  block_builder.wal.path = "${stateDir}/block-builder/traces";
+  backend_scheduler.local_work_path = "${stateDir}/scheduler";
 
   metrics_generator = {
     registry.external_labels.source = "tempo";
-    storage.path = "/var/lib/observability/tempo/generator";
+    storage.path = "${stateDir}/generator";
     storage.remote_write = [
       {
         url = "http://127.0.0.1:${toString ports.prometheus}/api/v1/write";

@@ -56,6 +56,7 @@ _: {
     # secrets = {
     #   alertmanagerEnvFile = config.age.secrets."observability/alertmanager.env".path;
     #   grafanaAdminPasswordFile = config.age.secrets."observability/grafana-admin".path;
+    #   grafanaSecretKeyFile = config.age.secrets."observability/grafana-secret-key".path;
     # };
   };
 }

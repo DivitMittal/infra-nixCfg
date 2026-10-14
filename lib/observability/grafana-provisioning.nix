@@ -86,9 +86,9 @@ in {
     apiVersion = 1;
     providers = [
       {
-        name = "OS-nixCfg";
+        name = "infra-nixCfg";
         orgId = 1;
-        folder = "OS-nixCfg";
+        folder = "infra-nixCfg";
         type = "file";
         disableDeletion = true;
         editable = false;

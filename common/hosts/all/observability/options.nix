@@ -147,6 +147,15 @@ in {
         default = null;
         description = "Path to a file containing the initial Grafana admin password.";
       };
+      grafanaSecretKeyFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = ''
+          Path to a file containing Grafana's `secret_key` (encrypts datasource
+          secrets in its database). When null, a random key is generated once
+          under Grafana's data dir and reused.
+        '';
+      };
     };
 
     alerts = {

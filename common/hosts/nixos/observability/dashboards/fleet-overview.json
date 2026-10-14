@@ -1,7 +1,7 @@
 {
   "title": "Fleet Overview",
   "uid": "fleet-overview",
-  "tags": ["OS-nixCfg", "fleet"],
+  "tags": ["infra-nixCfg", "fleet"],
   "timezone": "browser",
   "schemaVersion": 39,
   "version": 1,

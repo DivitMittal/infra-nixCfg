@@ -57,7 +57,15 @@ in {
   };
 
   service = {
-    telemetry.metrics.address = "0.0.0.0:8888";
+    ## Self-metrics on :8888 (`metrics.address` was removed upstream)
+    telemetry.metrics.readers = [
+      {
+        pull.exporter.prometheus = {
+          host = "0.0.0.0";
+          port = 8888;
+        };
+      }
+    ];
     pipelines.traces = {
       receivers = ["otlp"];
       processors = ["memory_limiter" "tail_sampling" "batch"];

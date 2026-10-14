@@ -9,7 +9,7 @@
   ];
 
   home.packages = lib.attrsets.attrValues {
-    librescore = lib.custom.mkPnpmDlxBin "dl-librescore" "dl-librescore@latest";
+    librescore = lib.custom.mkBunxBin "dl-librescore" "dl-librescore@latest";
   };
 
   programs.tidalcycles = {

@@ -31,6 +31,8 @@ in {
       if hostPlatform.isDarwin
       then pkgs.brewCasks.notion.override {variation = "tahoe";}
       else null;
+    # Official Excalidraw CLI (render .excalidraw → PNG, Excalidraw+ workspace)
+    excalidraw-cli = lib.custom.mkPnpmDlxBin "excalidraw" "@excalidraw/cli@latest";
   };
 
   programs.obsidian = {

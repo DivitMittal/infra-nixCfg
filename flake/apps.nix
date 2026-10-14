@@ -28,7 +28,7 @@
         // {
           mkZbxBin = prev.custom.mkZbxBin pkgs';
           mkUvxBin = prev.custom.mkUvxBin pkgs';
-          mkPnpmDlxBin = prev.custom.mkPnpmDlxBin pkgs';
+          mkBunxBin = prev.custom.mkBunxBin pkgs';
         };
     });
 

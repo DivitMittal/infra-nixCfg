@@ -8,6 +8,7 @@
     [(inputs.import-tree ./ide)]
     ++ [(inputs.import-tree ./music)]
     ++ [
+      ./3d-printing.nix
       ./comms.nix
       ./docs.nix
       ./lan.nix

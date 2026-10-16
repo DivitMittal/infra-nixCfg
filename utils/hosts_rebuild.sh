@@ -36,8 +36,9 @@ else
   yellow "Run ./utils/bootstrap.sh once to install one."
   exit 1
 fi
+status=$?
 
-# shellcheck disable=SC2181
-if [ $? -eq 0 ]; then
+if [ "$status" -eq 0 ]; then
   post_rebuild_success "host"
 fi
+exit "$status"

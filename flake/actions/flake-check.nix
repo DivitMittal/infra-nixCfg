@@ -17,6 +17,12 @@
             name = "Run nix flake check";
             run = "nix -vL flake check --all-systems --no-build";
           }
+          {
+            ## Nix test suites already fail during the eval above; the shell
+            ## suites need a build.
+            name = "Run shell tests";
+            run = "nix -vL build --no-link .#checks.x86_64-linux.shellcheck .#checks.x86_64-linux.shell-tests";
+          }
         ];
     };
   };

@@ -25,7 +25,11 @@ in {
     getPlugin = src: pluginName: {${pluginName} = src + "/${pluginName}.yazi";};
   in {
     enable = true;
-    package = inputs.yazi.packages.${hostPlatform.system}.yazi;
+    # The flake builds from its own nixpkgs, which throws on x86_64-darwin (Nixpkgs 26.11+)
+    package =
+      if hostPlatform.isDarwin && hostPlatform.isx86_64
+      then pkgs.yazi
+      else inputs.yazi.packages.${hostPlatform.system}.yazi;
 
     enableFishIntegration = false;
     enableZshIntegration = false;

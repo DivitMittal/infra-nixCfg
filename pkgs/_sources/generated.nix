@@ -242,6 +242,22 @@
     };
     date = "2022-12-03";
   };
+  spotatui-aarch64 = {
+    pname = "spotatui-aarch64";
+    version = "0.46.0";
+    src = fetchurl {
+      url = "https://github.com/LargeModGames/spotatui/releases/download/v0.46.0/spotatui-macos-aarch64.tar.gz";
+      sha256 = "sha256-GAu53DaxCswsTRv3AEXvyQQ0H6c7OmPhtM11alJCAy0=";
+    };
+  };
+  spotatui-x86_64 = {
+    pname = "spotatui-x86_64";
+    version = "0.46.0";
+    src = fetchurl {
+      url = "https://github.com/LargeModGames/spotatui/releases/download/v0.46.0/spotatui-macos-x86_64.tar.gz";
+      sha256 = "sha256-RG/ju1bL2jzAP1dz/l0eeKI+HdLroLMndnlr9kSQ/RY=";
+    };
+  };
   spotify-player = {
     pname = "spotify-player";
     version = "v0.25.1";

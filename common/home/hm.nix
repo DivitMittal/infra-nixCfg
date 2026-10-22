@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  hostPlatform,
   ...
 }: {
   programs.home-manager.enable = true; # home-manager standalone
@@ -11,7 +12,8 @@
     username = lib.mkDefault config.hostSpec.username;
     homeDirectory = lib.mkDefault config.hostSpec.home;
     preferXdgDirectories = true;
-    enableNixpkgsReleaseCheck = true;
+    # x86_64-darwin is deliberately on Nixpkgs 26.05 under home-manager master
+    enableNixpkgsReleaseCheck = !(hostPlatform.isDarwin && hostPlatform.isx86_64);
     language.base = "en_US.UTF-8";
   };
 

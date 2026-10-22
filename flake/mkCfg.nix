@@ -13,15 +13,20 @@
     extraSpecialArgs ? {},
   }:
     withSystem system (ctx: let
+      isX86Darwin = system == "x86_64-darwin";
       configGenerator = rec {
         nixos = lib.nixosSystem;
-        darwin = inputs.nix-darwin.lib.darwinSystem;
+        darwin =
+          if isX86Darwin
+          then inputs.nix-darwin-2605.lib.darwinSystem
+          else inputs.nix-darwin.lib.darwinSystem;
         droid = inputs.nix-on-droid.lib.nixOnDroidConfiguration;
         home = inputs.home-manager.lib.homeManagerConfiguration;
         iso = nixos;
       };
       inherit (ctx.pkgs.stdenvNoCC) hostPlatform;
       inherit (lib.attrsets) optionalAttrs mergeAttrsList;
+      inherit (self.outputs.overlays) brewCasks;
       pkgs = ctx.pkgs.extend (
         self: super:
           mergeAttrsList [
@@ -35,15 +40,20 @@
             (
               optionalAttrs (class == "home") (mergeAttrsList [
                 (inputs.nur.overlays.default self super)
-                (optionalAttrs hostPlatform.isDarwin (inputs.brew-nix.overlays.default self super))
+                (optionalAttrs hostPlatform.isDarwin (brewCasks self super))
               ])
             )
             (optionalAttrs (class == "droid") (inputs.nix-on-droid.overlays.default self super))
           ]
       );
+      # lib comes from the same nixpkgs as pkgs: 26.11's lib.platforms.darwin no
+      # longer lists x86_64-darwin, so its modules would reject those hosts.
+      baseLib = ctx.pkgs.lib.extend (final: _: {
+        custom = import (self + "/lib/custom.nix") {lib = final;};
+      });
       # Re-extend lib with pkgs now available, partially applying it into the helpers
       # so call sites don't need to pass pkgs explicitly.
-      lib' = lib.extend (_: prev: {
+      lib' = baseLib.extend (_: prev: {
         custom =
           prev.custom
           // {

@@ -16,6 +16,8 @@ in {
     enableFishIntegration = false;
     enableZshIntegration = false;
     enableBashIntegration = false;
+    # home-manager asserts fzf >= 0.73 for nushell; Nixpkgs 26.05 (x86_64-darwin) ships 0.72
+    enableNushellIntegration = lib.versionAtLeast config.programs.fzf.package.version "0.73.0";
 
     defaultCommand = "${pkgs.fd}/bin/fd ${fd_opts}";
 

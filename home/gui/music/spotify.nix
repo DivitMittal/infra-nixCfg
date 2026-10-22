@@ -29,7 +29,12 @@ in {
     # Spicetify patches Spotify, so the two are mutually exclusive — pick one.
     mode = mkOption {
       type = lib.types.enum ["spicetify" "stock"];
-      default = "spicetify";
+      # spicetify-nix builds the spiced client from its own nixpkgs input,
+      # which throws on x86_64-darwin (Nixpkgs 26.11+).
+      default =
+        if hostPlatform.system == "x86_64-darwin"
+        then "stock"
+        else "spicetify";
       description = ''
         Which Spotify installation to use. `spicetify` enables the customized
         Spicetify client (with the extensions, snippets, and apps configured

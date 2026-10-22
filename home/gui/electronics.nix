@@ -38,5 +38,16 @@
 
     ## React/TypeScript circuits (`tsci`); not packaged in nixpkgs
     tscircuit = lib.custom.mkBunxBin "tsci" "tscircuit@latest";
+
+    ## KiCad 10 MCP server (`konnect`); prebuilt release binary
+    inherit (pkgs.custom) konnect-bin;
+  };
+
+  ## Exposes Konnect's schematic/PCB tools to MCP clients (Claude Code, etc.).
+  ## PCB tools need KiCad running with "Enable KiCad API" on
+  programs.mcp.servers.konnect = {
+    type = "stdio";
+    command = lib.meta.getExe pkgs.custom.konnect-bin;
+    args = [];
   };
 }

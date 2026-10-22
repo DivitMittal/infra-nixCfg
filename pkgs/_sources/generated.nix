@@ -126,6 +126,30 @@
       sha256 = "sha256-plCH3tvZiibd5/IxkGE42WqaG3VmRsmUcjHUEbHkIlQ=";
     };
   };
+  konnect-aarch64-darwin = {
+    pname = "konnect-aarch64-darwin";
+    version = "0.13.0";
+    src = fetchurl {
+      url = "https://github.com/mixelpixx/Konnect/releases/download/v0.13.0/konnect-v0.13.0-aarch64-apple-darwin.tar.gz";
+      sha256 = "sha256-AFKrGK3TwwFLzt0ycTHCv/edusWh2W5Fyp9rwoIsk8k=";
+    };
+  };
+  konnect-x86_64-darwin = {
+    pname = "konnect-x86_64-darwin";
+    version = "0.13.0";
+    src = fetchurl {
+      url = "https://github.com/mixelpixx/Konnect/releases/download/v0.13.0/konnect-v0.13.0-x86_64-apple-darwin.tar.gz";
+      sha256 = "sha256-4bMwUosdqjR3YxKEEsiz+ooSXhSeYDd4YsMGUH/NLnw=";
+    };
+  };
+  konnect-x86_64-linux = {
+    pname = "konnect-x86_64-linux";
+    version = "0.13.0";
+    src = fetchurl {
+      url = "https://github.com/mixelpixx/Konnect/releases/download/v0.13.0/konnect-v0.13.0-x86_64-unknown-linux-gnu.tar.gz";
+      sha256 = "sha256-nJ0o59kF2OhRkzmniJAZPyUryBNJkzSbQNgOOme5NRI=";
+    };
+  };
   launchdeck-aarch64 = {
     pname = "launchdeck-aarch64";
     version = "0.1.4";

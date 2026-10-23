@@ -292,6 +292,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
+        "nixpkgs-2605": [
+          "nixpkgs-2605"
+        ],
         "systems": [
           "systems"
         ],
@@ -300,11 +303,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784390943,
-        "narHash": "sha256-wY1OIlnNjOMgQ4qNGnGksOv7MqstJflGixomYjE740A=",
+        "lastModified": 1792787820,
+        "narHash": "sha256-nBpTeCXF1ADtJ0kHHPCCfUtqj4Fr6PT86kif1V9XF2M=",
         "owner": "DivitMittal",
         "repo": "android-kvm",
-        "rev": "2687d38cbe87a8d98a4698a34e0595e585880475",
+        "rev": "3471b908eb9df93bed519ad6596f37c053f7f952",
         "type": "github"
       },
       "original": {
@@ -3535,6 +3538,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
+        "nixpkgs-2605": [
+          "nixpkgs-2605"
+        ],
         "systems": [
           "systems"
         ],
@@ -3543,11 +3549,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781793263,
-        "narHash": "sha256-aiexEguU5GkFTz0NaWaWqvkHs2kJEuRt+dfAxD23IZ0=",
+        "lastModified": 1792787824,
+        "narHash": "sha256-z2FqVMPz4Ecpmr5imaYt5dhQBNpuPHfaBvNDlZdbdwk=",
         "owner": "DivitMittal",
         "repo": "tidalcycles-nix",
-        "rev": "e8aeeabdf4dc28749aeb8c56f33fad322307dbab",
+        "rev": "2cf8ffd225eca2d2b2eb9c0c60f05d90cb9c9a84",
         "type": "github"
       },
       "original": {

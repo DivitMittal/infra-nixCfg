@@ -15,7 +15,7 @@
   };
 in {
   imports = [
-    inputs.OS-nixCfg-secrets.homeManagerConfigurations.tbAccounts
+    inputs.infra-nixCfg-secrets.homeManagerConfigurations.tbAccounts
   ];
 
   programs.thunderbird = {

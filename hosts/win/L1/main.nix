@@ -9,10 +9,10 @@
   };
 
   windot = {
-    # Reuses the identity already pulled from OS-nixCfg-secrets for every
+    # Reuses the identity already pulled from infra-nixCfg-secrets for every
     # other host (see common/all/hostSpec.nix) — no new secret needed.
-    gitFullName = inputs.OS-nixCfg-secrets.user.userFullName;
-    gitEmail = inputs.OS-nixCfg-secrets.user.email.dev;
+    gitFullName = inputs.infra-nixCfg-secrets.user.userFullName;
+    gitEmail = inputs.infra-nixCfg-secrets.user.email.dev;
     # The Ansible version read this from inventory/host_vars/L1/vault.yml
     # (vault_git_signing_key). No equivalent exists yet on the Nix side —
     # add a real key ID here (or wire up a proper source) if commit signing

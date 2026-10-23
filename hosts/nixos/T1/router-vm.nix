@@ -39,7 +39,9 @@
   # Stamp file records which store path the current disk.img was extracted
   # from, so ExecStartPre only re-extracts when the built image actually
   # changes (e.g. after switching openwrt-t640-router <-> immortalwrt-t640-router,
-  # or a rebuild with different packages/uci-defaults).
+  # or a rebuild with a different baked-in package set — see
+  # flake/openwrt-images.nix; ongoing UCI config is deployed separately via
+  # `nix run .#t640-router`, not baked into the image).
   sourceStamp = "${stateDir}/disk.img.source";
 
   prepareDiskScript = pkgs.writeShellScript "openwrt-router-vm-prepare-disk" ''

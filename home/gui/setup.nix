@@ -13,6 +13,7 @@
       ./lan.nix
       ./notes.nix
       ./office.nix
+      ./quant.nix
       ./video.nix
       ./vpn.nix
     ]

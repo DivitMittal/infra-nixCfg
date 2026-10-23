@@ -1,4 +1,4 @@
-# Central deploy-rs registry for OS-nixCfg.
+# Central deploy-rs registry for infra-nixCfg.
 #
 # Lives under ./hosts (not ./flake) because flake-parts modules imported via
 # ./hosts reliably expose `flake.deploy.nodes` to the top-level `deploy`
@@ -12,7 +12,7 @@
   self,
   ...
 }: let
-  username = inputs.OS-nixCfg-secrets.user.username;
+  username = inputs.infra-nixCfg-secrets.user.username;
 
   activateNixOnDroid = configuration:
     inputs.deploy-rs.lib.aarch64-linux.activate.custom

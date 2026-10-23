@@ -10,7 +10,7 @@ rustPlatform.buildRustPackage {
 
   inherit (sources.dmgwiz) src;
 
-  cargoHash = "sha256-3W+61+1wZWI+s9XVl74cp/8bb+UUuqlqAo/cxV7WbEk=";
+  cargoHash = "sha256-KZH+V6Q/zgtD5/Ket0cLg87Xj7YVwdX/Xik+umAmqAk=";
 
   nativeBuildInputs = [perl];
 

@@ -14,4 +14,6 @@
       then pkgs.brewCasks.tailscale-app
       else pkgs.tailscale;
   };
+
+  homebrew.casks = lib.optionals hostPlatform.isDarwin ["cloudflare-warp"];
 }

@@ -8,7 +8,7 @@ _: {
                 - treefmt-nix (Multi-language code formatting via `nix fmt`)
                 - pre-commit-hooks (Git pre-commit-hooks checks via `nix flake check`)
                 - devshells (Ephemeral project-level development environment)
-                - customLib (A custom library of nix functions from OS-nixCfg)
+                - customLib (A custom library of nix functions from infra-nixCfg)
                 - direnv-nix support (Activation of devshell via direnv)
       '';
     };

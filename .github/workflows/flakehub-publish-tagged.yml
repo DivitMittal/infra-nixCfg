@@ -22,7 +22,7 @@ jobs:
         with:
           ref: "${{ (inputs.tag != null) && format('refs/tags/{0}', inputs.tag) || '' }}"
       - name: Set env var
-        run: echo "OS_NIXCFG=$(pwd)" >> "$GITHUB_ENV"
+        run: echo "INFRA_NIXCFG=$(pwd)" >> "$GITHUB_ENV"
       - uses: "DeterminateSystems/nix-installer-action@main"
         with:
           determinate: true
@@ -33,6 +33,6 @@ jobs:
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           visibility: "public"
-          name: "DivitMittal/OS-nixCfg"
+          name: "DivitMittal/infra-nixCfg"
           tag: "${{ inputs.tag }}"
           include-output-paths: true

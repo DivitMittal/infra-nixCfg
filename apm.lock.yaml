@@ -23,7 +23,7 @@ mcp_configs:
       - --context
       - claude-code
       - --project
-      - ~/OS-nixCfg
+      - ~/infra-nixCfg
     registry: false
     command: uvx
 local_deployed_files:

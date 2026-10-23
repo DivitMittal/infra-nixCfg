@@ -3,7 +3,10 @@
   modulesPath,
   pkgs,
   ...
-}: {
+}: let
+  # Same single identity the VPS hosts authorize (== agenix recipient pubkey).
+  sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHiaeSJP9C/rfe4nldhwrXjCJ3qP4qTWreR4lHMr/1BI";
+in {
   imports = [
     (modulesPath + "/installer/netboot/netboot.nix")
   ];
@@ -31,6 +34,18 @@
   services.fwupd.enable = true;
 
   environment.systemPackages = [pkgs.nixos-facter];
+
+  # nixos-anywhere (via bootstrap-remote) drives the install over SSH as root,
+  # so the ramdisk must come up with sshd and the key already authorized.
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "prohibit-password";
+    };
+  };
+  users.users.root.openssh.authorizedKeys.keys = [sshPubKey];
 
   # Console access for the PXE-booted report/rescue environment.
   users.users.root.initialPassword = "nixos";

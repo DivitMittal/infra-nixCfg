@@ -19,10 +19,15 @@
             stable = inputs."nixpkgs-2605".legacyPackages.${hostPlatform.system};
           }
           (inputs.nur.overlays.default final prev)
-          (optionalAttrs hostPlatform.isDarwin (inputs.brew-nix.overlays.default final prev))
+          (optionalAttrs hostPlatform.isDarwin (self.overlays.brewCasks final prev))
         ]
     );
-    lib' = lib.extend (_: prev: {
+    ## lib comes from the same nixpkgs as pkgs: 26.11's lib.platforms.darwin no
+    ## longer lists x86_64-darwin, so home-manager would reject it.
+    baseLib = pkgs.lib.extend (final: _: {
+      custom = import (self + "/lib/custom.nix") {lib = final;};
+    });
+    lib' = baseLib.extend (_: prev: {
       custom =
         prev.custom
         // {

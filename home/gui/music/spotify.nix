@@ -18,7 +18,7 @@
       }).overrideAttrs (oldAttrs: {
         src = pkgs.fetchurl {
           url = lib.lists.head oldAttrs.src.urls;
-          hash = "sha256-4Lm4g0gAQ3EA7Sj2wDTbjEXRxcNoGWHLvdEx/57nry4=";
+          hash = "sha256-BKNN2edqdyzUEy3A5i50PBjPwADfzN1xvhVXStJJ8Ys=";
         };
       })
     else pkgs.spotify;
@@ -29,7 +29,12 @@ in {
     # Spicetify patches Spotify, so the two are mutually exclusive — pick one.
     mode = mkOption {
       type = lib.types.enum ["spicetify" "stock"];
-      default = "spicetify";
+      # spicetify-nix builds the spiced client from its own nixpkgs input,
+      # which throws on x86_64-darwin (Nixpkgs 26.11+).
+      default =
+        if hostPlatform.system == "x86_64-darwin"
+        then "stock"
+        else "spicetify";
       description = ''
         Which Spotify installation to use. `spicetify` enables the customized
         Spicetify client (with the extensions, snippets, and apps configured

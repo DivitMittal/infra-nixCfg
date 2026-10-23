@@ -60,7 +60,13 @@ in {
             apm = customLib.mkUvxBin pkgs "apm" "--from apm-cli apm";
           }
           ++ [
-            inputs.deploy-rs.packages.${pkgs.stdenvNoCC.hostPlatform.system}.default # Deploy-rs for remote deployment
+            # Deploy-rs for remote deployment. Its flake builds from its own nixpkgs,
+            # which throws on x86_64-darwin (Nixpkgs 26.11+), so use Nixpkgs' there.
+            (
+              if pkgs.stdenvNoCC.hostPlatform.system == "x86_64-darwin"
+              then pkgs.deploy-rs
+              else inputs.deploy-rs.packages.${pkgs.stdenvNoCC.hostPlatform.system}.default
+            )
           ];
       };
       commands = [

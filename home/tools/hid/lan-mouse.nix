@@ -13,11 +13,17 @@
 
   programs.lan-mouse = {
     enable = true;
-    package = inputs.lan-mouse.packages.${hostPlatform.system}.default.overrideAttrs (_: {
-      buildInputs = [];
-      cargoBuildFlags = ["--no-default-features"];
-      cargoTestFlags = ["--no-default-features"];
-    });
+    # The flake builds from its own nixpkgs, which throws on x86_64-darwin (Nixpkgs 26.11+)
+    package =
+      (
+        if hostPlatform.isDarwin && hostPlatform.isx86_64
+        then pkgs.lan-mouse
+        else inputs.lan-mouse.packages.${hostPlatform.system}.default
+      ).overrideAttrs (_: {
+        buildInputs = [];
+        cargoBuildFlags = ["--no-default-features"];
+        cargoTestFlags = ["--no-default-features"];
+      });
     systemd = true;
     launchd = true;
     settings = {

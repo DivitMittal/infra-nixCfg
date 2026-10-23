@@ -4,7 +4,11 @@
   outputs = {nixpkgs, ...} @ inputs: let
     inherit (inputs.flake-parts.lib) mkFlake;
     # Per-system nixpkgs source — pick the 26.05-darwin branch on x86_64-darwin
-    # (the only system NixOS 26.11 dropped), else fall back to nixpkgs-unstable.
+    # (the only system Nixpkgs 26.11 dropped), else fall back to nixpkgs-unstable.
+    nixpkgsFor = system:
+      if system == "x86_64-darwin"
+      then inputs."nixpkgs-2605"
+      else nixpkgs;
     specialArgs.lib = nixpkgs.lib.extend (final: _: {
       custom = import ./lib/custom.nix {lib = final;};
     });
@@ -24,7 +28,7 @@
         # The memoized version would not include our overlays and config settings.
         #
         # Trade-off: Slightly longer evaluation time vs. ability to customize pkgs
-        _module.args.pkgs = import inputs.nixpkgs {
+        _module.args.pkgs = import (nixpkgsFor system) {
           inherit system;
           config = let
             inherit (lib) mkDefault;
@@ -81,7 +85,9 @@
     import-tree.url = "github:vic/import-tree";
 
     ## flake helpers
-    systems.url = "github:nix-systems/default";
+    # nix-systems/default dropped x86_64-darwin in c29398b5; pin the last
+    # revision that still lists it so lock bumps keep x86_64-darwin outputs.
+    systems.url = "github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e";
     flake-utils = {
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
@@ -144,6 +150,7 @@
       #url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         systems.follows = "systems";
         devshell.follows = "devshell";
         agenix.follows = "agenix";
@@ -185,6 +192,7 @@
       url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         flake-parts.follows = "flake-parts";
         systems.follows = "systems";
         devshell.follows = "devshell";
@@ -201,6 +209,7 @@
       #url = "path:/Users/div/Projects/Cfgs/firefox-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         flake-parts.follows = "flake-parts";
         systems.follows = "systems";
         devshell.follows = "devshell";
@@ -216,6 +225,7 @@
       url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         flake-parts.follows = "flake-parts";
         systems.follows = "systems";
         devshell.follows = "devshell";
@@ -231,6 +241,7 @@
       url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         flake-parts.follows = "flake-parts";
         systems.follows = "systems";
         devshell.follows = "devshell";
@@ -254,6 +265,7 @@
       url = "github:DivitMittal/tidalcycles-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         flake-parts.follows = "flake-parts";
         systems.follows = "systems";
         devshell.follows = "devshell";
@@ -299,6 +311,7 @@
       #url = "path:/Users/div/Projects/hid/android-kvm";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         systems.follows = "systems";
         flake-parts.follows = "flake-parts";
         devshell.follows = "devshell";
@@ -338,12 +351,18 @@
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## nix-darwin master refuses Nixpkgs 26.05, which x86_64-darwin hosts are pinned to
+    nix-darwin-2605 = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-2605";
+    };
     ## Hammerspoon
     hammerspoon-nix = {
       url = "github:DivitMittal/hammerspoon-nix";
       # url = "path:/Users/div/Projects/Cfgs/hammerspoon-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
         flake-parts.follows = "flake-parts";
         systems.follows = "systems";
         devshell.follows = "devshell";

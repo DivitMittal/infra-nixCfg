@@ -1,6 +1,7 @@
 {
   pkgs,
   inputs,
+  hostPlatform,
   ...
 }: let
   configFile = inputs.TLTR + "/kanata/tltr.kbd";
@@ -14,6 +15,17 @@ in {
 
   programs.kanata-tray = {
     enable = true;
+    # The flake builds from its own nixpkgs, which throws on x86_64-darwin (Nixpkgs 26.11+)
+    package =
+      if hostPlatform.isDarwin && hostPlatform.isx86_64
+      then
+        pkgs.callPackage (inputs.kanata-tray + "/nix/package.nix") {
+          inherit hostPlatform;
+          build-deps = [pkgs.pkg-config];
+          runtime-deps = [];
+          self = inputs.kanata-tray;
+        }
+      else inputs.kanata-tray.packages.${hostPlatform.system}.kanata-tray;
 
     settings = {
       general = {

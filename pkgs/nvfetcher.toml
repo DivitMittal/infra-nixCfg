@@ -212,3 +212,13 @@ src.github = "awawa-dev/HyperHDR"
 src.from_pattern = 'v(\d+\.\d+\.\d+)\.0'
 src.to_pattern = '\1'
 fetch.url = "https://github.com/awawa-dev/HyperHDR/releases/download/v$ver.0/HyperHDR-$ver-macOS-x86_64.dmg"
+
+[spotatui-aarch64]
+src.github = "LargeModGames/spotatui"
+src.prefix = "v"
+fetch.url = "https://github.com/LargeModGames/spotatui/releases/download/v$ver/spotatui-macos-aarch64.tar.gz"
+
+[spotatui-x86_64]
+src.github = "LargeModGames/spotatui"
+src.prefix = "v"
+fetch.url = "https://github.com/LargeModGames/spotatui/releases/download/v$ver/spotatui-macos-x86_64.tar.gz"

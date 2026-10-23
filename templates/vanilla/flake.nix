@@ -42,8 +42,8 @@
         git-hooks.follows = "git-hooks";
       };
     };
-    OS-nixCfg = {
-      url = "github:DivitMittal/OS-nixCfg";
+    infra-nixCfg = {
+      url = "github:DivitMittal/infra-nixCfg";
       flake = false;
     };
   };

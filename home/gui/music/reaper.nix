@@ -1,6 +1,7 @@
 {
   pkgs,
   hostPlatform,
+  lib,
   ...
 }: let
   ## REAPER plugin directory (platform-specific)
@@ -49,4 +50,7 @@ in {
     ## Reapack
     "${pluginsDir}/reaper_reapack-${swsArch}.${ext}".source = "${reapackPkg}/UserPlugins/reaper_reapack-${swsArch}.${ext}";
   };
+
+  ## BlackHole virtual audio device, for routing system audio into REAPER for recording
+  homebrew.casks = lib.optionals hostPlatform.isDarwin ["blackhole-2ch"];
 }

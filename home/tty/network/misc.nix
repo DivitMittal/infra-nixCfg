@@ -11,7 +11,6 @@
         (pkgs)
         nmap # network scanner
         speedtest-go # speedtest cli
-        fast # internet speed test
         iperf3 # network performance testing
         bandwhich # bandwidth usage
 
@@ -22,10 +21,19 @@
         ttyd # terminal sharing over HTTP
         ;
       inherit (pkgs.custom) network-doctor;
-      inherit (inputs.nixpkgs-2605.legacyPackages.${hostPlatform.system}) termscp; # scp, ftp client
     }
     ++ lib.optionals hostPlatform.isLinux [
       pkgs.bluetui
+    ]
+    # scp, ftp client. Excluded on darwin: it hard-links nixpkgs' samba for SMB
+    # support, and that samba build's libsmbclient.dylib references a private
+    # internal library by its ephemeral build-sandbox path rather than a fixed
+    # store path, so the resulting termscp binary fails to even start (dyld:
+    # Library not loaded) on every invocation, not just during its own
+    # install check. This is an upstream samba/nixpkgs darwin packaging bug,
+    # not something fixable here — revisit once nixpkgs-2605 picks up a fix.
+    ++ lib.optionals (!hostPlatform.isDarwin) [
+      inputs.nixpkgs-2605.legacyPackages.${hostPlatform.system}.termscp
     ];
 
   programs.aria2 = {

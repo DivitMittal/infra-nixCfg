@@ -1,5 +1,5 @@
 {
-  description = "OS-nixCfg's flake";
+  description = "infra-nixCfg's flake";
 
   outputs = {nixpkgs, ...} @ inputs: let
     inherit (inputs.flake-parts.lib) mkFlake;
@@ -139,9 +139,9 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    OS-nixCfg-secrets = {
-      #url = "git+ssh://git@github.com/DivitMittal/OS-nixCfg-secrets.git?ref=master";
-      url = "path:/Users/div/Projects/Cfgs/OS-nixCfg-secrets";
+    infra-nixCfg-secrets = {
+      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=master";
+      #url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
@@ -181,8 +181,8 @@
 
     ## Terminal Emulator
     term-nixCfg = {
-      url = "github:DivitMittal/term-nixCfg";
-      #url = "path:/Users/div/Projects/Cfgs/term-nixCfg";
+      #url = "github:DivitMittal/term-nixCfg";
+      url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -212,8 +212,8 @@
 
     ## AI
     ai-nixCfg = {
-      url = "github:DivitMittal/ai-nixCfg";
-      #url = "path:/Users/div/Projects/Cfgs/ai-nixCfg";
+      #url = "github:DivitMittal/ai-nixCfg";
+      url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -222,6 +222,20 @@
         treefmt-nix.follows = "treefmt-nix";
         git-hooks.follows = "git-hooks";
         actions-nix.follows = "actions-nix";
+      };
+    };
+
+    ## Quant / algo trading
+    quant-nixCfg = {
+      #url = "github:DivitMittal/quant-nixCfg";
+      url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
+        devshell.follows = "devshell";
+        treefmt-nix.follows = "treefmt-nix";
+        git-hooks.follows = "git-hooks";
       };
     };
 
@@ -318,6 +332,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    areofyl-fetch = {
+      url = "github:areofyl/fetch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     ## Theming — cyberpunk palette wired via lib/palette.nix
     stylix = {
       url = "github:danth/stylix";
@@ -353,19 +372,10 @@
         actions-nix.follows = "actions-nix";
       };
     };
-    ## Declarative homebrew setup
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew"; # Bootstrapping homebrew
-    homebrew-core = {
-      url = "github:homebrew/homebrew-core";
-      flake = false;
-    };
-    homebrew-cask = {
-      url = "github:homebrew/homebrew-cask";
-      flake = false;
-    };
-    macos-fuse-t-cask = {
-      url = "github:macos-fuse-t/homebrew-cask";
-      flake = false;
+    ## Declarative homebrew setup (via home-manager)
+    home-manager-brew = {
+      url = "github:koalalorenzo/home-manager-brew";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     brew-nix = {

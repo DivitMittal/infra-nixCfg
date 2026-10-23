@@ -1,4 +1,4 @@
-# Source-of-truth visual identity for OS-nixCfg.
+# Source-of-truth visual identity for infra-nixCfg.
 #
 # A custom base16 scheme: cyberpunk neon accents on pure pitch-black background.
 # Originally derived from the (now-removed) noctalia palette, with the background

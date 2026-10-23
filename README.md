@@ -1,7 +1,7 @@
 <div id="top">
     <div align="center">
         <img alt='An abstract image of a donut-like object' title='Qezta' height=250 width=250 src='./assets/qezta.gif' style="position: relative; top: 0; right: 0;" />
-        <h1 align='center'>OS-nixCfg</h1>
+        <h1 align='center'>infra-nixCfg</h1>
         <strong>My personal declarative Nix configurations for macOS, Android, and Linux (NixOS/WSL).</strong>
     </div>
 
@@ -10,35 +10,35 @@
 ---
 
 <div align='center'>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/stargazers">
-        <img src="https://img.shields.io/github/stars/DivitMittal/OS-nixCfg?&style=for-the-badge&logo=starship&logoColor=white&color=purple" alt="stars"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/stargazers">
+        <img src="https://img.shields.io/github/stars/DivitMittal/infra-nixCfg?&style=for-the-badge&logo=starship&logoColor=white&color=purple" alt="stars"/>
     </a>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/">
-        <img src="https://img.shields.io/github/repo-size/DivitMittal/OS-nixCfg?&style=for-the-badge&logo=github&logoColor=white&color=purple" alt="size" />
+    <a href="https://github.com/DivitMittal/infra-nixCfg/">
+        <img src="https://img.shields.io/github/repo-size/DivitMittal/infra-nixCfg?&style=for-the-badge&logo=github&logoColor=white&color=purple" alt="size" />
     </a>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/DivitMittal/OS-nixCfg?&style=for-the-badge&logo=unlicense&logoColor=white&color=purple" alt="license"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/DivitMittal/infra-nixCfg?&style=for-the-badge&logo=unlicense&logoColor=white&color=purple" alt="license"/>
     </a>
     <a href="https://github.com/nixos/nixpkgs">
         <img src="https://img.shields.io/badge/Nixpkgs-unstable-blue.svg?style=for-the-badge&logo=NixOS&logoColor=white&color=purple" alt="nixpkgs"/>
     </a>
-    <img src="https://img.shields.io/github/languages/top/DivitMittal/OS-nixCfg?style=for-the-badge&color=purple" alt="repo-top-language"/>
+    <img src="https://img.shields.io/github/languages/top/DivitMittal/infra-nixCfg?style=for-the-badge&color=purple" alt="repo-top-language"/>
 </div>
 
 ---
 
 <div align='center'>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/flake-check.yml">
-        <img src="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/.github/workflows/flake-check.yml/badge.svg" alt="nix-flake-check"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/flake-check.yml">
+        <img src="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/.github/workflows/flake-check.yml/badge.svg" alt="nix-flake-check"/>
     </a>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/home-build.yml">
-        <img src="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/.github/workflows/home-build.yml/badge.svg" alt="home-manager-build"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/home-build.yml">
+        <img src="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/.github/workflows/home-build.yml/badge.svg" alt="home-manager-build"/>
     </a>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/darwin-build.yml">
-        <img src="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/.github/workflows/darwin-build.yml/badge.svg" alt="nix-darwin-build"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/darwin-build.yml">
+        <img src="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/.github/workflows/darwin-build.yml/badge.svg" alt="nix-darwin-build"/>
     </a>
-    <a href="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/nixos-build.yml">
-        <img src="https://github.com/DivitMittal/OS-nixCfg/actions/workflows/.github/workflows/nixos-build.yml/badge.svg" alt="nixos-build"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/nixos-build.yml">
+        <img src="https://github.com/DivitMittal/infra-nixCfg/actions/workflows/.github/workflows/nixos-build.yml/badge.svg" alt="nixos-build"/>
     </a>
 </div>
 
@@ -54,7 +54,7 @@
 - [Home Manager Profile Graph](#home-manager-profile-graph)
 - [Network Topology](#network-topology)
 - [Secrets Management](#secrets-management)
-- [Related Repositories](#related-repositories)
+- [Satellite Repositories](#satellite-repositories)
 
 ---
 
@@ -70,10 +70,10 @@ This repository contains primarily [nix](https://github.com/nixos/nix) configura
 
 Drop into a pre-built shell environment without cloning or installing anything:
 
-| Command                                        | Environment                                                            | Platform   |
-| ---------------------------------------------- | ---------------------------------------------------------------------- | ---------- |
-| `nix run github:DivitMittal/OS-nixCfg#tty`     | Full TTY toolchain (shells, editors, multiplexers, VCS, file tools, …) | all        |
-| `nix run github:DivitMittal/OS-nixCfg#desktop` | TTY + Wayland compositor stack (sway, swaybar, mako, …)                | Linux only |
+| Command                                           | Environment                                                            | Platform   |
+| ------------------------------------------------- | ---------------------------------------------------------------------- | ---------- |
+| `nix run github:DivitMittal/infra-nixCfg#tty`     | Full TTY toolchain (shells, editors, multiplexers, VCS, file tools, …) | all        |
+| `nix run github:DivitMittal/infra-nixCfg#desktop` | TTY + Wayland compositor stack (sway, swaybar, mako, …)                | Linux only |
 
 Each command drops you into `$SHELL` with the environment's packages prepended to `PATH`. No activation, no home-manager switch — ephemeral by design.
 
@@ -95,7 +95,7 @@ flowchart LR
     nd[nix-darwin]
     nod[nix-on-droid]
     sty[stylix]
-    sec["OS-nixCfg-secrets<br/>(private)"]
+    sec["infra-nixCfg-secrets<br/>(private)"]
     more["…+15 more"]
   end
 
@@ -198,17 +198,18 @@ Focused visualization of network segments and connectivity:
 Secrets (API keys, passwords, sensitive configurations) are managed via [agenix](https://github.com/ryantm/agenix) or specificaly [ragenix](https://github.com/yaxitech/ragenix).
 
 1.  Secrets are encrypted using `ssh` keys. My public key is explicitly available to `ragenix`.
-2.  The encrypted files reside in a **private** GitHub repository: `DivitMittal/OS-nixCfg-secrets`. This repository is referenced as a flake input.
+2.  The encrypted files reside in a **private** GitHub repository: `DivitMittal/infra-nixCfg-secrets`. This repository is referenced as a flake input.
 3.  During the Nix build process, `agenix` decrypts these files using my private key.
 4.  The decrypted files are placed in the Nix store & symlinked to their target locations.
 
-⚠️ **Building this configuration requires access to the private `DivitMittal/OS-nixCfg-secrets` repo and the corresponding [age](https://github.com/FiloSottile/age) private `ssh` key.**
+⚠️ **Building this configuration requires access to the private `DivitMittal/infra-nixCfg-secrets` repo and the corresponding [age](https://github.com/FiloSottile/age) private `ssh` key.**
 
-## Related Repositories
+## Satellite Repositories
 
 - [DivitMittal/ai-nixCfg](https://github.com/DivitMittal/ai-nixCfg): AI/LLM tool configurations extracted for modularity (CLI tools, cloud services, MCP servers, REPL configurations).
+- [DivitMittal/quant-nixCfg](https://github.com/DivitMittal/quant-nixCfg): Experimental sandbox + Nix home-manager modules/packages for open-source algo trading and quant workflows.
 - [DivitMittal/playbooks-4-windows](https://github.com/DivitMittal/playbooks-4-windows): Ansible IaC for the Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & T2); manages Scoop/Winget/MSYS2 packages, registry, and dotfiles.
-- `DivitMittal/OS-nixCfg-secrets`: (Private) Contains encrypted secrets managed by `agenix` & `ragenix`.
+- `DivitMittal/infra-nixCfg-secrets`: (Private) Contains encrypted secrets managed by `agenix` & `ragenix`.
 - [DivitMittal/Vim-Cfg](https://github.com/DivitMittal/Vim-Cfg): Pure lua standalone Neovim configuration, deployed via `nix4nvchad`.
 - [DivitMittal/Emacs-Cfg](https://github.com/DivitMittal/Emacs-Cfg): An elisp doomemacs configuration, used as an input via `nix-doom-emacs-unstraightened`.
 - [DivitMittal/TLTR](https://github.com/DivitMittal/TLTR): Cross-platform complex multi-layer keyboard layout tailored for programmers.
@@ -216,7 +217,7 @@ Secrets (API keys, passwords, sensitive configurations) are managed via [agenix]
 - [DivitMittal/firefox-nixCfg](https://github.com/DivitMittal/firefox-nixCfg): A personal nix home-manager module/configurations for firefox.
 - [DivitMittal/tidalcycles-nix](https://github.com/DivitMittal/tidalcycles-nix): A nix flake for TidalCycles live coding environment.
 - [DivitMittal/term-nixCfg](https://github.com/DivitMittal/term-nixCfg): Terminal emulator configuration.
-- [DivitMittal/ghOrg-terraform](https://github.com/DivitMittal/ghOrg-terraform): Terraform configurations for managing the GitHub organization infrastructure.
+- [DivitMittal/forge-tofu](https://github.com/DivitMittal/forge-tofu): Terraform configurations for managing the GitHub organization infrastructure.
 
 <div align="right">
 

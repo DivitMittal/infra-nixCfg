@@ -1,7 +1,7 @@
 {inputs, ...}: {
-  imports = [inputs.OS-nixCfg-secrets.modules.hostSpec];
+  imports = [inputs.infra-nixCfg-secrets.modules.hostSpec];
 
   hostSpec = {
-    inherit (inputs.OS-nixCfg-secrets.user) username userFullName handle email;
+    inherit (inputs.infra-nixCfg-secrets.user) username userFullName handle email;
   };
 }

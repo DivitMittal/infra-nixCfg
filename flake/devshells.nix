@@ -12,7 +12,7 @@
     ...
   }: let
     myFlakeInputs = lib.concatStringsSep " " [
-      "OS-nixCfg-secrets"
+      "infra-nixCfg-secrets"
       "Vim-Cfg"
       "Emacs-Cfg"
       "term-nixCfg"

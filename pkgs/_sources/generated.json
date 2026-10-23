@@ -224,6 +224,51 @@
     },
     "version": "22.0.0"
   },
+  "konnect-aarch64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "konnect-aarch64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-AFKrGK3TwwFLzt0ycTHCv/edusWh2W5Fyp9rwoIsk8k=",
+      "type": "url",
+      "url": "https://github.com/mixelpixx/Konnect/releases/download/v0.13.0/konnect-v0.13.0-aarch64-apple-darwin.tar.gz"
+    },
+    "version": "0.13.0"
+  },
+  "konnect-x86_64-darwin": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "konnect-x86_64-darwin",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-4bMwUosdqjR3YxKEEsiz+ooSXhSeYDd4YsMGUH/NLnw=",
+      "type": "url",
+      "url": "https://github.com/mixelpixx/Konnect/releases/download/v0.13.0/konnect-v0.13.0-x86_64-apple-darwin.tar.gz"
+    },
+    "version": "0.13.0"
+  },
+  "konnect-x86_64-linux": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "konnect-x86_64-linux",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-nJ0o59kF2OhRkzmniJAZPyUryBNJkzSbQNgOOme5NRI=",
+      "type": "url",
+      "url": "https://github.com/mixelpixx/Konnect/releases/download/v0.13.0/konnect-v0.13.0-x86_64-unknown-linux-gnu.tar.gz"
+    },
+    "version": "0.13.0"
+  },
   "launchdeck-aarch64": {
     "cargoLock": null,
     "date": null,

@@ -30,6 +30,6 @@
       ;
     #gcp = pkgs.google-cloud-sdk;
 
-    wrangler = lib.custom.mkPnpmDlxBin "wrangler" "wrangler@latest";
+    wrangler = lib.custom.mkBunxBin "wrangler" "wrangler@latest";
   };
 }

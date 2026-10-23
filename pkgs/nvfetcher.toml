@@ -159,6 +159,21 @@ src.github = "sderosiaux/launchdeck"
 src.prefix = "v"
 fetch.url = "https://github.com/sderosiaux/launchdeck/releases/download/v$ver/launchdeck-x86_64-apple-darwin.tar.gz"
 
+[konnect-aarch64-darwin]
+src.github = "mixelpixx/Konnect"
+src.prefix = "v"
+fetch.url = "https://github.com/mixelpixx/Konnect/releases/download/v$ver/konnect-v$ver-aarch64-apple-darwin.tar.gz"
+
+[konnect-x86_64-darwin]
+src.github = "mixelpixx/Konnect"
+src.prefix = "v"
+fetch.url = "https://github.com/mixelpixx/Konnect/releases/download/v$ver/konnect-v$ver-x86_64-apple-darwin.tar.gz"
+
+[konnect-x86_64-linux]
+src.github = "mixelpixx/Konnect"
+src.prefix = "v"
+fetch.url = "https://github.com/mixelpixx/Konnect/releases/download/v$ver/konnect-v$ver-x86_64-unknown-linux-gnu.tar.gz"
+
 [uniclipboard-cli-aarch64-darwin]
 src.github = "UniClipboard/UniClipboard"
 src.prefix = "v"

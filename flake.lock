@@ -1742,11 +1742,11 @@
     },
     "kolu": {
       "locked": {
-        "lastModified": 1791325425,
-        "narHash": "sha256-gBU8Tn+wQjMYVlCcQA7LHEWxzd07/ylQG4lIskLiP0c=",
+        "lastModified": 1792165359,
+        "narHash": "sha256-WYXkNtiEIpc1+qn42c1p6KoVvGEaueI0NF23X8qLMYQ=",
         "owner": "juspay",
         "repo": "kolu",
-        "rev": "0197e0a03c9d02836f77aa841c150244d95392c7",
+        "rev": "97d8c599b219ab13f371f010068b24aa36ff3e7d",
         "type": "github"
       },
       "original": {
@@ -3489,11 +3489,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791580480,
-        "narHash": "sha256-6M+TU8Uf5FrM2MvxgqUhXt4E2dwZDt2GBsd1NqEKIVI=",
+        "lastModified": 1792788405,
+        "narHash": "sha256-oboIlGAOewxQ/ekrSowlsLG6aS00VYq2IBR1oo+Wl68=",
         "ref": "refs/heads/master",
-        "rev": "4031d1ba85fc4797d48da468a947fd2f46ced9ba",
-        "revCount": 184,
+        "rev": "0a4f0649ba69bdb969f11749fa8db889b752ac26",
+        "revCount": 190,
         "type": "git",
         "url": "file:///Users/div/Projects/Cfgs/term-nixCfg"
       },

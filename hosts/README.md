@@ -36,8 +36,11 @@ hosts/
 │   └── t1-netboot/              # x86_64-linux — facter report + install source for T1
 ├── openwrt/                    # OpenWrt router configurations
 │   ├── enum.nix
-│   └── R1/                      # primary router
-│       ├── R1.nix              # primary configuration
+│   ├── R1/                      # historical/rollback router config (superseded by T640, no longer deployed)
+│   │   ├── default.nix         # primary configuration
+│   │   └── modules/            # auto-imported UCI modules
+│   └── T640/                    # multi-PPPoE router VM guest running on T1 (hosts/nixos/T1/router-vm.nix)
+│       ├── default.nix         # primary configuration
 │       └── modules/            # auto-imported UCI modules
 └── switch/                     # Terraform-managed (terranix) switches
     ├── enum.nix
@@ -65,7 +68,7 @@ nix run .#switch-S1 -- apply
 ```
 
 The admin password is decrypted at run time from
-`OS-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
+`infra-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
 `secrets/manifest.nix`, same convention as every other secret consumed via
 `common/home/age.nix`) using the `~/.ssh/agenix/id_ed25519` identity, and
 exported as `TF_VAR_switch_s1_password` — it is never stored in this repo.
@@ -77,7 +80,7 @@ root password (set over SSH during `nix run .#openwrt-ont <target>`, see
 `flake/openwrt.nix`) intentionally shares S1's admin password, one
 ciphertext for both.
 
-To create the secret itself (from inside `OS-nixCfg-secrets`, after entering
+To create the secret itself (from inside `infra-nixCfg-secrets`, after entering
 its devshell so `ragenix`/`RULES` are set up):
 
 ```bash
@@ -279,9 +282,23 @@ offer a categorically different hypervisor tier (same KVM stack under Debian
 plus a UI). Running `qemu-system-x86_64 -enable-kvm` directly gets the same
 KVM acceleration with no framework mismatch. See
 `hosts/nixos/T1/router-vm.nix` for the full systemd-networkd (macvtap
-netdevs) + systemd service definition, and `flake/openwrt-images.nix` for
-the image build (multi-PPPoE `uci-defaults` script, `mwan3` config,
-packages).
+netdevs) + systemd service definition.
+
+The router VM's config is split the same way as everything else in this
+repo:
+
+- **Imagebuilder** (`flake/openwrt-images.nix`) builds a minimal bootable
+  base image — `openwrt-t640-router` / `immortalwrt-t640-router` — with the
+  multi-PPPoE-related packages (`kmod-macvlan`, `mwan3`, `luci-app-mwan3`,
+  `kmod-pppoe`, `ppp-mod-pppoe`, ...) baked in, so a fresh boot is
+  immediately capable offline. It does not configure any UCI itself.
+- **nuci** (`hosts/openwrt/T640/`, deployed via `flake/openwrt-t640.nix`)
+  owns all ongoing declarative config — the multi-PPPoE WAN interfaces,
+  `mwan3` balanced policy, and the `eth0`→`eth1` `lan` device reassignment —
+  pushed post-boot the same way R1's config is (`nix run .#t640-router
+<target>`, see `hosts/openwrt/R1`/`flake/openwrt.nix` for the pattern this
+  mirrors). This replaced an earlier one-shot `uci-defaults` script that
+  used to be baked into the image at build time.
 
 **This is unverified on real hardware** — T1 isn't physically bootstrapped in
 this branch, and the two physical NIC names in `router-vm.nix`
@@ -315,15 +332,32 @@ the source store path changes (tracked via a stamp file) — so restarting the
 service doesn't re-run a fresh install every time. `Restart=always` keeps the
 router VM up across crashes/kernel panics inside the guest.
 
-#### First-boot: entering real PPPoE credentials
+#### Entering real PPPoE credentials
 
-The image intentionally does **not** bake real PPPoE credentials into the
-Nix store or this repo, matching this project's existing no-secrets-in-store
-convention. `95-multi-pppoe`'s `uci-defaults` script wires up both PPPoE
-lines with clearly-commented `CHANGEME` placeholder credentials, wan
-firewall zone membership, and `mwan3` load-balancing — but you must enter the
-real username/password for each line once, after the VM's first boot, via
-LuCI (`Network > Interfaces > wan1`/`wan2` > Edit) or:
+The declarative UCI config (`hosts/openwrt/T640/modules/network.nix`)
+intentionally does **not** bake real PPPoE credentials into the Nix store or
+this repo, matching this project's existing no-secrets-in-store convention
+— it only ever contains clearly-commented `CHANGEME` placeholders.
+
+Real per-line credentials are injected the same way R1's root password and
+Wi-Fi-backup PSK are: two agenix-encrypted secrets in `infra-nixCfg-secrets`
+(`secrets/network/T640-wan1.age`, `secrets/network/T640-wan2.age`, each
+containing `username\npassword`), decrypted at deploy time and written over
+SSH to `/etc/nuci/wan{1,2}-credentials` by `flake/openwrt-t640.nix`'s
+`set_wan_credentials` step. A `nuci` reconcile.d hook
+(`hosts/openwrt/T640/modules/wan-credentials.nix`) then applies them to live
+UCI on every `nix run .#t640-router <target>` deploy — no manual LuCI/`uci
+set` step needed once those two secrets exist. Create them first (from
+inside `infra-nixCfg-secrets`, in its devshell):
+
+```bash
+ragenix -e secrets/network/T640-wan1.age
+ragenix -e secrets/network/T640-wan2.age
+```
+
+If you'd rather enter credentials manually instead (e.g. before the secrets
+exist), the same fields are reachable via LuCI (`Network > Interfaces >
+wan1`/`wan2` > Edit) or:
 
 ```sh
 uci set network.wan1.username='...'
@@ -332,6 +366,9 @@ uci set network.wan2.username='...'
 uci set network.wan2.password='...'
 uci commit network && /etc/init.d/network reload
 ```
+
+— but the reconcile.d hook will overwrite these on the next deploy once the
+secrets exist, since nuci reconciles the whole declared config on every run.
 
 #### Switching mwan3 from balanced to failover
 
@@ -345,6 +382,45 @@ uci set mwan3.wan2_m1_w3.metric='2'   # wan1 stays primary at metric 1
 uci commit mwan3
 mwan3 restart
 ```
+
+#### Fallback: R0 DMZ instead of PPPoE passthrough
+
+The whole multi-PPPoE design above assumes R0 (the Airtel-provided router)
+is reconfigured into bridge mode, passing the ISP's PPPoE session(s)
+straight through to T1's WAN NIC. If that doesn't work well in practice
+(some ISP-provided routers' "bridge mode" is unreliable or absent),
+fall back to the same scheme R1's old default `wanMode = "ont"` used: R0
+stays in its normal router mode and DMZ-forwards a single static IP to
+T640's WAN, instead of T640 terminating PPPoE itself. This is a live `uci`
+reconfiguration of the router VM, not a Nix rebuild or nuci redeploy — apply
+it directly over SSH:
+
+```sh
+uci set network.wan1=interface
+uci set network.wan1.proto='static'
+uci set network.wan1.device='eth0'
+uci set network.wan1.ipaddr='192.168.1.254'
+uci set network.wan1.netmask='255.255.255.0'
+uci set network.wan1.gateway='192.168.1.1'
+uci -q delete network.wan1.username
+uci -q delete network.wan1.password
+uci add_list network.wan1.dns='192.168.1.1'
+uci add_list network.wan1.dns='1.1.1.1'
+uci commit network
+/etc/init.d/network restart
+```
+
+(Values mirror `hosts/openwrt/R1/modules/network.nix`'s static-WAN block
+exactly.) This disables line 2's PPPoE/mwan3 balancing implicitly — a DMZ
+only forwards to one address — so also disable `mwan3` or drop `wan2` from
+its `balanced` policy to avoid mwan3 treating a now-nonfunctional PPPoE line
+as a live member. Because this is a manual live reconfiguration outside the
+declarative UCI JSON, the next `nix run .#t640-router <target>` deploy will
+overwrite it back to the multi-PPPoE config — treat this fallback as
+break-glass, not a persistent mode switch, until it's promoted to a proper
+`wanMode`-style variant (not implemented yet; see
+`hosts/openwrt/R1/modules/network.nix` for the equivalent `wanMode` pattern
+if that becomes necessary).
 
 ### Firmware/UEFI/BIOS updates (fwupd)
 

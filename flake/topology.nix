@@ -52,42 +52,16 @@
             cidrv4 = "192.168.106.0/24";
           };
 
-          nodes.router = {
-            name = "R1";
-            deviceType = "router";
-            hardware.info = "Lenovo S100, Intel Atom, 2 GiB RAM, x86_64 OpenWrt; 8 GiB overlay + 290 GiB internal storage; 500 GB USB WD exFAT NAS via ksmbd";
-            # lan0: USB-gigabit link to S1 (port1) on the flat untagged LAN.
-            # Bridged with lan1 into br-lan. MAC-pinned; see
-            # hosts/openwrt/R1/modules/netnames.nix.
-            interfaces.lan0 = {
-              network = "home";
-              type = "ethernet";
-            };
-            # wan0: USB-gigabit WAN uplink cabled directly to R0 (bypasses S1),
-            # replacing the onboard 100M port on the WAN path. MAC-pinned.
-            interfaces.wan0 = {
-              network = "ont";
-              type = "ethernet";
-              physicalConnections = [
-                {
-                  node = "r0";
-                  interface = "lan";
-                }
-              ];
-            };
-            # eth0: onboard RTL8105e (100M), now an untagged LAN access port on
-            # br-lan (repurposed from its former WAN role). Its PCI identity is
-            # deterministic, so it keeps the kernel's stable eth0 name.
-            interfaces.eth0 = {
-              network = "home";
-              type = "ethernet";
-            };
-            interfaces.tailscale0 = {
-              network = "tailnet";
-              type = "virtual";
-              virtual = true;
-            };
-          };
+          # R1 (Lenovo S100) used to be manually declared here as this
+          # flake's router node. It is no longer a router — T1
+          # (hosts/nixos/T1) has taken over that role entirely, and
+          # registers its own self-topology node under this same "router"
+          # id (see hosts/nixos/T1/topology.nix's `topology.id` override
+          # and the nixosConfigurations pass-through at the bottom of this
+          # file). R1 itself is now nodes.R1 below, repurposed as a
+          # Kubernetes worker; its old declarative OpenWrt config
+          # (hosts/openwrt/R1) is kept in place as historical/rollback
+          # reference, no longer deployed.
 
           nodes.ont = {
             name = "ONT";
@@ -112,7 +86,7 @@
           nodes.r0 = {
             name = "R0";
             deviceType = "router";
-            hardware.info = "Airtel-provided router; DMZ forwards all WAN traffic to R1 (192.168.1.254)";
+            hardware.info = "Airtel-provided router, reconfigured into bridge mode: passes the ISP's PPPoE session(s) straight through to T1's WAN NIC (T1 terminates PPPoE itself). Fallback: DMZ-forwards a static IP to T1's WAN (192.168.1.254) if PPPoE passthrough proves unreliable — see hosts/README.md. Also independently keeps broadcasting its own legacy 2.4GHz Wi-Fi AP for older/IoT devices (unmanaged by this flake)";
             interfaces.wan = {
               network = "internet";
               type = "ethernet";
@@ -123,12 +97,32 @@
             };
           };
 
+          nodes.R1 = {
+            name = "R1";
+            deviceType = "device";
+            hardware.info = "Lenovo S100, Intel Atom, 2 GiB RAM, x86_64 — repurposed as a Kubernetes worker node (was the primary OpenWrt router; hosts/openwrt/R1 config kept as historical/rollback reference, no longer deployed)";
+            # Direct wired link to T1, replacing R1's old role as the LAN's
+            # router — T1's r1link is the other side of this edge (see
+            # hosts/nixos/T1/topology.nix).
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "router";
+                  interface = "r1link";
+                }
+              ];
+            };
+          };
+
           nodes.S1 = {
             name = "S1";
             deviceType = "switch";
-            hardware.info = "TP-Link TL-SG105E managed switch; mgmt IP 192.168.2.2 (VLAN20, distinct from R1's 192.168.2.1)";
-            # Uplink to R1 (lan0) on the flat untagged LAN — no VLAN tagging.
-            # WAN is not trunked here; R0 cables directly into R1's wan0.
+            hardware.info = "TP-Link TL-SG105E managed switch; mgmt IP 192.168.2.2 (VLAN20; the router's LAN gateway IP moved from R1's old 192.168.2.1 to T1/T640 — exact value TBD, not yet configured)";
+            # Uplink to T1 (lan0, on its router VM) on the flat untagged LAN
+            # — no VLAN tagging. WAN is not trunked here; R0 cables directly
+            # into T1's wan.
             interfaces.port1 = {
               network = "home";
               type = "ethernet";
@@ -171,7 +165,7 @@
               ];
             };
             # port5: spare VLAN20 access port. The old VLAN10 WAN uplink from R0
-            # is gone — R0 now cables directly into R1's onboard eth0.
+            # is gone — R0 now cables directly into T1's wan.
             interfaces.port5 = {
               network = "home";
               type = "ethernet";

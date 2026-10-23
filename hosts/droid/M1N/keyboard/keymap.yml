@@ -1,0 +1,160 @@
+# keymap-drawer source for layout.xml. Regenerate the SVG with:
+#   keymap draw hosts/droid/M1N/keyboard/keymap.yml > hosts/droid/M1N/keyboard/keymap.svg
+# Swipe directions map onto legend slots: nw/ne/sw/se -> tl/tr/bl/br,
+# n/s -> shifted/hold (top/bottom), w/e -> left/right.
+layout:
+  qmk_info_json: hosts/droid/M1N/keyboard/physical.json
+  layout_name: LAYOUT
+
+layers:
+  Base + swipes:
+    - { tap: q, tr: "!", bl: "`", br: ⎋ }
+    - { tap: w, tr: "@", bl: "~" }
+    - { tap: e, tr: "#", bl: "^" }
+    - { tap: r, tr: $, bl: ₹ }
+    - t
+    - { tap: y, tr: "%" }
+    - { tap: u, tr: "7" }
+    - { tap: i, tr: "8" }
+    - { tap: o, tr: "9" }
+    - { tap: p, tr: +, bl: "=", tl: "'", br: '"' }
+
+    - { tap: a, tr: "&", bl: "|", tl: ↹ }
+    - { tap: s, tr: "[", bl: "]" }
+    - { tap: d, tr: "{", bl: "}" }
+    - { tap: f, tr: (, bl: ) }
+    - g
+    - { tap: h, tr: "*" }
+    - { tap: j, tr: "4" }
+    - { tap: k, tr: "5" }
+    - { tap: l, tr: "6" }
+    - { tap: ;, tr: "-", bl: – }
+
+    - z
+    - x
+    - { tap: c, tr: < }
+    - { tap: v, tr: ">" }
+    - b
+    - { tap: n, tr: "0" }
+    - { tap: m, tr: "1" }
+    - { tap: ",", tr: "2", bl: _ }
+    - { tap: ., tr: "3", bl: "?" }
+    - { tap: /, tr: /, bl: \ }
+
+    - { tap: ⌃, tr: Meta, bl: clip, br: "123" }
+    - { tap: TL, hold: Fn, tl: ⌥, tr: ⌨, br: ⚙ }
+    - { tap: ⇧, tr: ⇪ }
+    - {
+        tap: ␣,
+        shifted: palette,
+        hold: layout,
+        left: ◂,
+        right: ▸,
+        tl: win←,
+        tr: win→,
+        bl: sess←,
+        br: sess→,
+      }
+    - {
+        tap: ✦,
+        shifted: ↑,
+        hold: ↓,
+        left: ←,
+        right: →,
+        tl: ⇤,
+        tr: ⇞,
+        bl: ⇟,
+        br: ⇥,
+      }
+    - { tap: ⌫, tr: ⌦ }
+    - { tap: ⏎, shifted: voice }
+
+  TL (Fn):
+    - ⎋
+    - null
+    - null
+    - null
+    - null
+    - { tap: ⇞, tr: F12 }
+    - { tap: ⇤, tr: F7 }
+    - { tap: ↑, tr: F8 }
+    - { tap: ⇥, tr: F9 }
+    - null
+
+    - null
+    - null
+    - null
+    - null
+    - null
+    - { tap: ⇟, tr: F11 }
+    - { tap: ←, tr: F4 }
+    - { tap: ↓, tr: F5 }
+    - { tap: →, tr: F6 }
+    - null
+
+    - null
+    - null
+    - null
+    - null
+    - null
+    - { tap: "", tr: F10 }
+    - { tap: ⌫, tr: F1 }
+    - { tap: ⌦, tr: F2 }
+    - { tap: "", tr: F3 }
+    - null
+
+    - null
+    - { tap: TL, type: held }
+    - null
+    - null
+    - { tap: ✦, shifted: ⇞, hold: ⇟, left: ⇤, right: ⇥ }
+    - null
+    - null
+
+  Shift:
+    - { tap: Q, tr: "`" }
+    - { tap: W, tr: "~" }
+    - { tap: E, tr: "^" }
+    - { tap: R, tr: ₹ }
+    - T
+    - Y
+    - U
+    - I
+    - O
+    - { tap: P, tl: '"' }
+
+    - { tap: A, tr: "|" }
+    - { tap: S, tr: "]" }
+    - { tap: D, tr: "}" }
+    - { tap: F, tr: ) }
+    - G
+    - H
+    - J
+    - K
+    - L
+    - { tap: ":", tr: – }
+
+    - Z
+    - X
+    - C
+    - V
+    - B
+    - N
+    - M
+    - _
+    - "?"
+    - \
+
+    - null
+    - null
+    - { tap: ⇧, type: held }
+    - null
+    - null
+    - null
+    - null
+
+draw_config:
+  key_h: 60
+  key_w: 60
+  dark_mode: auto
+  draw_key_slides: true

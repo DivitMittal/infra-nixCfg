@@ -71,6 +71,47 @@ in {
       };
     };
 
+    # Termux Launcher (Nix edition) on the same phone as M1: a separate app
+    # sandbox with its own sshd on 8023. Built off-device, so pin user.uid/gid in
+    # hosts/droid/M1N/M1N.nix first — unpinned they default to the builder's `id -u`.
+    M1N = {
+      hostname = "M1";
+      profiles.system = {
+        sshUser = "nix-on-droid";
+        user = "nix-on-droid";
+        magicRollback = true;
+        sshOpts = [
+          "-p"
+          "8023"
+          "-i"
+          "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key"
+          "-o"
+          "HostKeyAlias=M1N"
+        ];
+        path = activateNixOnDroid self.nixOnDroidConfigurations.M1N;
+      };
+    };
+
+    M1N-adb = {
+      hostname = "127.0.0.1";
+      profiles.system = {
+        sshUser = "nix-on-droid";
+        user = "nix-on-droid";
+        magicRollback = true;
+        sshOpts = [
+          "-p"
+          "18023"
+          "-i"
+          "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key"
+          "-o"
+          "HostKeyAlias=M1N-adb"
+          "-o"
+          "CheckHostIP=no"
+        ];
+        path = activateNixOnDroid self.nixOnDroidConfigurations.M1N;
+      };
+    };
+
     # Oracle Cloud A1 Flex VPS in Mumbai.
     VPS0 = {
       hostname = "80.225.249.202";

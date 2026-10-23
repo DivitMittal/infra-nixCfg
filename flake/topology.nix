@@ -12,7 +12,12 @@
       modules = [
         {
           networks.home = {
-            name = "Home Network";
+            name = "R1 LAN (VLAN20)";
+            cidrv4 = "192.168.2.0/24";
+          };
+
+          networks.ont = {
+            name = "ONT/WAN Network (VLAN10)";
             cidrv4 = "192.168.1.0/24";
           };
 
@@ -22,8 +27,13 @@
           };
 
           networks.mobile = {
-            name = "Mobile Network";
+            name = "Android USB Tethering";
             cidrv4 = "10.0.0.0/8";
+          };
+
+          networks.tailnet = {
+            name = "Tailscale Tailnet";
+            cidrv4 = "100.64.0.0/10";
           };
 
           networks.internet = {
@@ -42,21 +52,123 @@
             cidrv4 = "192.168.106.0/24";
           };
 
-          nodes.router = {
-            name = "Home Router";
+          # R1 (Lenovo S100) used to be manually declared here as this
+          # flake's router node. It is no longer a router — T1
+          # (hosts/nixos/T1) has taken over that role entirely, and
+          # registers its own self-topology node under this same "router"
+          # id (see hosts/nixos/T1/topology.nix's `topology.id` override
+          # and the nixosConfigurations pass-through at the bottom of this
+          # file). R1 itself is now nodes.R1 below, repurposed as a
+          # Kubernetes worker; its old declarative OpenWrt config
+          # (hosts/openwrt/R1) is kept in place as historical/rollback
+          # reference, no longer deployed.
+
+          nodes.ont = {
+            name = "ONT";
             deviceType = "router";
-            hardware.info = "Consumer Router";
+            hardware.info = "Airtel fiber ONT (optical-to-ethernet media converter)";
+            interfaces.lan = {
+              network = "internet";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "r0";
+                  interface = "wan";
+                }
+              ];
+            };
             interfaces.wan = {
               network = "internet";
               type = "wan";
             };
-            interfaces.lan = {
-              network = "home";
+          };
+
+          nodes.r0 = {
+            name = "R0";
+            deviceType = "router";
+            hardware.info = "Airtel-provided router, reconfigured into bridge mode: passes the ISP's PPPoE session(s) straight through to T1's WAN NIC (T1 terminates PPPoE itself). Fallback: DMZ-forwards a static IP to T1's WAN (192.168.1.254) if PPPoE passthrough proves unreliable — see hosts/README.md. Also independently keeps broadcasting its own legacy 2.4GHz Wi-Fi AP for older/IoT devices (unmanaged by this flake)";
+            interfaces.wan = {
+              network = "internet";
               type = "ethernet";
             };
-            interfaces.wlan = {
+            interfaces.lan = {
+              network = "ont";
+              type = "ethernet";
+            };
+          };
+
+          nodes.R1 = {
+            name = "R1";
+            deviceType = "device";
+            hardware.info = "Lenovo S100, Intel Atom, 2 GiB RAM, x86_64 — repurposed as a Kubernetes worker node (was the primary OpenWrt router; hosts/openwrt/R1 config kept as historical/rollback reference, no longer deployed)";
+            # Direct wired link to T1, replacing R1's old role as the LAN's
+            # router — T1's r1link is the other side of this edge (see
+            # hosts/nixos/T1/topology.nix).
+            interfaces.eth0 = {
               network = "home";
-              type = "wifi";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "router";
+                  interface = "r1link";
+                }
+              ];
+            };
+          };
+
+          nodes.S1 = {
+            name = "S1";
+            deviceType = "switch";
+            hardware.info = "TP-Link TL-SG105E managed switch; mgmt IP 192.168.2.2 (VLAN20; the router's LAN gateway IP moved from R1's old 192.168.2.1 to T1/T640 — exact value TBD, not yet configured)";
+            # Uplink to T1 (lan0, on its router VM) on the flat untagged LAN
+            # — no VLAN tagging. WAN is not trunked here; R0 cables directly
+            # into T1's wan.
+            interfaces.port1 = {
+              network = "home";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "router";
+                  interface = "lan0";
+                }
+              ];
+            };
+            # VLAN20 access ports.
+            interfaces.port2 = {
+              network = "home";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "L1";
+                  interface = "eth0";
+                }
+              ];
+            };
+            interfaces.port3 = {
+              network = "home";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "L2";
+                  interface = "eth0";
+                }
+              ];
+            };
+            interfaces.port4 = {
+              network = "home";
+              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "M1";
+                  interface = "eth0";
+                }
+              ];
+            };
+            # port5: spare VLAN20 access port. The old VLAN10 WAN uplink from R0
+            # is gone — R0 now cables directly into T1's wan.
+            interfaces.port5 = {
+              network = "home";
+              type = "ethernet";
             };
           };
 
@@ -68,12 +180,11 @@
             interfaces.en0 = {
               network = "home";
               type = "wifi";
-              physicalConnections = [
-                {
-                  node = "router";
-                  interface = "wlan";
-                }
-              ];
+            };
+            # Wired uplink to S1 (VLAN20, port2).
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
             };
             # Virtual bridge for the Colima x86_64 VM
             interfaces.col0 = {
@@ -130,6 +241,18 @@
             };
           };
 
+          # x86_64 desktop — dual-boot: NixOS (L2) | Windows 11 (L2-windows) — user: vanee
+          nodes.L2 = {
+            name = "L2";
+            deviceType = "device";
+            hardware.info = "NixOS desktop (x86_64) - dual-boot with Windows 11 (L2-windows) — user: vanee";
+            # Wired uplink to S1 (VLAN20, port3).
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
+            };
+          };
+
           # Windows 11 boot on the x86_64 machine (dual-boot partner of L2 NixOS) — user: vanee
           # Managed by https://github.com/DivitMittal/playbooks-4-windows (Ansible IaC)
           nodes.L2-windows = {
@@ -155,16 +278,11 @@
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";
-              physicalConnections = [
-                {
-                  node = "router";
-                  interface = "wlan";
-                }
-              ];
             };
-            interfaces.mobile0 = {
-              network = "mobile";
-              type = "mobile";
+            # Wired uplink to S1 (VLAN20, port4).
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
             };
           };
         }

@@ -49,6 +49,11 @@
       hostName = "T2";
       system = "x86_64-linux";
     };
+    T1 = mkCfg {
+      inherit class;
+      hostName = "T1";
+      system = "x86_64-linux";
+    };
     ASL1N = mkCfg {
       inherit class;
       hostName = "ASL1N";

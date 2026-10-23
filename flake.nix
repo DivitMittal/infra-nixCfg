@@ -277,6 +277,16 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## OpenWrt/ImmortalWrt image builders (Nix-native wrappers around the
+    ## upstream binary ImageBuilder, x86_64-linux only — see flake/openwrt-images.nix)
+    openwrt-imagebuilder = {
+      url = "github:astro/nix-openwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    immortalwrt-imagebuilder = {
+      url = "github:codgician/nix-immortalwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-wsl = {
       url = "github:nix-community/nixos-wsl/main";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -284,6 +294,16 @@
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
     nixos-apple-silicon = {
       url = "github:nix-community/nixos-apple-silicon";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    ## OpenWrt UCI compiler and safe SSH deployer
+    openwrt-nix = {
+      url = "github:lonerOrz/openwrt-nix";
+      flake = false;
+    };
+    ## Terraform config generator, used for the S1 switch (Nix instead of HCL)
+    terranix = {
+      url = "github:terranix/terranix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ## Android

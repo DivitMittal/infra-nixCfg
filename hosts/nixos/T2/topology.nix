@@ -6,12 +6,6 @@ _: {
       wlan0 = {
         network = "home";
         type = "wireless";
-        physicalConnections = [
-          {
-            node = "router";
-            interface = "wlan";
-          }
-        ];
       };
     };
   };

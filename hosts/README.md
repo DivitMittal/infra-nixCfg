@@ -15,6 +15,7 @@ hosts/
 ├── nixos/                      # NixOS systems
 │   ├── enum.nix
 │   ├── L2/                     # x86_64-linux desktop
+│   ├── T1/                     # x86_64-linux HP t640 thin client (PXE/facter, see below)
 │   ├── T2/                     # x86_64-linux T2 MacBook
 │   ├── ASL1N/                  # aarch64-linux on ASL1
 │   ├── colima/                 # x86_64-linux VM
@@ -25,11 +26,65 @@ hosts/
 ├── droid/                      # Android (nix-on-droid)
 │   ├── enum.nix
 │   └── M1/                     # aarch64-linux Android
-└── iso/                        # ISO builds (NixOS install media)
+├── iso/                        # ISO builds (NixOS install media)
+│   ├── enum.nix
+│   ├── iso/                    # x86_64-linux vanilla
+│   ├── t2-iso/                 # x86_64-linux T2
+│   └── as-iso/                 # aarch64-linux Apple Silicon
+├── netboot/                    # PXE/TFTP netboot images (RAM-resident, minimal)
+│   ├── enum.nix
+│   └── t1-netboot/              # x86_64-linux — facter report + install source for T1
+├── openwrt/                    # OpenWrt router configurations
+│   ├── enum.nix
+│   ├── R1/                      # historical/rollback router config (superseded by T640, no longer deployed)
+│   │   ├── default.nix         # primary configuration
+│   │   └── modules/            # auto-imported UCI modules
+│   └── T640/                    # multi-PPPoE router VM guest running on T1 (hosts/nixos/T1/router-vm.nix)
+│       ├── default.nix         # primary configuration
+│       └── modules/            # auto-imported UCI modules
+└── switch/                     # Terraform-managed (terranix) switches
     ├── enum.nix
-    ├── iso/                    # x86_64-linux vanilla
-    ├── t2-iso/                 # x86_64-linux T2
-    └── as-iso/                 # aarch64-linux Apple Silicon
+    └── S1/                      # TP-Link TL-SG105E, mgmt 192.168.2.2
+        └── default.nix         # terranix module (VLANs, PVIDs, ...)
+```
+
+## Switch Configurations (terranix)
+
+`hosts/switch/` holds plain-attrset terranix modules for switches that don't
+run OpenWrt/NixOS but expose a Terraform-manageable API — currently S1, a
+TP-Link Easy Smart switch managed via
+[terraform-provider-tplink-easysmart](https://github.com/lucavb/terraform-provider-tplink-easysmart).
+Each host is registered in `hosts/switch/enum.nix` under
+`flake.switchConfigurations.<name>` and compiled to `config.tf.json` by
+`flake/terranix.nix`.
+
+Unlike the NixOS-style hosts above, these aren't `mkCfg`-generated systems —
+there's nothing to activate on the switch itself, so `terraform`/`tofu` runs
+from the workstation against the switch's web UI.
+
+```bash
+nix run .#switch-S1              # plan (default, read-only)
+nix run .#switch-S1 -- apply
+```
+
+The admin password is decrypted at run time from
+`infra-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
+`secrets/manifest.nix`, same convention as every other secret consumed via
+`common/home/age.nix`) using the `~/.ssh/agenix/id_ed25519` identity, and
+exported as `TF_VAR_switch_s1_password` — it is never stored in this repo.
+State lives outside the repo, in
+`$XDG_STATE_HOME/os-nixcfg/terraform/switch-S1`.
+
+`secrets/lan/R1.age` is a symlink to `secrets/lan/S1.age` — R1's OpenWrt
+root password (set over SSH during `nix run .#openwrt-ont <target>`, see
+`flake/openwrt.nix`) intentionally shares S1's admin password, one
+ciphertext for both.
+
+To create the secret itself (from inside `infra-nixCfg-secrets`, after entering
+its devshell so `ragenix`/`RULES` are set up):
+
+```bash
+ragenix -e secrets/lan/S1.age
 ```
 
 ## Host Directory Layout
@@ -163,6 +218,256 @@ bootstrap-remote VPS1 --target root@148.113.8.216 --port 20041 --yes-destroy-dis
 bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --check
 bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 ```
+
+### T1 (HP t640 thin client) — PXE/facter bootstrap
+
+`T1` is a diskless-by-default thin client bootstrapped over PXE. Unlike the VPS
+hosts, it has no known-good `hardware-configuration.nix`: hardware detection
+comes from [nixos-facter](https://github.com/nix-community/nixos-facter)
+(`hardware.facter.reportPath` in `hosts/nixos/T1/hardware.nix`, module
+upstreamed into nixpkgs). `hosts/nixos/T1/facter.json` starts as a `{}`
+placeholder — `hardware.facter.enable` stays off until it's replaced with a
+real report, so evaluation is safe before you've touched the hardware.
+
+`t1-netboot` (`.#nixosConfigurations.t1-netboot`) is a minimal PXE ramdisk
+image — no desktop stack, just enough to run `nixos-facter` and act as the
+`nixos-anywhere` install source. It is not a deploy-rs target; it is only ever
+booted over the network.
+
+1. Build the netboot artifacts and serve them from your TFTP/PXE server:
+
+   ```bash
+   nix build .#nixosConfigurations.t1-netboot.config.system.build.netbootRamdisk
+   nix build .#nixosConfigurations.t1-netboot.config.system.build.kernel
+   nix eval --raw .#nixosConfigurations.t1-netboot.config.system.build.netbootIpxeScript
+   ```
+
+2. PXE-boot the T640 into that image, then generate the real hardware report
+   from within it:
+
+   ```bash
+   nixos-facter -o facter.json
+   ```
+
+   Copy the resulting `facter.json` back over
+   `hosts/nixos/T1/facter.json` (e.g. `scp` it out, or serve it with a
+   temporary `python3 -m http.server` and `curl` it from your workstation),
+   replacing the `{}` placeholder, and commit it.
+
+3. Confirm the target disk (`lsblk` from the PXE shell — `hosts/nixos/T1/disko.nix`
+   assumes `/dev/sda`, adjust if the report says otherwise), then install for
+   real from the still-PXE-booted host:
+
+   ```bash
+   bootstrap-remote T1 --target root@<pxe-booted-ip> --disk /dev/sda --check
+   bootstrap-remote T1 --target root@<pxe-booted-ip> --disk /dev/sda --yes-destroy-disk
+   ```
+
+4. Once installed to local disk, T1 behaves like any other NixOS host —
+   rebuild via `hts` locally, or wire it into `hosts/deploy.nix` for deploy-rs
+   if you want remote deploys later.
+
+### T1 as an edge router: multi-PPPoE OpenWrt/ImmortalWrt VM
+
+Besides being a plain NixOS host, T1 also hosts a multi-PPPoE OpenWrt/
+ImmortalWrt router as a VM, using T1's two (or more) physical NICs via
+macvtap passthrough — one toward the ISP, one toward the home LAN. The
+router VM itself terminates two PPPoE lines on the WAN side (each behind its
+own `kmod-macvlan` MAC-VLAN device) and load-balances them with `mwan3`.
+
+Why a hand-rolled `qemu-kvm` service instead of `microvm.nix` or Proxmox:
+`microvm.nix` only boots **NixOS** guests (it turns `nixosConfigurations`
+into disk images — no path for a foreign OS image), and Proxmox doesn't
+offer a categorically different hypervisor tier (same KVM stack under Debian
+plus a UI). Running `qemu-system-x86_64 -enable-kvm` directly gets the same
+KVM acceleration with no framework mismatch. See
+`hosts/nixos/T1/router-vm.nix` for the full systemd-networkd (macvtap
+netdevs) + systemd service definition.
+
+The router VM's config is split the same way as everything else in this
+repo:
+
+- **Imagebuilder** (`flake/openwrt-images.nix`) builds a minimal bootable
+  base image — `openwrt-t640-router` / `immortalwrt-t640-router` — with the
+  multi-PPPoE-related packages (`kmod-macvlan`, `mwan3`, `luci-app-mwan3`,
+  `kmod-pppoe`, `ppp-mod-pppoe`, ...) baked in, so a fresh boot is
+  immediately capable offline. It does not configure any UCI itself.
+- **nuci** (`hosts/openwrt/T640/`, deployed via `flake/openwrt-t640.nix`)
+  owns all ongoing declarative config — the multi-PPPoE WAN interfaces,
+  `mwan3` balanced policy, and the `eth0`→`eth1` `lan` device reassignment —
+  pushed post-boot the same way R1's config is (`nix run .#t640-router
+<target>`, see `hosts/openwrt/R1`/`flake/openwrt.nix` for the pattern this
+  mirrors). This replaced an earlier one-shot `uci-defaults` script that
+  used to be baked into the image at build time.
+
+**This is unverified on real hardware** — T1 isn't physically bootstrapped in
+this branch, and the two physical NIC names in `router-vm.nix`
+(`wanPhysIface` / `lanPhysIface`) are placeholders. Confirm the real names
+via `ip link` and adjust before relying on this.
+
+#### Building both images
+
+```bash
+nix build .#openwrt-t640-router
+nix build .#immortalwrt-t640-router
+```
+
+Both are `x86_64-linux`-only outputs (the upstream ImageBuilders only support
+an `x86_64-linux` builder host — build these from a Linux machine or a
+Linux remote builder, not from macOS directly). `router-vm.nix` defaults to
+booting `immortalwrt-t640-router`; switch to `openwrt-t640-router` by
+changing the one `routerImagePackage` line.
+
+#### VM service lifecycle
+
+```bash
+systemctl status openwrt-router-vm
+systemctl restart openwrt-router-vm   # e.g. after switching the image package
+journalctl -u openwrt-router-vm -f    # serial console output (qemu -serial mon:stdio)
+```
+
+`ExecStartPre` idempotently decompresses the current image package's
+`.img.gz` into `/var/lib/openwrt-router/disk.img`, re-extracting only when
+the source store path changes (tracked via a stamp file) — so restarting the
+service doesn't re-run a fresh install every time. `Restart=always` keeps the
+router VM up across crashes/kernel panics inside the guest.
+
+#### Entering real PPPoE credentials
+
+The declarative UCI config (`hosts/openwrt/T640/modules/network.nix`)
+intentionally does **not** bake real PPPoE credentials into the Nix store or
+this repo, matching this project's existing no-secrets-in-store convention
+— it only ever contains clearly-commented `CHANGEME` placeholders.
+
+Real per-line credentials are injected the same way R1's root password and
+Wi-Fi-backup PSK are: two agenix-encrypted secrets in `infra-nixCfg-secrets`
+(`secrets/network/T640-wan1.age`, `secrets/network/T640-wan2.age`, each
+containing `username\npassword`), decrypted at deploy time and written over
+SSH to `/etc/nuci/wan{1,2}-credentials` by `flake/openwrt-t640.nix`'s
+`set_wan_credentials` step. A `nuci` reconcile.d hook
+(`hosts/openwrt/T640/modules/wan-credentials.nix`) then applies them to live
+UCI on every `nix run .#t640-router <target>` deploy — no manual LuCI/`uci
+set` step needed once those two secrets exist. Create them first (from
+inside `infra-nixCfg-secrets`, in its devshell):
+
+```bash
+ragenix -e secrets/network/T640-wan1.age
+ragenix -e secrets/network/T640-wan2.age
+```
+
+If you'd rather enter credentials manually instead (e.g. before the secrets
+exist), the same fields are reachable via LuCI (`Network > Interfaces >
+wan1`/`wan2` > Edit) or:
+
+```sh
+uci set network.wan1.username='...'
+uci set network.wan1.password='...'
+uci set network.wan2.username='...'
+uci set network.wan2.password='...'
+uci commit network && /etc/init.d/network reload
+```
+
+— but the reconcile.d hook will overwrite these on the next deploy once the
+secrets exist, since nuci reconciles the whole declared config on every run.
+
+#### Switching mwan3 from balanced to failover
+
+The default `mwan3` policy (`balanced`) weights both PPPoE lines equally
+(`metric='1'`, `weight='3'` on both members). To switch to primary/backup
+failover instead, give the backup line a higher metric than the primary
+(mwan3 prefers lower metrics) — e.g. from the LuCI mwan3 app, or:
+
+```sh
+uci set mwan3.wan2_m1_w3.metric='2'   # wan1 stays primary at metric 1
+uci commit mwan3
+mwan3 restart
+```
+
+#### Fallback: R0 DMZ instead of PPPoE passthrough
+
+The whole multi-PPPoE design above assumes R0 (the Airtel-provided router)
+is reconfigured into bridge mode, passing the ISP's PPPoE session(s)
+straight through to T1's WAN NIC. If that doesn't work well in practice
+(some ISP-provided routers' "bridge mode" is unreliable or absent),
+fall back to the same scheme R1's old default `wanMode = "ont"` used: R0
+stays in its normal router mode and DMZ-forwards a single static IP to
+T640's WAN, instead of T640 terminating PPPoE itself. This is a live `uci`
+reconfiguration of the router VM, not a Nix rebuild or nuci redeploy — apply
+it directly over SSH:
+
+```sh
+uci set network.wan1=interface
+uci set network.wan1.proto='static'
+uci set network.wan1.device='eth0'
+uci set network.wan1.ipaddr='192.168.1.254'
+uci set network.wan1.netmask='255.255.255.0'
+uci set network.wan1.gateway='192.168.1.1'
+uci -q delete network.wan1.username
+uci -q delete network.wan1.password
+uci add_list network.wan1.dns='192.168.1.1'
+uci add_list network.wan1.dns='1.1.1.1'
+uci commit network
+/etc/init.d/network restart
+```
+
+(Values mirror `hosts/openwrt/R1/modules/network.nix`'s static-WAN block
+exactly.) This disables line 2's PPPoE/mwan3 balancing implicitly — a DMZ
+only forwards to one address — so also disable `mwan3` or drop `wan2` from
+its `balanced` policy to avoid mwan3 treating a now-nonfunctional PPPoE line
+as a live member. Because this is a manual live reconfiguration outside the
+declarative UCI JSON, the next `nix run .#t640-router <target>` deploy will
+overwrite it back to the multi-PPPoE config — treat this fallback as
+break-glass, not a persistent mode switch, until it's promoted to a proper
+`wanMode`-style variant (not implemented yet; see
+`hosts/openwrt/R1/modules/network.nix` for the equivalent `wanMode` pattern
+if that becomes necessary).
+
+### Firmware/UEFI/BIOS updates (fwupd)
+
+`services.fwupd` is enabled for T1 and T2 (real x86_64 UEFI hardware; see
+`common/hosts/nixos/fwupd.nix` for why L2 and ASL1N are excluded). fwupd/LVFS
+is the standard cross-vendor tool for this on Linux — Nix can declare the
+daemon and its policy, but not a specific firmware version: firmware is
+flashed into hardware, not a Nix-store artifact, so applying an update is
+still an operator-run step after rebuilding:
+
+```bash
+fwupdmgr refresh       # pull latest LVFS metadata
+fwupdmgr get-updates   # list what's available for this machine
+fwupdmgr update        # apply
+```
+
+HP's LVFS coverage for the t640 thin-client line is effectively nonexistent
+today (HP's LVFS presence concentrates on EliteBook/EliteDesk/Z-workstation
+hardware), so `get-updates` reporting nothing on T1 is expected, not broken.
+
+#### Applying firmware updates over PXE
+
+`t1-netboot` also has `services.fwupd.enable = true;`, so you can check/apply
+firmware from the PXE shell — useful before T1 has an installed system, or as
+a rescue path afterwards. Important caveats:
+
+- **"Over PXE" only gets you the environment.** The actual flash happens
+  locally: fwupd stages a capsule, then on the _next_ reboot the T640's own
+  firmware reads and applies it before the OS loads — nothing is written to
+  the flash chip mid-session over the network.
+- **Requires genuine UEFI-mode PXE boot end-to-end** (UEFI PXE ROM →
+  `ipxe.efi` → kernel), not legacy BIOS PXE — otherwise there's no
+  `efivarfs`/capsule runtime for fwupd to use. Whether your PXE/TFTP/DHCP
+  server boots clients in UEFI mode is configured outside this flake (e.g. in
+  `OS-nixCfg-openwrt-router`), not here.
+- **No persistent mounts in netboot**, so fwupd can't auto-detect the ESP.
+  Mount the target disk's real ESP at `/boot` manually first (matches T1's
+  installed-system convention, so no `EspLocation` override is needed once
+  it's mounted there):
+
+  ```bash
+  lsblk -f                        # find the ESP partition, e.g. /dev/sda1
+  mount /dev/sda1 /boot
+  fwupdmgr refresh
+  fwupdmgr get-updates
+  fwupdmgr update                 # stages the capsule; reboot to apply
+  ```
 
 ### Steady-state deploys
 

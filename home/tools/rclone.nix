@@ -96,8 +96,8 @@
     '';
 in {
   imports = [
-    inputs.OS-nixCfg-secrets.homeManagerModules.rclone
-    inputs.OS-nixCfg-secrets.homeManagerConfigurations.rcloneAccounts
+    inputs.infra-nixCfg-secrets.homeManagerModules.rclone
+    inputs.infra-nixCfg-secrets.homeManagerConfigurations.rcloneAccounts
   ];
 
   home.packages = lib.attrsets.attrValues ({

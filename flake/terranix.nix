@@ -45,12 +45,12 @@
 
     # Same age-encrypted store used for every other secret in this flake
     # (see common/home/age.nix); matches the "lan/S1.age" entry declared in
-    # OS-nixCfg-secrets/secrets/manifest.nix (shared with R1, see openwrt.nix).
-    switchS1Secret = inputs.OS-nixCfg-secrets + "/secrets/lan/S1.age";
+    # infra-nixCfg-secrets/secrets/manifest.nix (shared with R1, see openwrt.nix).
+    switchS1Secret = inputs.infra-nixCfg-secrets + "/secrets/lan/S1.age";
 
     # Runs `terraform <mode> [extra args]` (mode defaults to "plan") against
     # S1's generated config, in a persistent state dir outside the repo.
-    # Credentials are decrypted straight from OS-nixCfg-secrets with the
+    # Credentials are decrypted straight from infra-nixCfg-secrets with the
     # same agenix identity home-manager's ragenix module uses, rather than
     # being wired through Nix.
     switchS1Command = pkgs.writeShellScript "switch-S1-terraform" ''

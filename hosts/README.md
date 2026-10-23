@@ -61,7 +61,7 @@ nix run .#switch-S1 -- apply
 ```
 
 The admin password is decrypted at run time from
-`OS-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
+`infra-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
 `secrets/manifest.nix`, same convention as every other secret consumed via
 `common/home/age.nix`) using the `~/.ssh/agenix/id_ed25519` identity, and
 exported as `TF_VAR_switch_s1_password` — it is never stored in this repo.
@@ -73,7 +73,7 @@ root password (set over SSH during `nix run .#openwrt-ont <target>`, see
 `flake/openwrt.nix`) intentionally shares S1's admin password, one
 ciphertext for both.
 
-To create the secret itself (from inside `OS-nixCfg-secrets`, after entering
+To create the secret itself (from inside `infra-nixCfg-secrets`, after entering
 its devshell so `ragenix`/`RULES` are set up):
 
 ```bash

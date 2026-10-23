@@ -32,7 +32,7 @@
         "type": "github"
       }
     },
-    "OS-nixCfg-secrets": {
+    "infra-nixCfg-secrets": {
       "inputs": {
         "actions-nix": [
           "actions-nix"
@@ -64,11 +64,11 @@
       "locked": {
         "lastModified": 1786324924,
         "narHash": "sha256-UZzBuifZjHeUWmBfPm5C2KH3niBwCg3HP4mDDNkPuVA=",
-        "path": "/Users/div/Projects/Cfgs/OS-nixCfg-secrets",
+        "path": "/Users/div/Projects/Cfgs/infra-nixCfg-secrets",
         "type": "path"
       },
       "original": {
-        "path": "/Users/div/Projects/Cfgs/OS-nixCfg-secrets",
+        "path": "/Users/div/Projects/Cfgs/infra-nixCfg-secrets",
         "type": "path"
       }
     },
@@ -972,7 +972,7 @@
     "flake-parts_2": {
       "inputs": {
         "nixpkgs-lib": [
-          "OS-nixCfg-secrets",
+          "infra-nixCfg-secrets",
           "terranix",
           "nixpkgs"
         ]
@@ -2930,7 +2930,7 @@
     "root": {
       "inputs": {
         "Emacs-Cfg": "Emacs-Cfg",
-        "OS-nixCfg-secrets": "OS-nixCfg-secrets",
+        "infra-nixCfg-secrets": "infra-nixCfg-secrets",
         "PKMS": "PKMS",
         "TLTR": "TLTR",
         "Vim-Cfg": "Vim-Cfg",
@@ -3657,7 +3657,7 @@
     "treefmt-nix": {
       "inputs": {
         "nixpkgs": [
-          "OS-nixCfg-secrets",
+          "infra-nixCfg-secrets",
           "nixpkgs"
         ]
       },

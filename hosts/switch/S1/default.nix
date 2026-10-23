@@ -7,7 +7,7 @@ _: {
   variable.switch_s1_password = {
     type = "string";
     sensitive = true;
-    description = "Admin password for S1's Easy Smart web UI (OS-nixCfg-secrets: secrets/lan/S1.age; shared with R1)";
+    description = "Admin password for S1's Easy Smart web UI (infra-nixCfg-secrets: secrets/lan/S1.age; shared with R1)";
   };
 
   provider.tplinkeasysmart = {

@@ -140,8 +140,8 @@
       };
     };
     infra-nixCfg-secrets = {
-      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=master";
-      #url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
+      #url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=master";
+      url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         systems.follows = "systems";
@@ -270,6 +270,11 @@
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
     nixos-apple-silicon = {
       url = "github:nix-community/nixos-apple-silicon";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    ## Terraform config generator, used to commission the OVH VPS (Nix instead of HCL)
+    terranix = {
+      url = "github:terranix/terranix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     ## Android

@@ -67,11 +67,5 @@
       system = "x86_64-linux";
       additionalModules = [inputs.agenix.nixosModules.default];
     };
-    VPS2 = mkCfg {
-      inherit class;
-      hostName = "VPS2";
-      system = "x86_64-linux";
-      additionalModules = [inputs.agenix.nixosModules.default];
-    };
   };
 }

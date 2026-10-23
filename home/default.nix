@@ -111,13 +111,6 @@
       additionalModules = headlessModules;
     };
 
-    VPS2 = mkCfg {
-      hostName = "VPS2";
-      system = "x86_64-linux";
-      inherit class;
-      additionalModules = headlessModules;
-    };
-
     # ── droid ────────────────────────────────────────────────────────────────
     M1 = mkCfg {
       hostName = "M1";

@@ -104,7 +104,7 @@ For the dedicated proving host only, select an aggressive kernel set:
 boot.kernelPackages = pkgs.master.linuxPackages_latest;
 ```
 
-Do not apply this globally. Do not apply it to `T2`, `ASL1N`, `VPS1`, or `VPS2` until the proving host passes and a hardware-specific variant is created.
+Do not apply this globally. Do not apply it to `T2`, `ASL1N`, or `VPS1` until the proving host passes and a hardware-specific variant is created.
 
 ### Instrumentation Kconfig
 
@@ -315,9 +315,9 @@ After the generic proving host works, consider explicit forge variants:
 
 - `T2-forge`: T2-related driver/kernel exploration, but preserve `nixos-hardware.nixosModules.apple-t2` expectations.
 - `ASL1N-forge`: Asahi exploration, but do not override its kernel stack blindly.
-- `VPS1-forge` / `VPS2-forge`: only after local and VM proof, because VPS deploy nodes have `magicRollback = false`.
+- `VPS1-forge`: only after local and VM proof, because VPS deploy nodes have `magicRollback = false`.
 
-Do not attach Kernel Forge directly to production `T2`, `ASL1N`, `VPS1`, or `VPS2` outputs initially.
+Do not attach Kernel Forge directly to production `T2`, `ASL1N`, or `VPS1` outputs initially.
 
 ## Module and profile structure
 

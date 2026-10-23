@@ -123,30 +123,5 @@ in {
         configuration = self.homeConfigurations.VPS1;
         sshOpts = ["-p" "20041"];
       };
-
-    # Germany IPv6-only KVM VPS for server/background workloads.
-    VPS2 = {
-      hostname = "2a0e:97c0:3e3:34d::1";
-      profiles.system = {
-        sshUser = "root";
-        user = "root";
-        magicRollback = false;
-        remoteBuild = true;
-        path =
-          inputs.deploy-rs.lib.x86_64-linux.activate.nixos
-          self.nixosConfigurations.VPS2;
-        sshOpts = ["-i" "/Users/div/.ssh/agenix/id_ed25519" "-o" "StrictHostKeyChecking=accept-new"];
-      };
-    };
-
-    "VPS2-home" =
-      {
-        hostname = "2a0e:97c0:3e3:34d::1";
-      }
-      // mkVpsHomeProfile {
-        system = "x86_64-linux";
-        configuration = self.homeConfigurations.VPS2;
-        sshOpts = ["-i" "/Users/div/.ssh/agenix/id_ed25519" "-o" "StrictHostKeyChecking=accept-new"];
-      };
   };
 }

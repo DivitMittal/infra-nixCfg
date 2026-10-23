@@ -41,14 +41,14 @@ _: {
         _type = "interface";
         name = "wan";
         disabled = "0";
-        # WAN rides the onboard 100M NIC (eth0, see network.nix), so the 10/100
-        # link — not the ~110/105 fiber — is the bottleneck. Shape just below
-        # 100M line rate so CAKE forms the queue here (and controls bufferbloat)
-        # instead of overrunning the port. The margin also absorbs Ethernet
-        # framing overhead, which qosify cannot express as SQM's per-packet
-        # overhead.
-        bandwidth_up = "95mbit";
-        bandwidth_down = "95mbit";
+        # WAN rides wan0, a USB gigabit NIC (see netnames.nix), so the ~110/105
+        # Airtel fiber line rate is the real bottleneck, not the port. Shape
+        # just below that line rate so CAKE forms the queue here (and controls
+        # bufferbloat) instead of the ISP's upstream buffer. The margin also
+        # absorbs Ethernet framing overhead, which qosify cannot express as
+        # SQM's per-packet overhead.
+        bandwidth_up = "100mbit";
+        bandwidth_down = "105mbit";
         ingress = "1";
         egress = "1";
         mode = "diffserv4";

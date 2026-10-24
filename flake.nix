@@ -81,7 +81,9 @@
     import-tree.url = "github:vic/import-tree";
 
     ## flake helpers
-    systems.url = "github:nix-systems/default";
+    # Pinned: upstream dropped x86_64-darwin (L1) in c29398b5; a relock would
+    # silently strip L1 outputs from every input that follows this.
+    systems.url = "github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e";
     flake-utils = {
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
@@ -137,6 +139,7 @@
       inputs = {
         agenix.follows = "agenix";
         nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
       };
     };
     infra-nixCfg-secrets = {
@@ -164,6 +167,7 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nvchad-starter.follows = "Vim-Cfg";
+        flake-utils.follows = "flake-utils";
       };
     };
     Emacs-Cfg = {
@@ -181,8 +185,8 @@
 
     ## Terminal Emulator
     term-nixCfg = {
-      #url = "github:DivitMittal/term-nixCfg";
-      url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
+      url = "github:DivitMittal/term-nixCfg";
+      #url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -212,8 +216,8 @@
 
     ## AI
     ai-nixCfg = {
-      #url = "github:DivitMittal/ai-nixCfg";
-      url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
+      url = "github:DivitMittal/ai-nixCfg";
+      #url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -227,8 +231,8 @@
 
     ## Quant / algo trading
     quant-nixCfg = {
-      #url = "github:DivitMittal/quant-nixCfg";
-      url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
+      url = "github:DivitMittal/quant-nixCfg";
+      #url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -243,10 +247,14 @@
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.systems.follows = "systems";
     };
     spotatui = {
       url = "github:LargeModGames/spotatui";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
 
     ## TidalCycles
@@ -352,6 +360,8 @@
         actions-nix.follows = "actions-nix";
       };
     };
+    ## Bootstraps brew on x86_64-darwin, where the official installer refuses to run
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     ## Declarative homebrew setup (via home-manager)
     home-manager-brew = {
       url = "github:koalalorenzo/home-manager-brew";
@@ -380,6 +390,7 @@
         #nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
         systems.follows = "systems";
+        cl-nix-lite.inputs.systems.follows = "systems";
       };
     };
 
@@ -387,7 +398,10 @@
     kanata-tray = {
       url = "github:rszyma/kanata-tray";
       #url = "github:DivitMittal/kanata-tray/fix/nix-hostplatform-system";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
     TLTR = {
       url = "github:DivitMittal/TLTR";
@@ -406,7 +420,10 @@
     ## Misc.
     yazi = {
       url = "github:sxyazi/yazi";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
     yazi-plugins = {
       url = "github:yazi-rs/plugins";

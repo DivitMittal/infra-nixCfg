@@ -37,13 +37,11 @@
     }
   );
 
-  ## Kept on Homebrew (brew-nix can't handle them):
-  ## - macs-fan-control: moves itself to /Applications, privileged SMC helper
-  ## - wezterm@nightly: unversioned nightly download (hash can't be pinned),
-  ##   and its WezTerm.app would clash with term-nixCfg's stable brewCasks.wezterm
+  ## Kept on Homebrew: macs-fan-control moves itself to /Applications and
+  ## installs a privileged SMC helper, which brew-nix can't handle.
+  ## (wezterm@nightly is declared by term-nixCfg's wezterm module.)
   homebrew.casks = [
     "macs-fan-control" # fan speed control & temperature monitor
-    "wezterm@nightly" # nightly build alongside term-nixCfg's stable brewCasks.wezterm
   ];
 
   homebrew.mas = [

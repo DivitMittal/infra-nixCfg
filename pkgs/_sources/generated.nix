@@ -69,13 +69,13 @@
   };
   agevault = {
     pname = "agevault";
-    version = "v1.1.2";
+    version = "v1.2.0";
     src = fetchFromGitHub {
       owner = "ndavd";
       repo = "agevault";
-      rev = "v1.1.2";
+      rev = "v1.2.0";
       fetchSubmodules = false;
-      sha256 = "sha256-Uc4g1dBGIIXciTbZRi7ADfQGiGNe0447kZ+unY1L+w8=";
+      sha256 = "sha256-lcOrHvRPM+qC5fyXNttvfkooSDcggHg38AuNdewanWE=";
     };
   };
   clamav-unofficial-sigs = {
@@ -103,12 +103,12 @@
   };
   get-apple-firmware = {
     pname = "get-apple-firmware";
-    version = "986f5a79d43b75d93d84b8d57bc338853b51a0e0";
+    version = "92f29800f935fb30905c5cae953f6d52421c1f2b";
     src = fetchurl {
-      url = "https://raw.githubusercontent.com/t2linux/wiki/986f5a79d43b75d93d84b8d57bc338853b51a0e0/docs/tools/firmware.sh";
+      url = "https://raw.githubusercontent.com/t2linux/wiki/92f29800f935fb30905c5cae953f6d52421c1f2b/docs/tools/firmware.sh";
       sha256 = "sha256-wcHYqiW7XwieRszQ2XOPwTv714T0maqSRGbGkPBZlh4=";
     };
-    date = "2026-09-24";
+    date = "2026-10-20";
   };
   hyperhdr-aarch64 = {
     pname = "hyperhdr-aarch64";
@@ -144,31 +144,31 @@
   };
   libxls = {
     pname = "libxls";
-    version = "1.6.3";
+    version = "1.6.4";
     src = fetchurl {
-      url = "https://github.com/libxls/libxls/releases/download/v1.6.3/libxls-1.6.3.tar.gz";
-      sha256 = "sha256-svuDbqC1JTo1L7XKVXQuKfBvlPlCHFuO7M7y5dQ/Yiw=";
+      url = "https://github.com/libxls/libxls/releases/download/v1.6.4/libxls-1.6.4.tar.gz";
+      sha256 = "sha256-Bk7h2mzz1IHYr0qTbg4M4BkBFORo+33+9agWEHRggeA=";
     };
   };
   menubar-dock = {
     pname = "menubar-dock";
-    version = "v4.8.0";
+    version = "v4.8.1";
     src = fetchurl {
-      url = "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/v4.8.0/Menu-Bar-Dock-v4.8.0.zip";
-      sha256 = "sha256-6qjcdk2+dx5RMhHvzQS2S1yDOclwSmeZJT7lCffJSBI=";
+      url = "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/v4.8.1/Menu-Bar-Dock-v4.8.1.zip";
+      sha256 = "sha256-YScF3eTizDL9zQyv8Ef1M8Bp9gTwnUdO8kpefj8WGso=";
     };
   };
   mutt = {
     pname = "mutt";
-    version = "ebe3819fc05bb016499110eb403754138e2d814b";
+    version = "844fcfe7861631359ee789e4231d322144a1bd3b";
     src = fetchFromGitHub {
       owner = "muttmua";
       repo = "mutt";
-      rev = "ebe3819fc05bb016499110eb403754138e2d814b";
+      rev = "844fcfe7861631359ee789e4231d322144a1bd3b";
       fetchSubmodules = false;
-      sha256 = "sha256-3zxVRMarD8DpNmX0rkR65hJX0GmisV9UF8/Mm21/LAU=";
+      sha256 = "sha256-zHjyUdJCO3TYqYTrMwb9lXu5SvDT0mGPUGgv6RUxi6w=";
     };
-    date = "2026-10-09";
+    date = "2026-10-10";
   };
   option-analysis = {
     pname = "option-analysis";
@@ -266,34 +266,34 @@
   };
   uniclipboard-cli-aarch64-darwin = {
     pname = "uniclipboard-cli-aarch64-darwin";
-    version = "1.1.2";
+    version = "1.4.0";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-aarch64-apple-darwin.tar.gz";
-      sha256 = "sha256-vsFyTV+fhDP8kvNhBThvWd4dkdAInOiEa4Wj3fk1z6g=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-aarch64-apple-darwin.tar.gz";
+      sha256 = "sha256-IVyJvZE2wZ4yZcB+PuhkAKN8QjSmozwHSG+nDH30UT4=";
     };
   };
   uniclipboard-cli-aarch64-linux = {
     pname = "uniclipboard-cli-aarch64-linux";
-    version = "1.1.2";
+    version = "1.4.0";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-aarch64-unknown-linux-musl.tar.gz";
-      sha256 = "sha256-gV7T1QCBWy705XhT0Qf+PY+9Qo3dgfWqW3AQtTOGsWQ=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-aarch64-unknown-linux-musl.tar.gz";
+      sha256 = "sha256-hVT2/e/+LzHt066dY4vXO8uYF3MGt9Y7JOQd0kzUqwE=";
     };
   };
   uniclipboard-cli-x86_64-darwin = {
     pname = "uniclipboard-cli-x86_64-darwin";
-    version = "1.1.2";
+    version = "1.4.0";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-x86_64-apple-darwin.tar.gz";
-      sha256 = "sha256-qLtpoVkE4JjaOhY2kh7jcH7SbD2FyUBd7fPZON/eUzM=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-apple-darwin.tar.gz";
+      sha256 = "sha256-ubb7CETB7ZLYM1A0dy/dcIGxK/9jelDkBCSAsrkZ9XM=";
     };
   };
   uniclipboard-cli-x86_64-linux = {
     pname = "uniclipboard-cli-x86_64-linux";
-    version = "1.1.2";
+    version = "1.4.0";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-x86_64-unknown-linux-musl.tar.gz";
-      sha256 = "sha256-nlI2ZvfaJ/wEsoKEQz5HrIqlYU8GBnRBa6vlf7JbQIQ=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-unknown-linux-musl.tar.gz";
+      sha256 = "sha256-JV7uj2ROKED3j14MzquVzbiHLinEpsnC+AXaMQ2xjhw=";
     };
   };
   warpd = {
@@ -321,34 +321,34 @@
   };
   zerobrew-zb-aarch64 = {
     pname = "zerobrew-zb-aarch64";
-    version = "0.4.0";
+    version = "0.4.2";
     src = fetchurl {
-      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zb-darwin-arm64";
-      sha256 = "sha256-M828ABO6uCtUDH32GdjcFR/nLJQiXmVyMaF6xagf3KQ=";
+      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zb-darwin-arm64";
+      sha256 = "sha256-xYsBZ98dqA99r2XK84FRULHq82mZGGfan+CHFV4/mNw=";
     };
   };
   zerobrew-zb-x86_64 = {
     pname = "zerobrew-zb-x86_64";
-    version = "0.4.0";
+    version = "0.4.2";
     src = fetchurl {
-      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zb-darwin-x64";
-      sha256 = "sha256-CDicChVQHPv5Rx4Uu/40sopURDwWnWjcQiaVQAn4wfs=";
+      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zb-darwin-x64";
+      sha256 = "sha256-UQiemToipnbMfSWixzPDZ6z/LeQAVQipe2kqq3kP8to=";
     };
   };
   zerobrew-zbx-aarch64 = {
     pname = "zerobrew-zbx-aarch64";
-    version = "0.4.0";
+    version = "0.4.2";
     src = fetchurl {
-      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zbx-darwin-arm64";
-      sha256 = "sha256-JMRRiDqKKdQUaIQ3ak6zbXxGaThdGsSicTIVjfn9gSM=";
+      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zbx-darwin-arm64";
+      sha256 = "sha256-jdpXwgjIKfc0VqVaXGzRVFhOK4AXmq8GPzDE6KC+q0U=";
     };
   };
   zerobrew-zbx-x86_64 = {
     pname = "zerobrew-zbx-x86_64";
-    version = "0.4.0";
+    version = "0.4.2";
     src = fetchurl {
-      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zbx-darwin-x64";
-      sha256 = "sha256-GEGGHL9bwsNUmcEdosWfYTZCgeC2HNuFfDHk0FJRVQw=";
+      url = "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zbx-darwin-x64";
+      sha256 = "sha256-RQ8gefqL8+V9uhm1hwmm/tEvhQpi+k/deAHGrbcwBH0=";
     };
   };
 }

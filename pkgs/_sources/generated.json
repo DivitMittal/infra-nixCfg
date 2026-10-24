@@ -130,12 +130,12 @@
       "name": null,
       "owner": "ndavd",
       "repo": "agevault",
-      "rev": "v1.1.2",
-      "sha256": "sha256-Uc4g1dBGIIXciTbZRi7ADfQGiGNe0447kZ+unY1L+w8=",
+      "rev": "v1.2.0",
+      "sha256": "sha256-lcOrHvRPM+qC5fyXNttvfkooSDcggHg38AuNdewanWE=",
       "sparseCheckout": [],
       "type": "github"
     },
-    "version": "v1.1.2"
+    "version": "v1.2.0"
   },
   "clamav-unofficial-sigs": {
     "cargoLock": null,
@@ -181,7 +181,7 @@
   },
   "get-apple-firmware": {
     "cargoLock": null,
-    "date": "2026-09-24",
+    "date": "2026-10-20",
     "extract": null,
     "name": "get-apple-firmware",
     "passthru": null,
@@ -190,9 +190,9 @@
       "name": null,
       "sha256": "sha256-wcHYqiW7XwieRszQ2XOPwTv714T0maqSRGbGkPBZlh4=",
       "type": "url",
-      "url": "https://raw.githubusercontent.com/t2linux/wiki/986f5a79d43b75d93d84b8d57bc338853b51a0e0/docs/tools/firmware.sh"
+      "url": "https://raw.githubusercontent.com/t2linux/wiki/92f29800f935fb30905c5cae953f6d52421c1f2b/docs/tools/firmware.sh"
     },
-    "version": "986f5a79d43b75d93d84b8d57bc338853b51a0e0"
+    "version": "92f29800f935fb30905c5cae953f6d52421c1f2b"
   },
   "hyperhdr-aarch64": {
     "cargoLock": null,
@@ -263,11 +263,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-svuDbqC1JTo1L7XKVXQuKfBvlPlCHFuO7M7y5dQ/Yiw=",
+      "sha256": "sha256-Bk7h2mzz1IHYr0qTbg4M4BkBFORo+33+9agWEHRggeA=",
       "type": "url",
-      "url": "https://github.com/libxls/libxls/releases/download/v1.6.3/libxls-1.6.3.tar.gz"
+      "url": "https://github.com/libxls/libxls/releases/download/v1.6.4/libxls-1.6.4.tar.gz"
     },
-    "version": "1.6.3"
+    "version": "1.6.4"
   },
   "menubar-dock": {
     "cargoLock": null,
@@ -278,15 +278,15 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-6qjcdk2+dx5RMhHvzQS2S1yDOclwSmeZJT7lCffJSBI=",
+      "sha256": "sha256-YScF3eTizDL9zQyv8Ef1M8Bp9gTwnUdO8kpefj8WGso=",
       "type": "url",
-      "url": "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/v4.8.0/Menu-Bar-Dock-v4.8.0.zip"
+      "url": "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/v4.8.1/Menu-Bar-Dock-v4.8.1.zip"
     },
-    "version": "v4.8.0"
+    "version": "v4.8.1"
   },
   "mutt": {
     "cargoLock": null,
-    "date": "2026-10-09",
+    "date": "2026-10-10",
     "extract": null,
     "name": "mutt",
     "passthru": null,
@@ -298,12 +298,12 @@
       "name": null,
       "owner": "muttmua",
       "repo": "mutt",
-      "rev": "ebe3819fc05bb016499110eb403754138e2d814b",
-      "sha256": "sha256-3zxVRMarD8DpNmX0rkR65hJX0GmisV9UF8/Mm21/LAU=",
+      "rev": "844fcfe7861631359ee789e4231d322144a1bd3b",
+      "sha256": "sha256-zHjyUdJCO3TYqYTrMwb9lXu5SvDT0mGPUGgv6RUxi6w=",
       "sparseCheckout": [],
       "type": "github"
     },
-    "version": "ebe3819fc05bb016499110eb403754138e2d814b"
+    "version": "844fcfe7861631359ee789e4231d322144a1bd3b"
   },
   "option-analysis": {
     "cargoLock": null,
@@ -488,11 +488,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-vsFyTV+fhDP8kvNhBThvWd4dkdAInOiEa4Wj3fk1z6g=",
+      "sha256": "sha256-IVyJvZE2wZ4yZcB+PuhkAKN8QjSmozwHSG+nDH30UT4=",
       "type": "url",
-      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-aarch64-apple-darwin.tar.gz"
+      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-aarch64-apple-darwin.tar.gz"
     },
-    "version": "1.1.2"
+    "version": "1.4.0"
   },
   "uniclipboard-cli-aarch64-linux": {
     "cargoLock": null,
@@ -503,11 +503,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-gV7T1QCBWy705XhT0Qf+PY+9Qo3dgfWqW3AQtTOGsWQ=",
+      "sha256": "sha256-hVT2/e/+LzHt066dY4vXO8uYF3MGt9Y7JOQd0kzUqwE=",
       "type": "url",
-      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-aarch64-unknown-linux-musl.tar.gz"
+      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-aarch64-unknown-linux-musl.tar.gz"
     },
-    "version": "1.1.2"
+    "version": "1.4.0"
   },
   "uniclipboard-cli-x86_64-darwin": {
     "cargoLock": null,
@@ -518,11 +518,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-qLtpoVkE4JjaOhY2kh7jcH7SbD2FyUBd7fPZON/eUzM=",
+      "sha256": "sha256-ubb7CETB7ZLYM1A0dy/dcIGxK/9jelDkBCSAsrkZ9XM=",
       "type": "url",
-      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-x86_64-apple-darwin.tar.gz"
+      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-apple-darwin.tar.gz"
     },
-    "version": "1.1.2"
+    "version": "1.4.0"
   },
   "uniclipboard-cli-x86_64-linux": {
     "cargoLock": null,
@@ -533,11 +533,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-nlI2ZvfaJ/wEsoKEQz5HrIqlYU8GBnRBa6vlf7JbQIQ=",
+      "sha256": "sha256-JV7uj2ROKED3j14MzquVzbiHLinEpsnC+AXaMQ2xjhw=",
       "type": "url",
-      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.1.2/uniclipboard-cli-1.1.2-x86_64-unknown-linux-musl.tar.gz"
+      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-unknown-linux-musl.tar.gz"
     },
-    "version": "1.1.2"
+    "version": "1.4.0"
   },
   "warpd": {
     "cargoLock": null,
@@ -590,11 +590,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-M828ABO6uCtUDH32GdjcFR/nLJQiXmVyMaF6xagf3KQ=",
+      "sha256": "sha256-xYsBZ98dqA99r2XK84FRULHq82mZGGfan+CHFV4/mNw=",
       "type": "url",
-      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zb-darwin-arm64"
+      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zb-darwin-arm64"
     },
-    "version": "0.4.0"
+    "version": "0.4.2"
   },
   "zerobrew-zb-x86_64": {
     "cargoLock": null,
@@ -605,11 +605,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-CDicChVQHPv5Rx4Uu/40sopURDwWnWjcQiaVQAn4wfs=",
+      "sha256": "sha256-UQiemToipnbMfSWixzPDZ6z/LeQAVQipe2kqq3kP8to=",
       "type": "url",
-      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zb-darwin-x64"
+      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zb-darwin-x64"
     },
-    "version": "0.4.0"
+    "version": "0.4.2"
   },
   "zerobrew-zbx-aarch64": {
     "cargoLock": null,
@@ -620,11 +620,11 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-JMRRiDqKKdQUaIQ3ak6zbXxGaThdGsSicTIVjfn9gSM=",
+      "sha256": "sha256-jdpXwgjIKfc0VqVaXGzRVFhOK4AXmq8GPzDE6KC+q0U=",
       "type": "url",
-      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zbx-darwin-arm64"
+      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zbx-darwin-arm64"
     },
-    "version": "0.4.0"
+    "version": "0.4.2"
   },
   "zerobrew-zbx-x86_64": {
     "cargoLock": null,
@@ -635,10 +635,10 @@
     "pinned": false,
     "src": {
       "name": null,
-      "sha256": "sha256-GEGGHL9bwsNUmcEdosWfYTZCgeC2HNuFfDHk0FJRVQw=",
+      "sha256": "sha256-RQ8gefqL8+V9uhm1hwmm/tEvhQpi+k/deAHGrbcwBH0=",
       "type": "url",
-      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.0/zbx-darwin-x64"
+      "url": "https://github.com/lucasgelfond/zerobrew/releases/download/v0.4.2/zbx-darwin-x64"
     },
-    "version": "0.4.0"
+    "version": "0.4.2"
   }
 }

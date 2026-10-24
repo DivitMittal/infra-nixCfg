@@ -42,6 +42,10 @@ in {
       package = pkgs.emacs-nox;
     };
 
+    # Doom's :checkers spell module needs a spell-checker binary on PATH in
+    # either mode; without one flyspell errors in every text buffer.
+    home.packages = [(pkgs.aspellWithDicts (d: [d.en]))];
+
     xdg.configFile."doom" = mkIf (cfg.mode == "symlink") {
       enable = true;
       source = inputs.Emacs-Cfg;

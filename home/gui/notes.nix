@@ -27,10 +27,10 @@ in {
       if hostPlatform.isDarwin
       then onenote
       else null;
-    notion =
-      if hostPlatform.isDarwin
-      then pkgs.brewCasks.notion.override {variation = "tahoe";}
-      else null;
+    #notion =
+    #  if hostPlatform.isDarwin
+    #  then pkgs.brewCasks.notion.override {variation = "tahoe";}
+    #  else null;
   };
 
   programs.obsidian = {

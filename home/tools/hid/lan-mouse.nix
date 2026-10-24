@@ -35,5 +35,6 @@
 
   # Service defined but not auto-started — start manually via systemctl/launchctl
   systemd.user.services.lan-mouse.Install.WantedBy = lib.mkForce [];
-  launchd.agents.lan-mouse.config.RunAtLoad = lib.mkForce false;
+  # Upstream sets KeepAlive = true, which makes launchd start the job on load even with RunAtLoad unset
+  launchd.agents.lan-mouse.config.KeepAlive = lib.mkForce false;
 }

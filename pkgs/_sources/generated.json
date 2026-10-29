@@ -1,4 +1,19 @@
 {
+  "BattOpt": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "BattOpt",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-IvE7dk1zlovtzJ5kplENyzL5GdlWbTUL1Yb2QtbrWDE=",
+      "type": "url",
+      "url": "https://github.com/js4jiang5/BattOpt/releases/download/v1.2.9/BattOpt_v1.2.9.dmg"
+    },
+    "version": "1.2.9"
+  },
   "Iris": {
     "cargoLock": null,
     "date": null,

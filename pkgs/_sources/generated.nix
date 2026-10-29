@@ -3,6 +3,14 @@
   fetchurl,
   fetchFromGitHub,
 }: {
+  BattOpt = {
+    pname = "BattOpt";
+    version = "1.2.9";
+    src = fetchurl {
+      url = "https://github.com/js4jiang5/BattOpt/releases/download/v1.2.9/BattOpt_v1.2.9.dmg";
+      sha256 = "sha256-IvE7dk1zlovtzJ5kplENyzL5GdlWbTUL1Yb2QtbrWDE=";
+    };
+  };
   Iris = {
     pname = "Iris";
     version = "v0.3.1";

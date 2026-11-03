@@ -17,7 +17,10 @@ in {
       onlyoffice =
         if hostPlatform.isDarwin
         then (pkgs.brewCasks.onlyoffice.override {variation = "tahoe";})
-        else pkgs.onlyoffice-desktopeditors; # nixpkgs renamed it from onlyoffice
+        # nixpkgs renamed it from onlyoffice; no aarch64-linux build (null is filtered).
+        else if lib.meta.availableOn hostPlatform pkgs.onlyoffice-desktopeditors
+        then pkgs.onlyoffice-desktopeditors
+        else null;
       libreoffice =
         if hostPlatform.isDarwin
         then

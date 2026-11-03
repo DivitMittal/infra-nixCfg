@@ -11,7 +11,7 @@ _: {
   #
   # xdg.configFile."raycast/scripts" = {
   #   enable = true;
-  #   source = ./scripts;
+  #   source = ../../vicinae/scripts; # moved: now loaded by vicinae
   #   recursive = true;
   # };
 }

@@ -43,7 +43,20 @@ in {
   ];
 
   flake.actions-nix.workflows.".github/workflows/eval.yml" = {
-    on = common-on;
+    # Besides PRs/master: pushing any `eval/**` branch evaluates that commit on
+    # native runners without opening a PR (how agents should evaluate instead
+    # of building locally), and workflow_dispatch can run it on demand.
+    on =
+      common-on
+      // {
+        push = common-on.push // {branches = ["master" "eval/**"];};
+        workflow_dispatch.inputs.filter = {
+          description = "Regex on target attrs (e.g. 'homeConfigurations\\.(L1|ASL1)\\.'); empty = all";
+          required = false;
+          type = "string";
+          default = "";
+        };
+      };
     jobs = {
       list-targets = {
         permissions = common-permissions;
@@ -55,10 +68,22 @@ in {
             {
               name = "List configurations to evaluate";
               id = "targets";
+              # The filter comes from the dispatch input or, on pushes, an
+              # `Eval-Filter: <regex>` trailer on the head commit. Both reach the
+              # shell via env/git only, never interpolated into the script.
+              env.FILTER_INPUT = "\${{ inputs.filter }}";
               # Assign first: inside `echo "$(...)"` a failed eval is swallowed
               # and the step passes with an empty matrix.
               run = ''
-                targets=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
+                filter=''${FILTER_INPUT:-$(git log -1 --format='%(trailers:key=Eval-Filter,valueonly,separator=|)')}
+                all=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
+                targets=$(jq -c --arg f "$filter" 'map(select(.attr | test($f)))' <<<"$all")
+                echo "filter: ''${filter:-<none>}"
+                jq -r '.[].attr' <<<"$targets"
+                if [ "$(jq length <<<"$targets")" -eq 0 ]; then
+                  echo "::error::Eval filter '$filter' matched no targets"
+                  exit 1
+                fi
                 echo "targets=$targets" >> "$GITHUB_OUTPUT"
               '';
             }

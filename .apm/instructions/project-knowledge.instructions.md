@@ -74,7 +74,7 @@ nix develop               # enter devshell (hms/hts available)
 hms -v --show-trace       # rebuild/switch home-manager
 hts -v --show-trace       # rebuild/switch host (nixos/darwin/droid)
 nix fmt                   # treefmt (alejandra, deadnix, statix, prettier, shfmt)
-nix flake check           # full flake checks
+nix flake check           # full flake checks (heavy: prefer CI eval, see ci-eval)
 ./utils/home_rebuild.sh   # home rebuild wrapper
 ./utils/hosts_rebuild.sh  # host rebuild wrapper
 ```

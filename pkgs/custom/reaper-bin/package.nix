@@ -1,5 +1,6 @@
 {
   stdenvNoCC,
+  stdenv,
   fetchurl,
   lib,
   makeWrapper,
@@ -63,7 +64,8 @@ in
       alsa-lib
       libpulseaudio
       pipewire
-      stdenvNoCC.cc.cc.lib
+      # libstdc++; stdenvNoCC has no compiler, so its .cc is null.
+      stdenv.cc.cc.lib
     ];
 
     unpackPhase =

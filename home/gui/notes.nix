@@ -22,16 +22,14 @@
       '';
   });
 in {
-  home.packages = lib.attrsets.attrValues {
-    onenote =
-      if hostPlatform.isDarwin
-      then onenote
-      else null;
+  # Darwin-only; home.packages rejects the null an if/else would leave elsewhere.
+  home.packages = lib.attrsets.attrValues (lib.optionalAttrs hostPlatform.isDarwin {
+    inherit onenote;
     #notion =
     #  if hostPlatform.isDarwin
     #  then pkgs.brewCasks.notion.override {variation = "tahoe";}
     #  else null;
-  };
+  });
 
   programs.obsidian = {
     enable = true;

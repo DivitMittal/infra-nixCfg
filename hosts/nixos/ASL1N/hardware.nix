@@ -1,17 +1,28 @@
 {
   inputs,
   lib,
+  config,
   ...
-}: {
+}: let
+  # The module's default finds /boot/asahi via builtins.pathExists, which only
+  # succeeds when evaluating on this machine; elsewhere (CI) it's null.
+  firmwareDir = config.hardware.asahi.peripheralFirmwareDirectory;
+in {
   imports = [
     inputs.nixos-apple-silicon.nixosModules.default
   ];
 
   hardware.asahi = {
     enable = true;
-    # Extract Wi-Fi/Bluetooth firmware from the Asahi EFI partition at build time
-    extractPeripheralFirmware = true;
+    # Extract Wi-Fi/Bluetooth firmware from the Asahi EFI partition at build
+    # time, when it's reachable (asserting otherwise breaks off-host eval).
+    extractPeripheralFirmware = firmwareDir != null;
   };
+
+  warnings = lib.optional (firmwareDir == null) ''
+    ASL1N: Asahi peripheral firmware not found (/boot/asahi); this build has
+    no Wi-Fi/Bluetooth firmware. Expected only when evaluating off-host.
+  '';
 
   boot.initrd.availableKernelModules = ["nvme" "usb_storage" "usbhid" "xhci_pci"];
   boot.initrd.kernelModules = [];

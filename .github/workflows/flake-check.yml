@@ -65,7 +65,7 @@ jobs:
         echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
         echo "overrides: $overrides"
     - name: Run nix flake check
-      run: nix -vL flake check --all-systems --no-build $LOCAL_OVERRIDES
+      run: nix -vL flake check $LOCAL_OVERRIDES
     timeout-minutes: 90
 'on':
   pull_request:

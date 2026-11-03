@@ -1,18 +1,17 @@
-{
-  pkgs,
-  hostPlatform,
-  ...
-}: let
-  raycast =
-    if hostPlatform.isx86_64
-    then (pkgs.brewCasks.raycast.override {variation = "tahoe";})
-    else pkgs.brewCasks.raycast;
-in {
-  home.packages = [raycast];
-
-  xdg.configFile."raycast/scripts" = {
-    enable = true;
-    source = ./scripts;
-    recursive = true;
-  };
+## Disabled: migrated to Vicinae. Kept for reference; the body is commented out
+## (not deleted) because import-tree still imports this file, so it must stay a
+## valid module.
+_: {
+  # raycast =
+  #   if hostPlatform.isx86_64
+  #   then (pkgs.brewCasks.raycast.override {variation = "tahoe";})
+  #   else pkgs.brewCasks.raycast;
+  #
+  # home.packages = [raycast];
+  #
+  # xdg.configFile."raycast/scripts" = {
+  #   enable = true;
+  #   source = ./scripts;
+  #   recursive = true;
+  # };
 }

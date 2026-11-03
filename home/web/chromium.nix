@@ -15,10 +15,10 @@
       "--enable-quic"
     ];
 
-    # Extensions only work with open-source Chromium (not Google Chrome)
-    extensions = lib.optionals (!hostPlatform.isDarwin) [
-      {id = "ddkjiahejlhfcafbddmgiahcphecmpfh";} # ublock-origin-lite
-      {id = "hfjbmagddngcpeloejdejnfgbamkjaeg";} # vimiumC
-    ];
+    # No `extensions`: home-manager now asserts against them for google-chrome
+    # on Linux (Chrome only loads external extensions from system-managed
+    # dirs), and they never applied on darwin. Install uBlock Origin Lite
+    # (ddkjiahejlhfcafbddmgiahcphecmpfh) and Vimium C
+    # (hfjbmagddngcpeloejdejnfgbamkjaeg) from the Web Store instead.
   };
 }

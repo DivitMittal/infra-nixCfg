@@ -236,11 +236,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793731737,
+        "lastModified": 1793748325,
         "narHash": "sha256-Tt8O5qBtlqOGo7Ifuk6kxKEgHdMX+CWzq88PRHoVWcE=",
         "owner": "DivitMittal",
         "repo": "ai-nixCfg",
-        "rev": "f2bc44972206d86fb1fe504417df85ebb6300a2b",
+        "rev": "013bad150b9ab59b1c7af7d00e009f1aa7a04a49",
         "type": "github"
       },
       "original": {
@@ -3497,11 +3497,11 @@
         "wezterm": "wezterm"
       },
       "locked": {
-        "lastModified": 1793731750,
+        "lastModified": 1793748330,
         "narHash": "sha256-KYiC7RY172kAK5RyTDas7K7ypzPWdqI85cVWNYhl8vU=",
         "owner": "DivitMittal",
         "repo": "term-nixCfg",
-        "rev": "5a7780b793bff8fa9053e46352422be47c3a19b3",
+        "rev": "4e3e58fddba7a4277b7728688eb0a1e7df9991a6",
         "type": "github"
       },
       "original": {

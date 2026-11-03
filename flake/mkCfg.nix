@@ -83,6 +83,8 @@
         ++ optionals (class == "darwin") [self.outputs.darwinModules.default]
         ++ additionalModules;
     in
+      # hostSystem lets tooling (flake/actions/eval.nix) pick a runner without
+      # evaluating the configuration's modules.
       configGenerator.${class} (mergeAttrsList [
         {inherit pkgs modules;}
         (optionalAttrs (class != "droid" && class != "home") {inherit specialArgs;})
@@ -97,7 +99,8 @@
             extraSpecialArgs = specialArgs // {lib = lib';};
           }
         )
-      ]));
+      ])
+      // {hostSystem = system;});
 in {
   _module.args = {
     inherit mkCfg;

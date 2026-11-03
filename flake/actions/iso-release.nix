@@ -30,11 +30,11 @@
         ++ [
           {
             name = "Build iso";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.iso.config.system.build.isoImage --show-trace -o result-iso";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.iso.config.system.build.isoImage --show-trace -o result-iso $LOCAL_OVERRIDES";
           }
           {
             name = "Build t2-iso";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.t2-iso.config.system.build.isoImage --show-trace -o result-t2-iso";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.t2-iso.config.system.build.isoImage --show-trace -o result-t2-iso $LOCAL_OVERRIDES";
           }
           {
             name = "Upload iso to Cloudflare R2";
@@ -70,7 +70,7 @@
             # Requires binfmt_misc + QEMU on the runner, or a native aarch64 builder.
             # Register emulation: nix.settings.extra-platforms = ["aarch64-linux"];
             name = "Build as-iso";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.as-iso.config.system.build.isoImage --show-trace -o result-as-iso";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.as-iso.config.system.build.isoImage --show-trace -o result-as-iso $LOCAL_OVERRIDES";
           }
           {
             name = "Upload as-iso to Cloudflare R2";

@@ -28,7 +28,7 @@
         ++ [
           {
             name = "Build topology visualization";
-            run = "nix -vL build --accept-flake-config .#topology.x86_64-linux.config.output --show-trace";
+            run = "nix -vL build --accept-flake-config .#topology.x86_64-linux.config.output --show-trace $LOCAL_OVERRIDES";
           }
           {
             name = "Create assets directory for topology";

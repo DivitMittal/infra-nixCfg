@@ -137,10 +137,20 @@ jobs:
             end' flake.lock | tr '\n' ' ')
         echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
         echo "overrides: $overrides"
-    - id: targets
+    - env:
+        FILTER_INPUT: ${{ inputs.filter }}
+      id: targets
       name: List configurations to evaluate
       run: |-
-        targets=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
+        filter=${FILTER_INPUT:-$(git log -1 --format='%(trailers:key=Eval-Filter,valueonly,separator=|)')}
+        all=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
+        targets=$(jq -c --arg f "$filter" 'map(select(.attr | test($f)))' <<<"$all")
+        echo "filter: ${filter:-<none>}"
+        jq -r '.[].attr' <<<"$targets"
+        if [ "$(jq length <<<"$targets")" -eq 0 ]; then
+          echo "::error::Eval filter '$filter' matched no targets"
+          exit 1
+        fi
         echo "targets=$targets" >> "$GITHUB_OUTPUT"
     timeout-minutes: 90
 'on':
@@ -160,6 +170,7 @@ jobs:
   push:
     branches:
     - master
+    - eval/**
     paths-ignore:
     - '**/*.md'
     - '**/*.adoc'
@@ -170,4 +181,11 @@ jobs:
     - .github/**
     - .git*
     - assets/**
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      filter:
+        default: ''
+        description: Regex on target attrs (e.g. 'homeConfigurations\.(L1|ASL1)\.');
+          empty = all
+        required: false
+        type: string

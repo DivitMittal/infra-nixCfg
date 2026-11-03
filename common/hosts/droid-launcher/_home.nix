@@ -1,10 +1,10 @@
-{
+# Toolkits come from the host's `launcher.toolkits` (see launcher.nix).
+toolkits: {
   lib,
   pkgs,
   launcherTemplate,
   ...
 }: let
-  toolkits = import ./_toolkits.nix;
   # A Neovim distro compiles treesitter grammars on first launch, so the editor
   # toolkit cannot stand without a compiler.
   wantBuild = toolkits.build || toolkits.editor;
@@ -85,16 +85,6 @@ in {
       $DRY_RUN_CMD chmod u+w "$HOME/Pictures/gif/skel.gif"
     fi
   '');
-
-  # TLTR for the launcher's built-in keyboard; see keyboard/keymap.svg. Copied, not
-  # linked: the app reads it from the Android side, where /nix/store doesn't resolve.
-  # Applied on the next `termux-reload-settings` or app restart.
-  home.activation.keyboardLayout = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    if ! cmp -s ${./keyboard/layout.xml} "$HOME/.termux/keyboard/layout.xml"; then
-      $DRY_RUN_CMD mkdir -p "$HOME/.termux/keyboard"
-      $DRY_RUN_CMD install -m 644 ${./keyboard/layout.xml} "$HOME/.termux/keyboard/layout.xml"
-    fi
-  '';
 
   home.sessionVariables =
     {

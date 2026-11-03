@@ -5,19 +5,22 @@
 }: {
   flake.nixOnDroidConfigurations = let
     class = "droid";
+    # Termux Launcher, Nix edition (com.termux.launcher.nix): built against the
+    # launcher's nix-on-droid fork, plus the layer every launcher host shares.
+    mkLauncherHost = hostName:
+      mkCfg {
+        inherit class hostName;
+        system = "aarch64-linux";
+        nixOnDroidSource = inputs.nix-on-droid-launcher;
+        additionalModules = [(inputs.import-tree ../../common/hosts/droid-launcher)];
+      };
   in {
     M1 = mkCfg {
       inherit class;
       hostName = "M1";
       system = "aarch64-linux";
     };
-    # Termux Launcher, Nix edition (com.termux.launcher.nix) — installs side by
-    # side with M1's stock Termux, built against the launcher's nix-on-droid fork.
-    M1N = mkCfg {
-      inherit class;
-      hostName = "M1N";
-      system = "aarch64-linux";
-      nixOnDroidSource = inputs.nix-on-droid-launcher;
-    };
+    # Installs side by side with M1's stock Termux on the same phone.
+    M1N = mkLauncherHost "M1N";
   };
 }

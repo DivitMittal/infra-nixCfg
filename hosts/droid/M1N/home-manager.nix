@@ -1,13 +1,13 @@
-{inputs, ...}: let
-  # The fork's `launcher` flake template. Its scripts and config files are reused
-  # straight from the pinned input instead of being vendored, so they track the
-  # fork on `nix flake update nix-on-droid-launcher`.
-  launcherTemplate = "${inputs.nix-on-droid-launcher}/templates/launcher";
-in {
-  # Merges with the shared bridge in common/hosts/droid/home-manager.nix, which
-  # already sets useGlobalPkgs/backupFileExtension for the whole droid class.
-  home-manager.config = {
-    imports = [./_home.nix];
-    _module.args = {inherit launcherTemplate;};
+{
+  # TLTR for the launcher's built-in keyboard; see keyboard/keymap.svg. Copied, not
+  # linked: the app reads it from the Android side, where /nix/store doesn't resolve.
+  # Applied on the next `termux-reload-settings` or app restart.
+  home-manager.config = {lib, ...}: {
+    home.activation.keyboardLayout = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      if ! cmp -s ${./keyboard/layout.xml} "$HOME/.termux/keyboard/layout.xml"; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.termux/keyboard"
+        $DRY_RUN_CMD install -m 644 ${./keyboard/layout.xml} "$HOME/.termux/keyboard/layout.xml"
+      fi
+    '';
   };
 }

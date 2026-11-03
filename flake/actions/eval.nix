@@ -19,8 +19,15 @@
 
   targetsOf = kind: output:
     lib.attrsets.mapAttrsToList (name: cfg: let
-      # Set by mkCfg; reading it doesn't evaluate the config's modules.
-      system = cfg.hostSystem or "x86_64-linux";
+      # Set by mkCfg via `// {hostSystem}`, which forces the config to WHNF; for
+      # home-manager that runs its assertions, so a broken config would throw
+      # here and empty the whole matrix. tryEval keeps it as a target (on the
+      # default runner) so its own job reports the error.
+      tried = builtins.tryEval (cfg.hostSystem or "x86_64-linux");
+      system =
+        if tried.success
+        then tried.value
+        else "x86_64-linux";
     in {
       attr = "${kind}.${name}.${output}";
       inherit system;

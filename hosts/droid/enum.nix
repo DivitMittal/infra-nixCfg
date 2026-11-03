@@ -22,5 +22,7 @@
     };
     # Installs side by side with M1's stock Termux on the same phone.
     M1N = mkLauncherHost "M1N";
+    # Amazon Echo Show 5.
+    E1 = mkLauncherHost "E1";
   };
 }

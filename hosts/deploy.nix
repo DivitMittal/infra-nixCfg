@@ -22,6 +22,35 @@
   activateHome = system: configuration:
     inputs.deploy-rs.lib.${system}.activate.home-manager configuration;
 
+  mkDroidNode = {
+    hostname,
+    configuration,
+    sshOpts,
+  }: {
+    inherit hostname;
+    profiles.system = {
+      sshUser = "nix-on-droid";
+      user = "nix-on-droid";
+      magicRollback = true;
+      inherit sshOpts;
+      path = activateNixOnDroid configuration;
+    };
+  };
+
+  # Reached through `adb forward` (the devshell's <host>-adb-forward). Every
+  # forwarded device is 127.0.0.1, so known_hosts needs a per-node alias.
+  mkAdbDroidNode = {
+    name,
+    configuration,
+    port,
+    key,
+  }:
+    mkDroidNode {
+      hostname = "127.0.0.1";
+      inherit configuration;
+      sshOpts = ["-p" (toString port) "-i" key "-o" "HostKeyAlias=${name}" "-o" "CheckHostIP=no"];
+    };
+
   mkVpsHomeProfile = {
     system,
     configuration,
@@ -39,36 +68,47 @@
 in {
   flake.deploy.nodes = {
     # nix-on-droid device on the local network
-    M1 = {
+    M1 = mkDroidNode {
       hostname = "M1";
-      profiles.system = {
-        sshUser = "nix-on-droid";
-        user = "nix-on-droid";
-        magicRollback = true;
-        sshOpts = ["-p" "8022"];
-        path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
-      };
+      configuration = self.nixOnDroidConfigurations.M1;
+      sshOpts = ["-p" "8022"];
     };
 
-    # nix-on-droid device over ADB-forwarded SSH
-    M1-adb = {
-      hostname = "127.0.0.1";
-      profiles.system = {
-        sshUser = "nix-on-droid";
-        user = "nix-on-droid";
-        magicRollback = true;
-        sshOpts = [
-          "-p"
-          "18022"
-          "-i"
-          "~/.ssh/nix-on-droid/ssh_host_rsa_key"
-          "-o"
-          "HostKeyAlias=M1-adb"
-          "-o"
-          "CheckHostIP=no"
-        ];
-        path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
-      };
+    M1-adb = mkAdbDroidNode {
+      name = "M1-adb";
+      configuration = self.nixOnDroidConfigurations.M1;
+      port = 18022;
+      key = "~/.ssh/nix-on-droid/ssh_host_rsa_key";
+    };
+
+    # Termux Launcher (Nix edition) on the same phone as M1: a separate app
+    # sandbox with its own sshd on 8023. Built off-device, so pin user.uid/gid in
+    # hosts/droid/M1N/M1N.nix first — unpinned they default to the builder's `id -u`.
+    M1N = mkDroidNode {
+      hostname = "M1";
+      configuration = self.nixOnDroidConfigurations.M1N;
+      sshOpts = ["-p" "8023" "-i" "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key" "-o" "HostKeyAlias=M1N"];
+    };
+
+    M1N-adb = mkAdbDroidNode {
+      name = "M1N-adb";
+      configuration = self.nixOnDroidConfigurations.M1N;
+      port = 18023;
+      key = "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key";
+    };
+
+    # Echo Show 5 running Termux Launcher (Nix edition). Same uid caveat as M1N.
+    E1 = mkDroidNode {
+      hostname = "E1";
+      configuration = self.nixOnDroidConfigurations.E1;
+      sshOpts = ["-p" "8022" "-i" "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key" "-o" "HostKeyAlias=E1"];
+    };
+
+    E1-adb = mkAdbDroidNode {
+      name = "E1-adb";
+      configuration = self.nixOnDroidConfigurations.E1;
+      port = 18024;
+      key = "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key";
     };
 
     # Oracle Cloud A1 Flex VPS in Mumbai.

@@ -11,12 +11,16 @@
     system,
     additionalModules ? [],
     extraSpecialArgs ? {},
+    # Per-host override of the nix-on-droid flake used to build a `droid`-class
+    # host, e.g. Termux Launcher's fork (inputs.nix-on-droid-launcher) for a
+    # host running the launcher's Nix edition instead of stock nix-on-droid.
+    nixOnDroidSource ? inputs.nix-on-droid,
   }:
     withSystem system (ctx: let
       configGenerator = rec {
         nixos = lib.nixosSystem;
         darwin = inputs.nix-darwin.lib.darwinSystem;
-        droid = inputs.nix-on-droid.lib.nixOnDroidConfiguration;
+        droid = nixOnDroidSource.lib.nixOnDroidConfiguration;
         home = inputs.home-manager.lib.homeManagerConfiguration;
         iso = nixos;
       };
@@ -38,7 +42,7 @@
                 (optionalAttrs hostPlatform.isDarwin (inputs.brew-nix.overlays.default self super))
               ])
             )
-            (optionalAttrs (class == "droid") (inputs.nix-on-droid.overlays.default self super))
+            (optionalAttrs (class == "droid") (nixOnDroidSource.overlays.default self super))
           ]
       );
       # Re-extend lib with pkgs now available, partially applying it into the helpers

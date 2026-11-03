@@ -15,7 +15,7 @@
 # The script is deliberately host-agnostic: no hostnames, IPs, or IPv6 logic.
 # All target specifics arrive via flags (--target, --port, --disk, ...).
 
-set -euo pipefail
+set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./common.sh

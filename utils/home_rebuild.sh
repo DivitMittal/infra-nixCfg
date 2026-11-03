@@ -23,8 +23,9 @@ fi
 
 echo $switch_args
 home-manager $switch_args
+status=$?
 
-# shellcheck disable=SC2181
-if [ $? -eq 0 ]; then
+if [ "$status" -eq 0 ]; then
   post_rebuild_success "home"
 fi
+exit "$status"

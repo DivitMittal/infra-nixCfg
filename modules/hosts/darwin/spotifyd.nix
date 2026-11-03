@@ -34,7 +34,7 @@ in {
 
   config = mkIf cfg.enable {
     launchd.user.agents.spotify-daemon = {
-      script = "${cfg.package} --no-daemon --config-path ${configFile}";
+      script = "${lib.getExe cfg.package} --no-daemon --config-path ${configFile}";
       serviceConfig = {
         RunAtLoad = true;
         Nice = 10;

@@ -83,6 +83,8 @@ bootstrap_darwin() {
   if nix build --show-trace --accept-flake-config ".#darwinConfigurations.$HOST.system" &&
     sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$HOST"; then
     post_rebuild_success "bootstrap"
+  else
+    exit $?
   fi
 }
 
@@ -97,6 +99,8 @@ bootstrap_nixos() {
   green "Running first nixos-rebuild switch for .#$HOST"
   if sudo nixos-rebuild switch --flake ".#$HOST" --show-trace --accept-flake-config; then
     post_rebuild_success "bootstrap"
+  else
+    exit $?
   fi
 }
 
@@ -112,6 +116,8 @@ bootstrap_droid() {
   green "Running first nix-on-droid switch for .#$HOST"
   if nix-on-droid switch --flake ".#$HOST" --show-trace; then
     post_rebuild_success "bootstrap"
+  else
+    exit $?
   fi
 }
 
@@ -131,6 +137,8 @@ bootstrap_home() {
     --show-trace \
     -b backup; then
     post_rebuild_success "bootstrap"
+  else
+    exit $?
   fi
 }
 

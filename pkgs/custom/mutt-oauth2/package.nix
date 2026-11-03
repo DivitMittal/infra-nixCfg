@@ -78,6 +78,7 @@ in
       # Google: confidential client — register at https://console.cloud.google.com
       #   Enable: Gmail API. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET before building.
       description = "mutt_oauth2.py patched with Microsoft/Google credentials and rage encryption";
+      license = lib.licenses.gpl2Plus;
       mainProgram = "oauth2";
       platforms = lib.platforms.unix;
     };

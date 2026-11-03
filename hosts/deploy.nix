@@ -97,6 +97,20 @@ in {
       key = "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key";
     };
 
+    # Echo Show 5 running Termux Launcher (Nix edition). Same uid caveat as M1N.
+    E1 = mkDroidNode {
+      hostname = "E1";
+      configuration = self.nixOnDroidConfigurations.E1;
+      sshOpts = ["-p" "8022" "-i" "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key" "-o" "HostKeyAlias=E1"];
+    };
+
+    E1-adb = mkAdbDroidNode {
+      name = "E1-adb";
+      configuration = self.nixOnDroidConfigurations.E1;
+      port = 18024;
+      key = "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key";
+    };
+
     # Oracle Cloud A1 Flex VPS in Mumbai.
     VPS0 = {
       hostname = "80.225.249.202";

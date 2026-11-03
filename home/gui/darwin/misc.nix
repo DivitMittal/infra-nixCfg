@@ -3,7 +3,13 @@
   lib,
   hostPlatform,
   ...
-}: {
+}: let
+  # brew-nix ignores the cask's `binary` stanza, so crispctl (shipped inside the
+  # .app bundle) never lands on $PATH; wrap it like the vpn.nix CLI wrappers.
+  crispctlWrapper = pkgs.writeShellScriptBin "crispctl" ''
+    exec "${pkgs.brewCasks.crisp}/Applications/Crisp.app/Contents/MacOS/crispctl" "$@"
+  '';
+in {
   home.packages = lib.attrsets.attrValues (
     {
       inherit
@@ -11,9 +17,11 @@
         pearcleaner # macOS all-in-one cleaner
         hiddenbar # hide menubar items
         hot # CPU temperature monitor for menubar
+        stats # macOS system monitor in menubar (CPU/GPU/mem/disk/sensors)
         linearmouse # mouse/trackpad customization
         music-decoy # prevent macOS Music from auto-launching on media keys
         finetune # audio fine-tuning and volume control
+        crisp # display manager: HiDPI scaling, DDC brightness/volume, presets
         #gswitch # MUX switcher (using pmset instead)
         #bluesnooze # turns bluetooth off when asleep
         #aldente # Battery Management
@@ -26,10 +34,12 @@
         Spaceman-bin # spaces in menubar for macOS (ruittenb fork)
         menubar-dock-bin # macOS dock in menubar
         LiveWallpaperMacOS-bin # Live wallpaper for macOS
+        BattOpt-bin # battery charge limiter (GUI + `battopt` CLI)
         #MultiSoundChanger-bin # aggregate-output volume control in menubar
         #Iris-bin # Webcam mirror
         #LosslessSwitcher-bin # Lossless audio toggle in menubar
         ;
+      crispctl = crispctlWrapper; # Crisp CLI
     }
     // lib.optionalAttrs hostPlatform.isx86_64 {
       VoltageShift = pkgs.customDarwin.VoltageShift; # Intel-only undervolting CLI
@@ -45,9 +55,9 @@
   ];
 
   homebrew.mas = [
-    {
-      name = "Plash"; # website as desktop wallpaper
-      id = 1494023538;
-    }
+    # {
+    #   name = "Plash"; # website as desktop wallpaper
+    #   id = 1494023538;
+    # }
   ];
 }

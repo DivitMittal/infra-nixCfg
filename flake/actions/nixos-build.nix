@@ -1,4 +1,5 @@
 {
+  attic-push,
   common-permissions,
   environment,
   common-actions,
@@ -16,8 +17,9 @@
         ++ [
           {
             name = "Builds a nixos configuration";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.WSL.config.system.build.toplevel --show-trace";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.WSL.config.system.build.toplevel --show-trace $LOCAL_OVERRIDES";
           }
+          attic-push
         ];
     };
   };

@@ -21,7 +21,8 @@ jobs:
       uses: nixbuild/nix-quick-install-action@master
     - name: Magic Nix Cache(Use Github Actions Cache)
       uses: DeterminateSystems/magic-nix-cache-action@main
-    - name: Configure to use personal binary cache @ Cachix
+    - continue-on-error: true
+      name: Configure to use personal binary cache @ Cachix
       uses: cachix/cachix-action@master
       with:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
@@ -30,6 +31,39 @@ jobs:
       uses: webfactory/ssh-agent@master
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - id: attic
+      name: Check for attic credentials
+      run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+    - continue-on-error: true
+      if: steps.attic.outputs.enabled == 'true'
+      name: Join the tailnet to reach attic on T1
+      uses: tailscale/github-action@v3
+      with:
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        tags: tag:ci
+    - continue-on-error: true
+      env:
+        ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+      if: steps.attic.outputs.enabled == 'true'
+      name: Use the attic cache on T1
+      run: |-
+        nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
+        attic login t1 http://t1:8080 "$ATTIC_TOKEN"
+        attic use t1:infra
+    - name: Point local-checkout inputs at GitHub
+      run: |-
+        overrides=$(jq -r '
+          .nodes as $n | $n.root.inputs | to_entries[]
+          | select(.value | type == "string") | .key as $k | $n[.value].locked
+          | select(.type == "path" or ((.url // "") | startswith("file:")))
+          | ((.path // .url) | sub("/+$"; "") | split("/") | last) as $repo
+          | if ($repo | test("secrets"))
+            then "--override-input \($k) git+ssh://git@github.com/DivitMittal/\($repo).git"
+            else "--override-input \($k) github:DivitMittal/\($repo)"
+            end' flake.lock | tr '\n' ' ')
+        echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
+        echo "overrides: $overrides"
     - name: Update flake.lock
       uses: DeterminateSystems/update-flake-lock@main
     timeout-minutes: 90

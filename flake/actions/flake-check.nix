@@ -15,7 +15,7 @@
         ++ [
           {
             name = "Run nix flake check";
-            run = "nix -vL flake check --all-systems --no-build";
+            run = "nix -vL flake check --all-systems --no-build $LOCAL_OVERRIDES";
           }
         ];
     };

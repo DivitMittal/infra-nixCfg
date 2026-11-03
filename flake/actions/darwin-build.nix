@@ -1,4 +1,5 @@
 {
+  attic-push,
   common-permissions,
   common-actions,
   environment,
@@ -17,8 +18,9 @@
         ++ [
           {
             name = "Builds a nix-darwin configuration";
-            run = "nix -vL build --accept-flake-config .#darwinConfigurations.L1.config.system.build.toplevel --show-trace";
+            run = "nix -vL build --accept-flake-config .#darwinConfigurations.L1.config.system.build.toplevel --show-trace $LOCAL_OVERRIDES";
           }
+          attic-push
         ];
     };
   };

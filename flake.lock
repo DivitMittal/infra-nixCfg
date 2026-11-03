@@ -430,11 +430,11 @@
     "brew-api": {
       "flake": false,
       "locked": {
-        "lastModified": 1784080485,
-        "narHash": "sha256-ILyV7aOdb0qMFijNlmucL1rSDSjPFJrA9+wezBxgrYk=",
+        "lastModified": 1793721045,
+        "narHash": "sha256-s3+yB7mlfkicTPLbX94mNOB5tFvM+Pd5/mVfHiVWN/U=",
         "owner": "batteredbunny",
         "repo": "brew-api",
-        "rev": "8bc70b3cc660e88ce170bc0003c0048b5bac56d8",
+        "rev": "26683a19a429459787a43dd4d58bf32f91cb0d61",
         "type": "github"
       },
       "original": {
@@ -1676,11 +1676,11 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1792611212,
-        "narHash": "sha256-oCuRqjvA5P6gK625C26fCttUNtkyaTHM6ElBU924Gv0=",
+        "lastModified": 1793100995,
+        "narHash": "sha256-jMInYV5QP2pA4tuepYXp6sHKveTrPWa99WR57Onm7J4=",
         "ref": "master",
-        "rev": "17b3130446139f9922b8d4d1cd25c7398f7f3952",
-        "revCount": 259,
+        "rev": "74a981b54b694f488ac11e7e46834513de9d3a97",
+        "revCount": 262,
         "type": "git",
         "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       },
@@ -2305,11 +2305,11 @@
     },
     "nixpkgs-2605_5": {
       "locked": {
-        "lastModified": 1792208400,
-        "narHash": "sha256-c+NgsnPFEfvGOLxJEQkxkpOESw7mPjnh/H9qDVEWFkQ=",
+        "lastModified": 1792683697,
+        "narHash": "sha256-P4nss8/EUu51hOQDdkso+pCQBdt0DT/lrfXWaZEDnEA=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "42966a9c76f2cdb95b108c9fac939a27b0b8f2c5",
+        "rev": "752cbac9446602fbb78bdd1c3597455a3dd38432",
         "type": "github"
       },
       "original": {

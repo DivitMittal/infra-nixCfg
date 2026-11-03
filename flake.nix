@@ -41,7 +41,11 @@
             # any undeclared option exists.
             #
             # libolm (used by gomuks Matrix TUI client) is deprecated upstream
-            permittedInsecurePackages = mkDefault ["olm-3.2.16"];
+            #
+            # openclaw is marked insecure as a whole (LLM-driven, full system
+            # access by default); used deliberately via ai-nixCfg on ASL1.
+            # Pinned to the exact version so a new one needs re-approval.
+            permittedInsecurePackages = mkDefault ["olm-3.2.16" "openclaw-2026.6.5"];
           };
           overlays = lib.attrsets.attrValues {
             inherit (self.outputs.overlays) default;

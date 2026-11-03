@@ -161,6 +161,12 @@ in {
           category = "hosts";
         }
         {
+          name = "android-rebuild";
+          help = "Runs the pinned nix-android CLI (plan/switch/status/... --flake .#M1 --serial SERIAL)";
+          command = "nix run .#android-rebuild -- \"$@\"";
+          category = "hosts";
+        }
+        {
           name = "pkgs-update";
           help = "Update all custom package sources (pkgs/_sources/generated.nix) via nvfetcher";
           command = ''

@@ -6,7 +6,9 @@
   ...
 }: let
   raycastExtensions = import ./_extensions.nix;
-  mkRayCastExtension = inputs.vicinae.lib.${hostPlatform.system}.mkRayCastExtension;
+  # Not inputs.vicinae.lib.<system>: that's built on vicinae's pinned nixpkgs,
+  # which throws on x86_64-darwin. Same derivation, our pkgs.
+  mkRayCastExtension = pkgs.callPackage "${inputs.vicinae}/nix/mkRayCastExtension.nix" {};
 
   # Always fetch the source ourselves (rather than letting mkRayCastExtension's
   # default fetchFromGitHub run) since `name` (the extension's package.json

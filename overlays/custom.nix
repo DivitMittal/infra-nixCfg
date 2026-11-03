@@ -32,11 +32,15 @@
           ];
         };
     });
-    # nixpkgs' vicinae is Linux-only (meta.platforms has no darwin), so on
-    # macOS use vicinae's own flake package (cached at vicinae.cachix.org);
-    # nixpkgs everywhere else.
+    # nixpkgs' vicinae is Linux-only (meta.platforms has no darwin).
+    # aarch64-darwin: vicinae's own flake package (cached at vicinae.cachix.org).
+    # x86_64-darwin: vicinae's pinned nixpkgs has dropped that system and throws,
+    # so build its derivation (via its overlay) against our 26.05-darwin pkgs.
+    # Linux: nixpkgs.
     vicinae =
-      if super.stdenv.hostPlatform.isDarwin
+      if super.stdenv.hostPlatform.system == "x86_64-darwin"
+      then (inputs.vicinae.overlays.default self super).vicinae
+      else if super.stdenv.hostPlatform.isDarwin
       then inputs.vicinae.packages.${super.stdenv.hostPlatform.system}.default
       else super.vicinae;
   };

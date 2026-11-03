@@ -193,6 +193,12 @@ Focused visualization of network segments and connectivity:
 
 > **Note**: These topology diagrams are automatically built and updated via GitHub Actions whenever topology configurations.
 
+## Observability
+
+A declarative LGTM stack (Prometheus + Loki + Tempo + Grafana + Alertmanager + OTEL Collector) with Nix-specific metrics (store size, rebuild duration, flake-lock age, generations). Server runs on **L2**; T2, WSL, and L1 (Darwin) run agents.
+
+See [`common/hosts/all/observability/README.md`](./common/hosts/all/observability/README.md) for architecture, dashboards, and operational notes.
+
 ## Secrets Management
 
 Secrets (API keys, passwords, sensitive configurations) are managed via [agenix](https://github.com/ryantm/agenix) or specificaly [ragenix](https://github.com/yaxitech/ragenix).

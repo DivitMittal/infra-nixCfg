@@ -32,12 +32,12 @@
           ];
         };
     });
-    # nixpkgs' vicinae has had no binary cache on x86_64-darwin since NixOS
-    # 26.11 dropped that system; build from vicinae's own bundled flake
-    # (backed by vicinae.cachix.org) there instead, nixpkgs everywhere else.
+    # nixpkgs' vicinae is Linux-only (meta.platforms has no darwin), so on
+    # macOS use vicinae's own flake package (cached at vicinae.cachix.org);
+    # nixpkgs everywhere else.
     vicinae =
-      if super.stdenv.hostPlatform.system == "x86_64-darwin"
-      then inputs.vicinae.packages.x86_64-darwin.default
+      if super.stdenv.hostPlatform.isDarwin
+      then inputs.vicinae.packages.${super.stdenv.hostPlatform.system}.default
       else super.vicinae;
   };
 }

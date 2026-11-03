@@ -415,10 +415,9 @@
     ## Launcher (Raycast alternative)
     vicinae = {
       url = "github:vicinaehq/vicinae";
-      # Don't follow nixpkgs: x86_64-darwin has had no nixpkgs binary cache
-      # since NixOS 26.11 dropped that system, so on x86_64-darwin we build
-      # vicinae from this flake's own bundled derivation (backed by
-      # vicinae.cachix.org) instead of nixpkgs; nixpkgs everywhere else.
+      # Don't follow nixpkgs: on darwin (where nixpkgs' vicinae is unsupported)
+      # we use this flake's own package, and its pinned nixpkgs is what
+      # vicinae.cachix.org has binaries for; nixpkgs' vicinae everywhere else.
       inputs.systems.follows = "systems";
     };
 

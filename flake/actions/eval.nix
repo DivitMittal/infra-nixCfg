@@ -48,7 +48,12 @@ in {
             {
               name = "List configurations to evaluate";
               id = "targets";
-              run = ''echo "targets=$(nix eval --accept-flake-config --json .#evalTargets $LOCAL_OVERRIDES)" >> "$GITHUB_OUTPUT"'';
+              # Assign first: inside `echo "$(...)"` a failed eval is swallowed
+              # and the step passes with an empty matrix.
+              run = ''
+                targets=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
+                echo "targets=$targets" >> "$GITHUB_OUTPUT"
+              '';
             }
           ];
       };
@@ -67,7 +72,9 @@ in {
           ++ [
             {
               name = "Evaluate";
-              run = "nix eval --accept-flake-config --show-trace --raw .#\${{ matrix.target.attr }}.drvPath $LOCAL_OVERRIDES";
+              # Leading `.` skips the packages.<system>/legacyPackages.<system>
+              # prefix search, which would force every package's attr name.
+              run = "nix eval --accept-flake-config --show-trace --raw .#.\${{ matrix.target.attr }}.drvPath $LOCAL_OVERRIDES";
             }
           ];
       };

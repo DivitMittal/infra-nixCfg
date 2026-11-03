@@ -68,7 +68,7 @@ jobs:
         echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
         echo "overrides: $overrides"
     - name: Evaluate
-      run: nix eval --accept-flake-config --show-trace --raw .#${{ matrix.target.attr
+      run: nix eval --accept-flake-config --show-trace --raw .#.${{ matrix.target.attr
         }}.drvPath $LOCAL_OVERRIDES
     strategy:
       fail-fast: false
@@ -139,8 +139,9 @@ jobs:
         echo "overrides: $overrides"
     - id: targets
       name: List configurations to evaluate
-      run: echo "targets=$(nix eval --accept-flake-config --json .#evalTargets $LOCAL_OVERRIDES)"
-        >> "$GITHUB_OUTPUT"
+      run: |-
+        targets=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
+        echo "targets=$targets" >> "$GITHUB_OUTPUT"
     timeout-minutes: 90
 'on':
   pull_request:

@@ -10,6 +10,10 @@
 
   image.fileName = lib.mkForce "nixos-as-${hostPlatform.system}.iso";
 
+  # The installer module reads config.nixpkgs.hostPlatform (to decide on
+  # cross overlays), which mkCfg leaves unset because it passes `pkgs` in.
+  nixpkgs.hostPlatform = lib.mkDefault hostPlatform.system;
+
   # Asahi Linux binary cache — avoids rebuilding the custom kernel during ISO build
   nix.settings = {
     trusted-substituters = [

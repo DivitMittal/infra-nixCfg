@@ -1,21 +1,194 @@
-MIT License
+Humans-Only Non-Commercial Copyleft License, Version 1.0 (HONCL-1.0)
 
-Copyright (c) 2026 Divit Mittal
+Copyright (c) 2024-2026 Divit Mittal
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Required attribution:
+    "Based on infra-nixCfg by Divit Mittal —
+     https://github.com/DivitMittal/infra-nixCfg"
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+----------------------------------------------------------------------
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+0. Purpose
+
+This license lets people study, use, modify, and share the Work for
+non-commercial purposes, provided that every Adaptation stays under this
+same license, carries attribution, and comes with its source. It reserves
+all rights to use the Work with or for Artificial Intelligence Systems.
+
+This is a source-available license. It is not an "open source" or "free
+software" license as defined by the Open Source Initiative or the Free
+Software Foundation.
+
+1. Definitions
+
+1.1 "Licensor" means the copyright holder(s) named above.
+
+1.2 "Work" means the copyrightable material that the Licensor distributes
+    under this license, in Source Form or Object Form.
+
+1.3 "Adaptation" means any work that is based on, derived from, or
+    incorporates the Work or any part of it, in whole or in part, modified
+    or not, including translations, ports, and compiled or combined forms.
+
+1.4 "Source Form" means the preferred form for making modifications,
+    including build scripts and configuration needed to produce the Object
+    Form. "Object Form" means any other form, such as compiled firmware or
+    binaries.
+
+1.5 "Share" means to make the Work or an Adaptation available to anyone
+    other than You by any means, including distribution, publication,
+    making it available over a network, or preloading it on a device.
+
+1.6 "Commercial Purpose" means any purpose primarily intended for, or
+    directed toward, commercial advantage or monetary compensation. This
+    includes, without limitation:
+    (a) selling, licensing, renting, or charging for access to the Work or
+        an Adaptation;
+    (b) offering a paid product or service that includes, depends on, or
+        is delivered using the Work or an Adaptation, including hardware
+        preloaded with it;
+    (c) using the Work or an Adaptation to generate advertising revenue or
+        sponsorship tied to its use;
+    (d) use within the operations of a for-profit organization.
+    The following, by themselves, are not Commercial Purposes: personal
+    use, private study, teaching, non-profit research, and voluntary
+    donations that do not restrict access.
+
+1.7 "Artificial Intelligence System" or "AI System" means any machine-based
+    system that learns from data, or that generates, transforms, or acts on
+    content using models derived from data, including machine learning
+    models, large language models, neural networks, code assistants,
+    autonomous or semi-autonomous agents, and retrieval-augmented systems.
+    Conventional tools that do not use such models (for example compilers,
+    linters, formatters, deterministic static analysers, version control,
+    and screen readers) are not AI Systems.
+
+1.8 "You" means the individual or legal entity exercising rights under
+    this license.
+
+2. Grant of Rights
+
+2.1 Subject to the terms of this license, the Licensor grants You a
+    worldwide, royalty-free, non-exclusive, non-transferable license to
+    use, reproduce, modify, and Share the Work and Adaptations, solely for
+    purposes that are not Commercial Purposes.
+
+2.2 Each time You Share the Work or an Adaptation, the recipient
+    automatically receives a license to the Work from the Licensor under
+    these same terms. You may not sublicense the Work.
+
+2.3 Patent license. The Licensor grants You a royalty-free license under
+    any patent claims the Licensor can license that are necessarily
+    infringed by the Work, only for the uses this license permits. This
+    patent license ends for You if You start patent litigation alleging
+    that the Work infringes a patent.
+
+2.4 Any use not expressly permitted here, including any Commercial
+    Purpose, requires separate written permission from the Licensor.
+
+3. Reservation Against Artificial Intelligence Use
+
+3.1 Except with the Licensor's prior written permission, You may not, and
+    may not allow others to:
+    (a) include the Work or any Adaptation in any dataset, corpus, index,
+        or vector store used to train, fine-tune, evaluate, benchmark,
+        align, distil, or otherwise develop or improve an AI System;
+    (b) provide the Work or any Adaptation as input, context, or retrieval
+        material to an AI System, including for generating, completing,
+        modifying, reviewing, summarizing, translating, or explaining it;
+    (c) use an AI System, or allow an AI System or AI agent, to access,
+        copy, modify, or Share the Work or any Adaptation on Your behalf;
+    (d) Share any output of an AI System that was produced in breach of
+        this Section 3.
+
+3.2 Indexing whose only purpose is to let humans find and link to the Work
+    is permitted, provided the indexed copy is not used for any purpose
+    described in Section 3.1.
+
+3.3 Text and data mining. The Licensor expressly reserves all rights to
+    text and data mining of the Work, including under Article 4(3) of
+    Directive (EU) 2019/790 and any similar law. This reservation is
+    intended to be machine-readable through this license file and any
+    accompanying metadata (for example robots.txt or TDMRep).
+
+3.4 This Section 3 applies to the Work and to every Adaptation, and must
+    be kept in every license that accompanies an Adaptation.
+
+4. Attribution
+
+If You Share the Work or an Adaptation, You must:
+    (a) keep intact all copyright, license, and disclaimer notices;
+    (b) credit the Licensor in the Required Attribution form stated above,
+        or another reasonable form the Licensor requests, in a place where
+        such credits normally appear (for example a README, an "About"
+        screen, or documentation);
+    (c) include a copy of, or a link to, this license;
+    (d) include a link to the original Work, where reasonably practicable;
+    (e) state prominently that You changed the Work, with a description
+        and date of the changes, and keep any earlier change notices.
+
+5. Copyleft (ShareAlike)
+
+5.1 You may Share an Adaptation only under this license, either this
+    version or a later version published by the Licensor.
+
+5.2 If You Share the Work or an Adaptation in Object Form, You must also
+    make the complete corresponding Source Form available under this
+    license to every recipient, at no charge beyond the reasonable cost of
+    providing it, for as long as You Share the Object Form.
+
+5.3 You may not impose any additional terms, conditions, or technical
+    measures that restrict recipients from exercising the rights granted
+    by this license.
+
+6. Third-Party Components
+
+This license applies only to material whose copyright the Licensor owns.
+Components licensed by third parties (for example upstream projects,
+vendored code, fonts, models, or packaged software) remain under their
+own licenses. Where a third-party license governs a combined work, that
+license controls for the combined work to the extent required, and this
+license continues to apply to the Licensor's own material to the fullest
+extent permitted.
+
+7. Termination
+
+7.1 Your rights under this license end automatically if You breach it.
+
+7.2 If You stop the breach within 30 days of discovering it, or of being
+    notified by the Licensor, whichever is earlier, Your rights are
+    reinstated, unless the Licensor has expressly and finally terminated
+    them. Reinstatement does not affect any remedies for the earlier
+    breach.
+
+7.3 On termination You must stop using and Sharing the Work and
+    Adaptations, and delete every copy You control, including copies in
+    datasets, indices, vector stores, and caches.
+
+7.4 Termination does not affect licenses that recipients received from
+    You before termination, provided they comply with this license.
+
+8. Disclaimer of Warranty and Limitation of Liability
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+IN CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+WITH THE WORK OR ITS USE, INCLUDING ANY LOSS OF DATA OR DAMAGE TO
+HARDWARE OR OTHER PROPERTY.
+
+9. General
+
+9.1 If any provision of this license is held unenforceable, it shall be
+    reformed to the minimum extent necessary to make it enforceable, and
+    the remaining provisions stay in effect.
+
+9.2 No failure or delay by the Licensor in enforcing any term is a waiver
+    of that term.
+
+9.3 This license does not reduce any use that applicable law permits
+    without a license, but it grants no permission for such use beyond
+    what the law itself allows.
+
+9.4 The Licensor's own use of the Work is not limited by this license.

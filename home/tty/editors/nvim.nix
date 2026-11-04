@@ -29,6 +29,9 @@ in {
       # In `stock` mode the module is dormant so it doesn't fight the
       # programs.neovim block below.
       enable = cfg.mode == "module";
+      # nvchad4nix's wrapper already puts tree-sitter and a C compiler (the `gcc`
+      # option) on nvim's PATH, which nvim-treesitter's main branch needs for
+      # :TSInstallAll — don't duplicate them here.
       extraPackages = lib.attrsets.attrValues {
         inherit (pkgs) prettier;
         inherit

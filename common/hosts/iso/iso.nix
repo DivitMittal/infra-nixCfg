@@ -10,7 +10,8 @@ in {
   ];
 
   isoImage = {
-    squashfsCompression = "zstd";
+    # mkDefault: the Asahi installer module sets its own level for as-iso.
+    squashfsCompression = mkDefault "zstd";
     makeEfiBootable = mkDefault true;
     makeUsbBootable = mkDefault true;
   };

@@ -1,6 +1,6 @@
 # Flake Directory
 
-Flake-parts modules defining flake outputs.
+Flake-parts module layer defining the platform's flake outputs — host/home builders, devshells, CI wiring, and infrastructure topology.
 
 ## `mkCfg` Class Dispatch
 

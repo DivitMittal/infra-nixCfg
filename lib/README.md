@@ -1,6 +1,6 @@
 # Lib Directory
 
-Custom library functions and shared data files used across the flake.
+Shared library functions and the platform's single source-of-truth design-system data, consumed across the flake.
 
 ## Contents
 

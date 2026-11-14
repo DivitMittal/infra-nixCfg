@@ -1,6 +1,6 @@
 # Modules Directory
 
-Custom NixOS and home-manager modules.
+Reusable NixOS and Home Manager module library shared across the fleet.
 
 ## Structure
 

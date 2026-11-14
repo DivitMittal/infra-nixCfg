@@ -1,6 +1,6 @@
 # Home Directory
 
-Home-manager modules organized by category.
+Home-manager module catalog defining the user-level environment, organized by domain and shared across every host in the fleet.
 
 ## Structure
 

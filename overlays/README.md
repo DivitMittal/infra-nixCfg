@@ -1,6 +1,6 @@
 # Overlays Directory
 
-Nix package overlays modifying/extending nixpkgs.
+Nixpkgs overlay layer that provides the platform's custom package set to every configuration.
 
 ## Structure
 

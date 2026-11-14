@@ -1,8 +1,8 @@
 # Hosts Directory
 
-Platform-specific host configurations. Each platform directory contains an
-`enum.nix` that enumerates the platform's hosts via `mkCfg`, plus one
-subdirectory per host.
+Per-host configuration inventory for the fleet. Each platform directory
+contains an `enum.nix` that enumerates the platform's hosts via `mkCfg`, plus
+one subdirectory per host.
 
 ## Structure
 

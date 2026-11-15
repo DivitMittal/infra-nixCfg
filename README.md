@@ -2,7 +2,7 @@
     <div align="center">
         <img alt='An abstract image of a donut-like object' title='Qezta' height=250 width=250 src='./assets/qezta.gif' style="position: relative; top: 0; right: 0;" />
         <h1 align='center'>infra-nixCfg</h1>
-        <strong>Declarative, reproducible infrastructure-as-code platform for a multi-OS fleet spanning macOS, Android, and Linux (NixOS/WSL).</strong>
+        <strong>Declarative, reproducible infrastructure-as-code platform for a multi-OS fleet spanning macOS, Windows, Android, and Linux (NixOS/WSL).</strong>
     </div>
 
 </div>
@@ -65,7 +65,7 @@ This repository is a configuration-management platform built on [Nix](https://gi
 - **macOS** (via `nix-darwin`)
 - **Android** (via `nix-on-droid`)
 - **\*nix (NixOS)** (including WSL via `NixOS-WSL`)
-- **Windows** (via [`nix-win`](https://github.com/jacobbrugh/nix-win), applying machine-scope state through PowerShell **DSC v3** — in progress, see [PR #41](https://github.com/DivitMittal/infra-nixCfg/pull/41))
+- **Windows** (via [`nix-win`](https://github.com/jacobbrugh/nix-win), applying machine-scope state through PowerShell **DSC v3**)
 
 A single universal builder composes shared infrastructure, platform defaults, and per-host overrides into reproducible system closures, so every node in the fleet is built from the same codified module graph rather than bespoke, hand-maintained setup.
 

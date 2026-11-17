@@ -109,26 +109,26 @@
         direct=1
         iface="$2"
       else
-        iface="''${1:-$(route -n get default | awk '/interface:/ {print $2}')}"
+        iface="''${1:-$(/sbin/route -n get default | awk '/interface:/ {print $2}')}"
       fi
 
       work="$(mktemp -d -t pxe-serve)"
       cleanup() {
         [ -n "''${http_pid:-}" ] && kill "$http_pid" 2>/dev/null || true
-        [ "$direct" -eq 1 ] && ifconfig "$iface" inet ${directAddr} -alias 2>/dev/null || true
+        [ "$direct" -eq 1 ] && /sbin/ifconfig "$iface" inet ${directAddr} -alias 2>/dev/null || true
         rm -rf "$work"
       }
       trap cleanup EXIT INT TERM
 
       if [ "$direct" -eq 1 ]; then
-        ifconfig "$iface" inet ${directAddr} netmask 255.255.255.0 alias
+        /sbin/ifconfig "$iface" inet ${directAddr} netmask 255.255.255.0 alias
         addr=${directAddr}
         dhcp="dhcp-range=10.42.0.100,10.42.0.150,255.255.255.0,1h
       dhcp-option=option:router
       dhcp-option=option:dns-server
       dhcp-leasefile=$work/leases"
       else
-        addr="$(ipconfig getifaddr "$iface")"
+        addr="$(/usr/sbin/ipconfig getifaddr "$iface")"
         dhcp="dhcp-range=$addr,proxy"
       fi
       echo "pxe-serve-darwin: serving $bundle on $iface ($addr); Ctrl-C to stop"

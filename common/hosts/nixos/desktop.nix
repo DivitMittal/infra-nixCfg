@@ -10,7 +10,7 @@
   config,
   ...
 }:
-lib.mkIf (lib.elem config.hostSpec.hostName ["L2" "T2" "ASL1N"]) {
+lib.mkIf (lib.elem config.hostSpec.hostName ["L2" "T2" "T3" "ASL1N"]) {
   # greetd + agreety (greetd's built-in TUI greeter). Launch Sway through a login shell so the
   # user's nix profile (which provides the home-manager-built sway) is on PATH at exec time.
   services.greetd = {

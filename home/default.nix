@@ -69,6 +69,28 @@
       additionalModules = fullModules;
     };
 
+    # Home-lab GUI/AI t640.
+    T3 = mkCfg {
+      hostName = "T3";
+      system = "x86_64-linux";
+      inherit class;
+      additionalModules = fullModules;
+    };
+
+    T4 = mkCfg {
+      hostName = "T4";
+      system = "x86_64-linux";
+      inherit class;
+      additionalModules = headlessModules;
+    };
+
+    MON1 = mkCfg {
+      hostName = "MON1";
+      system = "x86_64-linux";
+      inherit class;
+      additionalModules = headlessModules;
+    };
+
     ASL1N = mkCfg {
       hostName = "ASL1N";
       system = "aarch64-linux";

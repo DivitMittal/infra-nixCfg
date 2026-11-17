@@ -10,7 +10,7 @@
   lib,
   ...
 }:
-lib.mkIf (lib.elem config.hostSpec.hostName ["L2" "T2" "ASL1N"]) {
+lib.mkIf (lib.elem config.hostSpec.hostName ["L2" "T2" "T3" "ASL1N"]) {
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;

@@ -5,14 +5,13 @@
 # route cache instead of RSSHub's default in-process memory cache, so cached
 # feeds survive service restarts.
 #
-# Only the host side is exposed: the WAN NIC is macvtap-passed straight into
-# the router VM (router-vm.nix), so binding on all host addresses reaches the
-# LAN/tailnet without touching the ISP-facing link.
+# Lives on T4 rather than the router (T1) so the router runs nothing but
+# routing.
 _: {
   services.rsshub = {
     enable = true;
     # Firewall is off by default (common/hosts/nixos/networking.nix); this only
-    # matters if T1 ever turns it on.
+    # matters if T4 ever turns it on.
     openFirewall = true;
     redis.enable = true;
     settings = {
@@ -29,6 +28,6 @@ _: {
 
   topology.self.services.rsshub = {
     name = "RSSHub";
-    info = "http://T1:1200";
+    info = "http://T4:1200";
   };
 }

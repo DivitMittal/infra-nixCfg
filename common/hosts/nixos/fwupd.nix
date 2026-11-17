@@ -26,6 +26,6 @@
   lib,
   ...
 }:
-lib.mkIf (lib.elem config.hostSpec.hostName ["T1" "T2"]) {
+lib.mkIf (lib.elem config.hostSpec.hostName ["T1" "T2" "T3" "T4"]) {
   services.fwupd.enable = true;
 }

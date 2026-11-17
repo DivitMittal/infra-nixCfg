@@ -15,11 +15,11 @@ hosts/
 ├── nixos/                      # NixOS systems
 │   ├── enum.nix
 │   ├── L2/                     # x86_64-linux desktop
-│   ├── _homelab/               # shared by T1/T3/T4/MON1 (base.nix, t640.nix)
+│   ├── _homelab/               # shared by T1/T2/T3/MON1 (base.nix, t640.nix)
 │   ├── T1/                     # x86_64-linux HP t640 — edge router (ImmortalWrt VM)
-│   ├── T2/                     # x86_64-linux T2 MacBook
-│   ├── T3/                     # x86_64-linux HP t640 — GUI + AI agent runner
-│   ├── T4/                     # x86_64-linux HP t640 — home-lab services
+│   ├── L1N/                    # x86_64-linux NixOS on L1 (T2-chip MacBook)
+│   ├── T2/                     # x86_64-linux HP t640 — GUI + AI agent runner
+│   ├── T3/                     # x86_64-linux HP t640 — home-lab services
 │   ├── MON1/                   # x86_64-linux Lenovo S100 — monitoring
 │   ├── ASL1N/                  # aarch64-linux on ASL1
 │   ├── colima/                 # x86_64-linux VM
@@ -33,7 +33,7 @@ hosts/
 ├── iso/                        # ISO builds (NixOS install media)
 │   ├── enum.nix
 │   ├── iso/                    # x86_64-linux vanilla
-│   ├── t2-iso/                 # x86_64-linux T2
+│   ├── l1n-iso/                # x86_64-linux installer for L1N (apple-t2)
 │   └── as-iso/                 # aarch64-linux Apple Silicon
 ├── netboot/                    # PXE/TFTP netboot images (RAM-resident, minimal)
 │   ├── enum.nix
@@ -227,14 +227,14 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 
 | Host | Hardware                         | Role                                                 | LAN address                     |
 | ---- | -------------------------------- | ---------------------------------------------------- | ------------------------------- |
-| T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (multi-PPPoE, mwan3)     | host `192.168.2.3`, router `.1` |
-| T3   | HP t640, highest spec            | Sway GUI + API-backed AI agents (Claude Code, Codex) | DHCP, `T3.lan`                  |
-| T4   | HP t640, medium spec             | Services (RSSHub `:1200`, later Loki/Tempo) + agents | DHCP, `T4.lan`                  |
+| T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (DMZ; PPPoE optional)    | host `192.168.2.3`, router `.1` |
+| T2   | HP t640, highest spec            | Sway GUI + API-backed AI agents (Claude Code, Codex) | DHCP, `T2.lan`                  |
+| T3   | HP t640, medium spec             | Services (RSSHub `:1200`, later Loki/Tempo) + agents | DHCP, `T3.lan`                  |
 | MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
 
 All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter
 for MON1 to scrape); the t640s also share `_homelab/t640.nix` (systemd-boot,
-disko layout), and T3/T4 add `_homelab/agents.nix` (user lingering,
+disko layout), and T2/T3 add `_homelab/agents.nix` (user lingering,
 inotify/nofile limits, zram, systemd-oomd) so many API-backed agents can run
 there instead of on L1; SSH in and start them in tmux/herdr. Every box installs the same way, using T1's steps below: PXE
 into `t1-netboot` (it's a generic image, so any of them can boot it), capture
@@ -250,9 +250,9 @@ Bring them up in this order, because each step needs the one before it:
    `infra-nixCfg-secrets`; see "WAN modes" for later switching to PPPoE.
 2. **MON1** — so you can watch the rest come up. The Grafana admin password is
    generated on first start: `ssh root@MON1.lan cat /var/lib/grafana-secrets/admin-password`.
-3. **T4**, then **T3**.
+3. **T3**, then **T2**.
 
-S1 has no free ports for T3/T4/MON1, so the topology assumes they sit behind
+S1 has no free ports for T2/T3/MON1, so the topology assumes they sit behind
 the unmanaged switch (`SW2`) on S1's port5; fix `flake/topology.nix` if the
 cabling differs. Neither switch is fully monitorable: S1 (Easy Smart) has no
 SNMP, so MON1 only pings it and probes its web UI, and SW2 can't be monitored
@@ -447,7 +447,7 @@ one mode over the other converts the router declaratively.
 
 ### Firmware/UEFI/BIOS updates (fwupd)
 
-`services.fwupd` is enabled for T1 and T2 (real x86_64 UEFI hardware; see
+`services.fwupd` is enabled for T1-T3 and L1N (real x86_64 UEFI hardware; see
 `common/hosts/nixos/fwupd.nix` for why L2 and ASL1N are excluded). fwupd/LVFS
 is the standard cross-vendor tool for this on Linux — Nix can declare the
 daemon and its policy, but not a specific firmware version: firmware is

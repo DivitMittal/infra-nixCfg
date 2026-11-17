@@ -1,4 +1,4 @@
-# Shared by every home-lab box (T1, T3, T4, MON1). Imported explicitly from
+# Shared by every home-lab box (T1, T2, T3, MON1). Imported explicitly from
 # hosts/nixos/enum.nix; the leading underscore keeps import-tree from pulling
 # this directory into any single host on its own.
 {

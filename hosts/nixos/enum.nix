@@ -48,28 +48,28 @@
       hostName = "L2";
       system = "x86_64-linux";
     };
-    T2 = mkCfg {
+    L1N = mkCfg {
       inherit class;
-      hostName = "T2";
+      hostName = "L1N";
       system = "x86_64-linux";
     };
     # ── home lab (hosts/README.md, "Home-lab bootstrap") ─────────────────
-    # T1 router, T3 GUI/AI, T4 services: HP t640s. MON1: Lenovo S100.
+    # T1 router, T2 GUI/AI, T3 services: HP t640s. MON1: Lenovo S100.
     T1 = mkCfg {
       inherit class;
       hostName = "T1";
       system = "x86_64-linux";
       additionalModules = homelabT640;
     };
-    T3 = mkCfg {
+    T2 = mkCfg {
       inherit class;
-      hostName = "T3";
+      hostName = "T2";
       system = "x86_64-linux";
       additionalModules = homelabT640 ++ [./_homelab/agents.nix];
     };
-    T4 = mkCfg {
+    T3 = mkCfg {
       inherit class;
-      hostName = "T4";
+      hostName = "T3";
       system = "x86_64-linux";
       additionalModules = homelabT640 ++ [./_homelab/agents.nix];
     };

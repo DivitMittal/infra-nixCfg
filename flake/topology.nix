@@ -115,8 +115,8 @@
                   }
                 ];
               };
-              port2 = downlink "T3";
-              port3 = downlink "T4";
+              port2 = downlink "T2";
+              port3 = downlink "T3";
               port4 = downlink "MON1";
             };
           };
@@ -178,11 +178,11 @@
             };
           };
 
-          # x86_64 MacBook — triple-boot: macOS (L1 / nix-darwin) | NixOS T2 | Windows 11
+          # x86_64 MacBook — triple-boot: macOS (L1 / nix-darwin) | NixOS L1N | Windows 11
           nodes.L1 = {
             name = "L1";
             deviceType = "device";
-            hardware.info = "macOS nix-darwin (x86_64) - triple-boot with T2 NixOS & Windows 11";
+            hardware.info = "macOS nix-darwin (x86_64) - triple-boot with L1N NixOS & Windows 11";
             # On R0's own Wi-Fi (the ISP router's network, outside the home
             # LAN), not wired to S1.
             interfaces.en0 = {
@@ -231,13 +231,13 @@
             };
           };
 
-          # Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & T2) — user: div
+          # Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & L1N) — user: div
           # Packages + system settings: https://github.com/DivitMittal/playbooks-4-windows (Ansible)
           # TTY dotfiles (starship, fastfetch, git attrs): WSL home-manager → /mnt/c/Users/div/
           nodes.windows-host = {
             name = "Windows Host (L1)";
             deviceType = "device";
-            hardware.info = "Windows 11 - triple-boot with L1 (macOS) & T2 (NixOS) — user: div | pkgs+settings: Ansible | TTY dotfiles: WSL home-manager";
+            hardware.info = "Windows 11 - triple-boot with L1 (macOS) & L1N (NixOS) — user: div | pkgs+settings: Ansible | TTY dotfiles: WSL home-manager";
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";

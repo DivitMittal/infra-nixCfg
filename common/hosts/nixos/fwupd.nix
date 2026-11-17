@@ -1,5 +1,5 @@
 # Firmware/UEFI/BIOS updates via fwupd (LVFS) for real x86_64 UEFI hardware
-# (T1/T2). Excluded: L2 (legacy BIOS/GRUB, no UEFI capsule path) and ASL1N
+# (T1-T3, L1N). Excluded: L2 (legacy BIOS/GRUB, no UEFI capsule path) and ASL1N
 # (Apple Silicon — firmware comes from macOS via Asahi's U-Boot flow, not LVFS).
 #
 # There is no better/more-declarative option here: fwupd/LVFS is the de facto
@@ -20,12 +20,12 @@
 #
 # ESP auto-detection: fwupd's uefi_capsule EspLocation defaults to
 # `boot.loader.efi.efiSysMountPoint`, which correctly resolves to `/boot` here
-# (both T1 and T2's disko layouts mount the ESP at /boot) — no override needed.
+# (the t640s' and L1N's disko layouts mount the ESP at /boot) — no override needed.
 {
   config,
   lib,
   ...
 }:
-lib.mkIf (lib.elem config.hostSpec.hostName ["T1" "T2" "T3" "T4"]) {
+lib.mkIf (lib.elem config.hostSpec.hostName ["T1" "L1N" "T2" "T3"]) {
   services.fwupd.enable = true;
 }

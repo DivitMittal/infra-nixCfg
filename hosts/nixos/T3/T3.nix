@@ -1,10 +1,9 @@
-# T3 — the highest-spec t640: Linux GUI box and the main agent runner.
-# "AI" here means API-backed agents (Claude Code, Codex, ...) that need spare
-# cores and RAM, not local inference; host tuning for that is in
-# hosts/nixos/_homelab/agents.nix, the agent CLIs come from ai-nixCfg via the
-# full home-manager profile (home/default.nix). The Sway session comes from
-# the shared desktop layer (common/hosts/nixos/desktop.nix lists T3).
-_: {
-  # Vega 3 iGPU, for the Sway session.
-  hardware.graphics.enable = true;
-}
+# T3 — the medium-spec t640: home-lab services, plus overflow capacity for
+# API-backed AI agents (host tuning in hosts/nixos/_homelab/agents.nix; agent
+# CLIs from ai-nixCfg via the tty+dev home-manager profile).
+#
+# Add each service as its own file in this directory (import-tree picks it
+# up), as a native NixOS module where one exists. Planned here as well: the
+# heavier observability pieces (Loki/Tempo from PR #36) once MON1's light
+# stack is running.
+_: {}

@@ -89,8 +89,8 @@ in {
     # the VPSes, magicRollback stays on: a change that cuts SSH reverts by
     # itself instead of needing a trip to the box with a keyboard.
     T1 = mkHomelabNode "192.168.2.3" self.nixosConfigurations.T1;
+    T2 = mkHomelabNode "T2.lan" self.nixosConfigurations.T2;
     T3 = mkHomelabNode "T3.lan" self.nixosConfigurations.T3;
-    T4 = mkHomelabNode "T4.lan" self.nixosConfigurations.T4;
     MON1 = mkHomelabNode "MON1.lan" self.nixosConfigurations.MON1;
 
     # Oracle Cloud A1 Flex VPS in Mumbai.

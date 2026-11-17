@@ -1,18 +1,10 @@
+# T2 — the highest-spec t640: Linux GUI box and the main agent runner.
+# "AI" here means API-backed agents (Claude Code, Codex, ...) that need spare
+# cores and RAM, not local inference; host tuning for that is in
+# hosts/nixos/_homelab/agents.nix, the agent CLIs come from ai-nixCfg via the
+# full home-manager profile (home/default.nix). The Sway session comes from
+# the shared desktop layer (common/hosts/nixos/desktop.nix lists T2).
 _: {
-  boot.loader = {
-    systemd-boot.enable = true;
-    efi.canTouchEfiVariables = true;
-  };
-
-  # T2 NixOS caches for kernel patches and firmware
-  nix.settings = {
-    trusted-substituters = [
-      "https://t2linux.cachix.org"
-      "https://cache.soopy.moe"
-    ];
-    trusted-public-keys = [
-      "t2linux.cachix.org-1:P733c5Gt1qTcxsm+Bae0renWnT8OLs0u9+yfaK2Bejw="
-      "cache.soopy.moe-1:0RZVsQeR+GOh0VQI9rvnHz55nVXkFardDqfm4+afjPo="
-    ];
-  };
+  # Vega 3 iGPU, for the Sway session.
+  hardware.graphics.enable = true;
 }

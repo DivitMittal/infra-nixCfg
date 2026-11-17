@@ -1,4 +1,4 @@
-# Agent boxes (T3, T4): spare cores and RAM for running many API-backed AI
+# Agent boxes (T2, T3): spare cores and RAM for running many API-backed AI
 # agents (Claude Code, Codex, ...) so they don't load L1. The agent CLIs
 # themselves come from ai-nixCfg via the home-manager profile; this is the
 # host-side tuning that lets dozens of them run at once.

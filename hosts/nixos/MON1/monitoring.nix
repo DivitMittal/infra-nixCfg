@@ -1,6 +1,6 @@
 # Light monitoring stack sized for the S100's 2 GiB: Prometheus + blackbox
 # probes + Grafana. The heavier log/trace pieces (Loki/Tempo, PR #36) are
-# meant for T4 instead.
+# meant for T3 instead.
 #
 # Coverage limits worth knowing:
 #   - S1 (TP-Link TL-SG105E "Easy Smart") has no SNMP, so it is only
@@ -17,8 +17,8 @@
   # take DHCP leases from the router, whose dnsmasq answers for `<host>.lan`.
   nodeTargets = [
     "192.168.2.3:9100" # T1
+    "T2.lan:9100"
     "T3.lan:9100"
-    "T4.lan:9100"
     "localhost:9100" # MON1
   ];
 
@@ -32,7 +32,7 @@
   httpTargets = [
     "http://192.168.2.1" # router LuCI
     "http://192.168.2.2" # S1 web UI
-    "http://T4.lan:1200" # RSSHub
+    "http://T3.lan:1200" # RSSHub
   ];
 
   # Probe through blackbox: the probed address goes in as a URL parameter and

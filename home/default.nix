@@ -62,6 +62,15 @@
       additionalModules = fullModules;
     };
 
+    L1N = mkCfg {
+      hostName = "L1N";
+      system = "x86_64-linux";
+      inherit class;
+      additionalModules = fullModules;
+    };
+
+    # Home-lab agent boxes. Both need ai-nixCfg's agent CLIs, which arrive
+    # through ./tty: T2 gets the full GUI profile, T3 the tty+dev one.
     T2 = mkCfg {
       hostName = "T2";
       system = "x86_64-linux";
@@ -69,17 +78,8 @@
       additionalModules = fullModules;
     };
 
-    # Home-lab agent boxes. Both need ai-nixCfg's agent CLIs, which arrive
-    # through ./tty: T3 gets the full GUI profile, T4 the tty+dev one.
     T3 = mkCfg {
       hostName = "T3";
-      system = "x86_64-linux";
-      inherit class;
-      additionalModules = fullModules;
-    };
-
-    T4 = mkCfg {
-      hostName = "T4";
       system = "x86_64-linux";
       inherit class;
       additionalModules = ttyDevModules;

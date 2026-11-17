@@ -1,4 +1,4 @@
-# HP t640 thin clients (T1, T3, T4): AMD Ryzen Embedded, UEFI, one SATA
+# HP t640 thin clients (T1, T2, T3): AMD Ryzen Embedded, UEFI, one SATA
 # M.2 2242 SSD. Confirm the disk with `lsblk` from the PXE shell (or
 # `bootstrap-remote <host> --check`) before a destructive install; override
 # disko.devices.disk.main.device per host if it isn't /dev/sda.

@@ -5,13 +5,13 @@
 # route cache instead of RSSHub's default in-process memory cache, so cached
 # feeds survive service restarts.
 #
-# Lives on T4 rather than the router (T1) so the router runs nothing but
+# Lives on T3 rather than the router (T1) so the router runs nothing but
 # routing.
 _: {
   services.rsshub = {
     enable = true;
     # Firewall is off by default (common/hosts/nixos/networking.nix); this only
-    # matters if T4 ever turns it on.
+    # matters if T3 ever turns it on.
     openFirewall = true;
     redis.enable = true;
     settings = {
@@ -28,6 +28,6 @@ _: {
 
   topology.self.services.rsshub = {
     name = "RSSHub";
-    info = "http://T4:1200";
+    info = "http://T3:1200";
   };
 }

@@ -104,7 +104,7 @@ For the dedicated proving host only, select an aggressive kernel set:
 boot.kernelPackages = pkgs.master.linuxPackages_latest;
 ```
 
-Do not apply this globally. Do not apply it to `T2`, `ASL1N`, `VPS1`, or `VPS2` until the proving host passes and a hardware-specific variant is created.
+Do not apply this globally. Do not apply it to `L1N`, `ASL1N`, `VPS1`, or `VPS2` until the proving host passes and a hardware-specific variant is created.
 
 ### Instrumentation Kconfig
 
@@ -313,11 +313,11 @@ Runtime load may require hardware/userland and should not be a hard requirement 
 
 After the generic proving host works, consider explicit forge variants:
 
-- `T2-forge`: T2-related driver/kernel exploration, but preserve `nixos-hardware.nixosModules.apple-t2` expectations.
+- `L1N-forge`: T2-chip driver/kernel exploration, but preserve `nixos-hardware.nixosModules.apple-t2` expectations.
 - `ASL1N-forge`: Asahi exploration, but do not override its kernel stack blindly.
 - `VPS1-forge` / `VPS2-forge`: only after local and VM proof, because VPS deploy nodes have `magicRollback = false`.
 
-Do not attach Kernel Forge directly to production `T2`, `ASL1N`, `VPS1`, or `VPS2` outputs initially.
+Do not attach Kernel Forge directly to production `L1N`, `ASL1N`, `VPS1`, or `VPS2` outputs initially.
 
 ## Module and profile structure
 
@@ -436,7 +436,7 @@ Also build isolation targets:
 
 ```sh
 nix build .#nixosConfigurations.WSL.config.system.build.toplevel --show-trace
-nix build .#nixosConfigurations.T2.config.system.build.toplevel --show-trace
+nix build .#nixosConfigurations.L1N.config.system.build.toplevel --show-trace
 ```
 
 ### Runtime VM validation
@@ -461,7 +461,7 @@ trace-cmd --version
 1. `KFORGE` VM builds.
 2. `KFORGE` VM boots and validates instrumentation/tooling.
 3. Existing hosts still evaluate/build.
-4. Add `T2-forge` or another local-console hardware variant.
+4. Add `L1N-forge` or another local-console hardware variant.
 5. Only later consider VPS variants.
 6. Do not modify `hosts/deploy.nix` production nodes until the forge track is proven.
 

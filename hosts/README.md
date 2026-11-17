@@ -72,14 +72,14 @@ nix run .#switch-S1 -- apply
 ```
 
 The admin password is decrypted at run time from
-`infra-nixCfg-secrets/secrets/lan/S1.age` (declared in that repo's
+`infra-nixCfg-secrets/secrets/network/S1.age` (declared in that repo's
 `secrets/manifest.nix`, same convention as every other secret consumed via
 `common/home/age.nix`) using the `~/.ssh/agenix/id_ed25519` identity, and
 exported as `TF_VAR_switch_s1_password` — it is never stored in this repo.
 State lives outside the repo, in
 `$XDG_STATE_HOME/os-nixcfg/terraform/switch-S1`.
 
-`secrets/lan/R1.age` is a symlink to `secrets/lan/S1.age` — R1's OpenWrt
+`secrets/network/R1.age` is a symlink to `secrets/network/S1.age` — R1's OpenWrt
 root password (set over SSH during `nix run .#openwrt-ont <target>`, see
 `flake/openwrt.nix`) intentionally shares S1's admin password, one
 ciphertext for both.
@@ -88,7 +88,7 @@ To create the secret itself (from inside `infra-nixCfg-secrets`, after entering
 its devshell so `ragenix`/`RULES` are set up):
 
 ```bash
-ragenix -e secrets/lan/S1.age
+ragenix -e secrets/network/S1.age
 ```
 
 ## Host Directory Layout

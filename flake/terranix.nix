@@ -44,9 +44,9 @@
     };
 
     # Same age-encrypted store used for every other secret in this flake
-    # (see common/home/age.nix); matches the "lan/S1.age" entry declared in
+    # (see common/home/age.nix); matches the "network/S1.age" entry declared in
     # infra-nixCfg-secrets/secrets/manifest.nix (shared with R1, see openwrt.nix).
-    switchS1Secret = inputs.infra-nixCfg-secrets + "/secrets/lan/S1.age";
+    switchS1Secret = inputs.infra-nixCfg-secrets + "/secrets/network/S1.age";
 
     # Runs `terraform <mode> [extra args]` (mode defaults to "plan") against
     # S1's generated config, in a persistent state dir outside the repo.

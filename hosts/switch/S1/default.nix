@@ -7,12 +7,12 @@ _: {
   variable.switch_s1_password = {
     type = "string";
     sensitive = true;
-    description = "Admin password for S1's Easy Smart web UI (infra-nixCfg-secrets: secrets/lan/S1.age; shared with R1)";
+    description = "Admin password for S1's Easy Smart web UI (infra-nixCfg-secrets: secrets/network/S1.age; shared with R1)";
   };
 
   provider.tplinkeasysmart = {
     # TP-Link TL-SG105E; mgmt IP pinned via DHCP host record (see
-    # hosts/openwrt/R1/modules/network.nix, dhcp.S1).
+    # hosts/openwrt/T640/modules/network.nix, dhcp.S1).
     host = "192.168.2.2";
     username = "admin";
     password = "\${var.switch_s1_password}";

@@ -44,6 +44,19 @@
           "kmod-pppoe"
           "ppp-mod-pppoe"
         ];
+
+        # The one setting that can't wait for the first nuci deploy: in DMZ
+        # mode R0 serves 192.168.1.0/24 on the WAN side, so a stock LAN on
+        # 192.168.1.1 would overlap it and break routing on first boot. Must
+        # match lanAddress in hosts/openwrt/T640/modules/network.nix.
+        files = pkgs.runCommand "t640-image-files" {} ''
+          mkdir -p $out/etc/uci-defaults
+          cat > $out/etc/uci-defaults/90-lan-address <<'EOF'
+          uci set network.lan.ipaddr='192.168.2.1'
+          uci set network.lan.netmask='255.255.255.0'
+          uci commit network
+          EOF
+        '';
       };
     in {
       packages = {

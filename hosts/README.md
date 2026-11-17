@@ -244,9 +244,10 @@ After that, `deploy .#<host>`.
 Bring them up in this order, because each step needs the one before it:
 
 1. **T1** — until the router is up, nothing else gets a `.lan` name or
-   internet. Before the first `nix run .#t640-router root@192.168.1.1`,
-   create `secrets/network/T640.age`, `T640-wan1.age` and `T640-wan2.age` in
-   `infra-nixCfg-secrets` (see "Entering real PPPoE credentials").
+   internet. On R0, set the DMZ host to `192.168.1.254`, then run
+   `nix run .#t640-router root@192.168.2.1` from a machine wired to S1. That
+   needs `secrets/network/T640.age` (the generated root password) in
+   `infra-nixCfg-secrets`; see "WAN modes" for later switching to PPPoE.
 2. **MON1** — so you can watch the rest come up. The Grafana admin password is
    generated on first start: `ssh root@MON1.lan cat /var/lib/grafana-secrets/admin-password`.
 3. **T4**, then **T3**.
@@ -339,9 +340,10 @@ repo:
   used to be baked into the image at build time.
 
 The VM attaches the LAN NIC first, so the guest sees `eth0` = LAN and `eth1` =
-WAN, which matches a stock x86 image. A fresh guest therefore answers at
-`192.168.1.1` (stock), and the first `nix run .#t640-router root@192.168.1.1`
-moves it to `192.168.2.1`. The T1 host keeps its own LAN address,
+WAN, which matches a stock x86 image. The image bakes in one setting, the LAN
+address `192.168.2.1` (a `uci-defaults` file in `flake/openwrt-images.nix`).
+A stock `192.168.1.1` LAN would overlap R0's `192.168.1.0/24` on the WAN side
+in DMZ mode, so even a fresh guest answers at `192.168.2.1`. The T1 host keeps its own LAN address,
 `192.168.2.3`, on a `lan-host` macvlan, so you can still SSH in while the
 router guest is down.
 
@@ -428,44 +430,20 @@ uci commit mwan3
 mwan3 restart
 ```
 
-#### Fallback: R0 DMZ instead of PPPoE passthrough
+#### WAN modes: DMZ (default) and PPPoE
 
-The whole multi-PPPoE design above assumes R0 (the Airtel-provided router)
-is reconfigured into bridge mode, passing the ISP's PPPoE session(s)
-straight through to T1's WAN NIC. If that doesn't work well in practice
-(some ISP-provided routers' "bridge mode" is unreliable or absent),
-fall back to the same scheme R1's old default `wanMode = "ont"` used: R0
-stays in its normal router mode and DMZ-forwards a single static IP to
-T640's WAN, instead of T640 terminating PPPoE itself. This is a live `uci`
-reconfiguration of the router VM, not a Nix rebuild or nuci redeploy — apply
-it directly over SSH:
+`hosts/openwrt/T640` takes a `wanMode`, the same pattern R1 used:
 
-```sh
-uci set network.wan1=interface
-uci set network.wan1.proto='static'
-uci set network.wan1.device='eth1'
-uci set network.wan1.ipaddr='192.168.1.254'
-uci set network.wan1.netmask='255.255.255.0'
-uci set network.wan1.gateway='192.168.1.1'
-uci -q delete network.wan1.username
-uci -q delete network.wan1.password
-uci add_list network.wan1.dns='192.168.1.1'
-uci add_list network.wan1.dns='1.1.1.1'
-uci commit network
-/etc/init.d/network restart
-```
+| Mode    | R0 setup                              | WAN on the T640 guest                            | Deploy                                 |
+| ------- | ------------------------------------- | ------------------------------------------------ | -------------------------------------- |
+| `dmz`   | Router mode, DMZ host `192.168.1.254` | static `192.168.1.254/24`, gateway `192.168.1.1` | `nix run .#t640-router <target>`       |
+| `pppoe` | Bridge mode                           | two PPPoE lines balanced by mwan3                | `nix run .#t640-router-pppoe <target>` |
 
-(Values mirror `hosts/openwrt/R1/modules/network.nix`'s static-WAN block
-exactly.) This disables line 2's PPPoE/mwan3 balancing implicitly — a DMZ
-only forwards to one address — so also disable `mwan3` or drop `wan2` from
-its `balanced` policy to avoid mwan3 treating a now-nonfunctional PPPoE line
-as a live member. Because this is a manual live reconfiguration outside the
-declarative UCI JSON, the next `nix run .#t640-router <target>` deploy will
-overwrite it back to the multi-PPPoE config — treat this fallback as
-break-glass, not a persistent mode switch, until it's promoted to a proper
-`wanMode`-style variant (not implemented yet; see
-`hosts/openwrt/R1/modules/network.nix` for the equivalent `wanMode` pattern
-if that becomes necessary).
+DMZ mode needs only `secrets/network/T640.age`. In this mode, R0 still
+NATs, so the home LAN sits behind double NAT (fine for normal use; port
+forwards must be opened on the T640 only, since R0's DMZ forwards everything).
+PPPoE mode also needs the two `T640-wan{1,2}.age` credentials above. Deploying
+one mode over the other converts the router declaratively.
 
 ### Firmware/UEFI/BIOS updates (fwupd)
 

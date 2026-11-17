@@ -1,34 +1,54 @@
-{lib, ...}: let
-  inherit (lib.lists) range;
+{
+  lib,
+  wanMode,
+  ...
+}: let
+  inherit (lib.lists) range optionals;
   inherit (lib.strings) fixedWidthString;
-  inherit (lib.attrsets) listToAttrs nameValuePair;
+  inherit (lib.attrsets) listToAttrs nameValuePair optionalAttrs;
 
-  # Two upstream PPPoE lines: kmod-macvlan MAC-VLAN devices on top of a
-  # shared WAN base device, one pppoe interface per line, load-balanced via
-  # mwan3. This is the declarative nuci translation of the one-shot
-  # `95-multi-pppoe` uci-defaults script that used to live in
-  # flake/openwrt-images.nix (`mkMultiPppoeFiles`) — same MAC addresses,
-  # device names, and mwan3 policy, just expressed as Nix-native `uci = {}`
-  # like R1's modules instead of a shell heredoc. See hosts/README.md for the
-  # multi-PPPoE background.
-  pppoeLines = 2;
-  lineNums = range 1 pppoeLines;
+  # Two WAN modes (flake/openwrt-t640.nix builds both):
+  #   "dmz"   — default. R0 (the ISP router) stays in router mode and
+  #             DMZ-forwards everything to this router's static WAN address.
+  #   "pppoe" — R0 in bridge mode; this router dials two PPPoE lines itself
+  #             and balances them with mwan3.
+  isPppoe = wanMode == "pppoe";
 
   # Guest-internal virtio-net naming follows PCI enumeration order, and
   # hosts/nixos/T1/router-vm.nix attaches the LAN macvtap first, so:
   #   eth0 = LAN downlink, already br-lan's port in the stock image.
-  #   eth1 = WAN uplink, the shared base device the macvlan lines attach to.
+  #   eth1 = WAN uplink.
   # Adjust if `ip link` inside the booted guest disagrees.
-  wanBaseDevice = "eth1";
+  wanDevice = "eth1";
 
   # Home LAN, taken over from R1 (hosts/openwrt/R1/modules/network.nix).
+  # Also baked into the image (flake/openwrt-images.nix), because a stock
+  # image's 192.168.1.1 LAN would collide with R0's subnet in DMZ mode.
   lanAddress = "192.168.2.1";
 
-  # Locally-administered, unicast MAC addresses (IEEE 802: the "02"
-  # first-octet prefix sets the U/L and I/G bits appropriately) for each
-  # macvlan device — must be distinct from each other and from the base
-  # device so the ISP's PPPoE/DHCP session tracking treats each line as a
-  # separate client.
+  # DMZ mode: the address R0 forwards to. Same values R1 used behind the
+  # same R0. Set R0's DMZ host to this address.
+  dmzWan = {
+    _type = "interface";
+    device = wanDevice;
+    proto = "static";
+    ipaddr = "192.168.1.254";
+    netmask = "255.255.255.0";
+    gateway = "192.168.1.1";
+    dns = [
+      "192.168.1.1"
+      "1.1.1.1"
+    ];
+  };
+
+  # ── PPPoE mode ─────────────────────────────────────────────────────────
+  # kmod-macvlan MAC-VLAN devices on top of the WAN device, one pppoe
+  # interface per line, load-balanced via mwan3. See hosts/README.md.
+  pppoeLines = 2;
+  lineNums = range 1 pppoeLines;
+
+  # Locally-administered unicast MACs, distinct per line so the ISP's PPPoE
+  # session tracking treats each line as a separate client.
   macFor = n: "02:00:00:00:00:${fixedWidthString 2 "0" (toString n)}";
 
   wanmvName = n: "wanmv${toString n}";
@@ -40,7 +60,7 @@
         nameValuePair (wanmvName n) {
           _type = "device";
           type = "macvlan";
-          ifname = wanBaseDevice;
+          ifname = wanDevice;
           name = wanmvName n;
           macaddr = macFor n;
         }
@@ -54,13 +74,9 @@
           proto = "pppoe";
           device = wanmvName n;
           ipv6 = "auto";
-          # PLACEHOLDER credentials — never committed for real, same
-          # no-secrets-in-store convention as everywhere else in this repo.
-          # A nuci reconcile.d hook (wan-credentials.nix) overwrites these
-          # post-deploy with the real per-line username/password, decrypted
-          # from infra-nixCfg-secrets at deploy time by
-          # flake/openwrt-t640.nix's `set_wan_credentials` — mirroring how
-          # R1's wifi-backup PSK is injected (hosts/openwrt/R1/modules/wifi-backup.nix).
+          # Placeholders only. wan-credentials.nix overwrites them with the
+          # real per-line login, injected at deploy time from
+          # infra-nixCfg-secrets.
           username = "CHANGEME-line${toString n}-username";
           password = "CHANGEME-line${toString n}-password";
         }
@@ -95,7 +111,7 @@
     lineNums);
 in {
   uci = {
-    packages = [
+    packages = optionals isPppoe [
       "kmod-macvlan"
       "mwan3"
       "luci-app-mwan3"
@@ -103,74 +119,75 @@ in {
       "ppp-mod-pppoe"
     ];
 
-    settings = {
-      network = wanmvDevices // wanInterfaces;
+    settings =
+      {
+        network =
+          if isPppoe
+          then wanmvDevices // wanInterfaces
+          else {wan = dmzWan;};
 
-      # Static leases carried over from R1, below the stock .100+ dynamic pool.
-      dhcp = {
-        S1 = {
-          _type = "host";
-          name = "S1";
-          mac = "ac:a7:f1:aa:2b:12";
-          ip = "192.168.2.2";
+        # Static leases carried over from R1, below the stock .100+ dynamic pool.
+        dhcp = {
+          S1 = {
+            _type = "host";
+            name = "S1";
+            mac = "ac:a7:f1:aa:2b:12";
+            ip = "192.168.2.2";
+          };
+          M1 = {
+            _type = "host";
+            name = "M1";
+            mac = "9c:69:d3:7f:90:de";
+            ip = "192.168.2.4";
+          };
         };
-        M1 = {
-          _type = "host";
-          name = "M1";
-          mac = "9c:69:d3:7f:90:de";
-          ip = "192.168.2.4";
-        };
+      }
+      // optionalAttrs isPppoe {
+        # Balanced (equal-weight) by default. For primary/backup failover,
+        # give the backup line a higher metric — see hosts/README.md.
+        mwan3 =
+          mwan3Interfaces
+          // mwan3Members
+          // {
+            balanced = {
+              _type = "policy";
+              use_member = map memberName lineNums;
+            };
+
+            default_rule = {
+              _type = "rule";
+              dest_ip = "0.0.0.0/0";
+              use_policy = "balanced";
+            };
+          };
       };
 
-      # mwan3: one interface + member per line, balanced (equal-weight)
-      # policy by default. To switch to primary/backup failover instead,
-      # give the backup line a higher metric (e.g. '2') than the primary
-      # (metric '1') — see hosts/README.md.
-      mwan3 =
-        mwan3Interfaces
-        // mwan3Members
-        // {
-          balanced = {
-            _type = "policy";
-            use_member = map memberName lineNums;
-          };
-
-          default_rule = {
-            _type = "rule";
-            dest_ip = "0.0.0.0/0";
-            use_policy = "balanced";
-          };
-        };
-    };
-
-    # Partial-field edits of sections this module doesn't fully own — the
-    # stock generic-x86 image's default `lan` interface and its `@zone[1]`
-    # wan firewall zone. Declaring these as typed `settings` sections would
-    # silently drop whatever other fields the stock image ships them with
-    # (nuci/openwrt-nix's docs: "once you define a section... all existing
-    # values of this section are unset before applying the new values").
-    # rawUci, by contrast, only ever touches the exact field named — same
-    # reasoning as R1's cleanup.nix use of rawUci for one-off deletes.
+    # Partial-field edits of sections this module doesn't fully own (the
+    # stock `lan` interface and the `@zone[1]` wan firewall zone). Typed
+    # `settings` sections replace a section wholesale; rawUci touches only
+    # the named field.
     rawUci =
       [
-        # The stock image runs a DHCP client (`wan`/`wan6`) on eth1; the
-        # PPPoE lines replace it, so eth1 stays a bare base device.
-        "uci -q delete network.wan || true"
+        # IPv6 from R0 isn't routed to a DMZ host, and PPPoE brings its own,
+        # so the stock DHCPv6 client goes in both modes.
         "uci -q delete network.wan6 || true"
-
-        # Move the LAN onto the home subnet. A fresh guest is first deployed
-        # at the stock 192.168.1.1; every later deploy targets this address.
+      ]
+      ++ optionals isPppoe [
+        # The PPPoE lines replace the stock DHCP `wan` on eth1.
+        "uci -q delete network.wan || true"
+      ]
+      ++ [
         "uci set network.lan.ipaddr='${lanAddress}'"
         "uci set network.lan.netmask='255.255.255.0'"
         "uci commit network"
 
-        # wan firewall zone: cover every pppoe interface (assumes the
-        # default image ships firewall zones in the usual lan=0, wan=1
-        # order).
-        "uci del_list firewall.@zone[1].network='wan'"
+        # Assumes the stock lan=0, wan=1 firewall zone order.
         "uci del_list firewall.@zone[1].network='wan6'"
       ]
-      ++ (map (n: "uci add_list firewall.@zone[1].network='${wanName n}'") lineNums)
+      ++ optionals isPppoe (
+        ["uci del_list firewall.@zone[1].network='wan'"]
+        ++ map (n: "uci add_list firewall.@zone[1].network='${wanName n}'") lineNums
+      )
       ++ ["uci commit firewall"];
   };
 }

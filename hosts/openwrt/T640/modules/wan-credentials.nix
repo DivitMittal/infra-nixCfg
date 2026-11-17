@@ -1,4 +1,10 @@
-_: {
+{
+  lib,
+  wanMode,
+  ...
+}: {
+  # PPPoE mode only; DMZ mode has no ISP login.
+  #
   # Real per-line PPPoE username+password are a real external secret (not
   # one we can generate), so they never land in git or the declarative UCI
   # JSON (which only ever contains the CHANGEME placeholders from
@@ -7,7 +13,7 @@ _: {
   # "username\npassword" into a root-only file over SSH — this hook then
   # reads those files and applies them to live UCI. Same pattern as R1's
   # wifi-backup PSK (hosts/openwrt/R1/modules/wifi-backup.nix).
-  uci.files = [
+  uci.files = lib.optionals (wanMode == "pppoe") [
     {
       path = "/etc/nuci/reconcile.d/60-wan-credentials";
       executable = true;

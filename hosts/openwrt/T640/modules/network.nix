@@ -27,6 +27,32 @@
   # image's 192.168.1.1 LAN would collide with R0's subnet in DMZ mode.
   lanAddress = "192.168.2.1";
 
+  # Loopback, the LAN bridge on eth0 and the LAN itself: what the stock image
+  # would generate, declared so nothing depends on it.
+  baseNetwork = {
+    loopback = {
+      _type = "interface";
+      device = "lo";
+      proto = "static";
+      ipaddr = "127.0.0.1";
+      netmask = "255.0.0.0";
+    };
+    br_lan = {
+      _type = "device";
+      type = "bridge";
+      name = "br-lan";
+      ports = ["eth0"];
+    };
+    lan = {
+      _type = "interface";
+      device = "br-lan";
+      proto = "static";
+      ipaddr = lanAddress;
+      netmask = "255.255.255.0";
+      ip6assign = "60";
+    };
+  };
+
   # DMZ mode: the address R0 forwards to. Same values R1 used behind the
   # same R0. Set R0's DMZ host to this address.
   dmzWan = {
@@ -122,10 +148,17 @@ in {
 
     settings =
       {
+        # The whole network config is declared here, like R1's, rather than
+        # editing stock sections: a deploy must not depend on what the image
+        # happened to generate (an earlier one left this router with no
+        # `lan` section at all).
         network =
-          if isPppoe
-          then wanmvDevices // wanInterfaces
-          else {wan = dmzWan;};
+          baseNetwork
+          // (
+            if isPppoe
+            then wanmvDevices // wanInterfaces
+            else {wan = dmzWan;}
+          );
 
         # Static leases carried over from R1, below the stock .100+ dynamic pool.
         dhcp = {
@@ -163,20 +196,11 @@ in {
           };
       };
 
-    # Partial-field edit of the stock `lan` interface, which this module
-    # doesn't own as a whole (a typed `settings` section would replace it
-    # wholesale; rawUci touches only the named field). rawUci lines run
-    # verbatim under `set -e` and may not contain shell metacharacters, so
-    # anything conditional lives in the reconcile.d hook below.
-    rawUci = [
-      "uci set network.lan.ipaddr='${lanAddress}'"
-      "uci set network.lan.netmask='255.255.255.0'"
-      "uci commit network"
-    ];
-
-    # Edits to stock sections that may or may not exist yet, so each step
-    # checks first and the hook stays idempotent across deploys. Assumes the
-    # stock lan=0, wan=1 firewall zone order.
+    # Cleanup of stock sections that may or may not exist, so it can't be
+    # rawUci (those lines run verbatim under `set -e` and may not contain
+    # shell metacharacters). Each step checks first, so the hook is
+    # idempotent across deploys. Assumes the stock lan=0, wan=1 firewall
+    # zone order.
     files = [
       {
         path = "/etc/nuci/reconcile.d/40-stock-wan";
@@ -208,6 +232,15 @@ in {
               changed_fw=1
             fi
           }
+
+          # The stock image defines br-lan as an anonymous device section;
+          # br_lan above declares it again, so drop the anonymous copy.
+          while :; do
+            stock=$(uci show network | sed -n "s/^network\.\(@device\[[0-9]*\]\)\.name='br-lan'$/\1/p" | head -n1)
+            [ -n "$stock" ] || break
+            uci delete "network.$stock"
+            changed_net=1
+          done
 
           # IPv6 from R0 isn't routed to a DMZ host, and PPPoE brings its
           # own, so the stock DHCPv6 client goes in both modes.

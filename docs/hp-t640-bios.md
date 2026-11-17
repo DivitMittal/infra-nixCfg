@@ -42,8 +42,8 @@ Read-only checks on 2026-11-17 found:
 The kernel also logs a duplicate-instantiation warning for `hp-bioscfg` and a
 `0x300a` generic error. These observations do not establish the root cause.
 `Sure_Start` is not evidence of a usable virtualization/boot-order interface.
-No BIOS setting was changed. T2/T3 were not inspected; do not extrapolate T1's
-firmware or settings to the fleet.
+No BIOS setting was changed. T2 was not inspected; do not extrapolate T1's
+firmware or settings to the fleet. T3 was inspected separately below.
 
 AMD-V is already operational on T1. The inventory's CPU flag, loaded-module,
 and device fields are indicators, not a VM execution test. Loading `kvm-amd`
@@ -57,6 +57,45 @@ heuristic: firmware can use different labels, BootNext can override a boot, and
 HP's own boot policy may differ. The command does not publish BootNext or EFI
 device paths. Review boot order privately at the console before changing it;
 boot identifiers must be discovered separately on each machine.
+
+## Findings on T3
+
+Read-only checks of T3's PXE installer on 2026-11-17 found:
+
+| Observation               | Result                                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Running kernel            | 6.18.38                                                                                                                                     |
+| Firmware                  | M43 v01.11, dated 09/13/2021                                                                                                                |
+| HP modules                | `hp_bioscfg` and `hp_wmi` already loaded; no module loading was needed                                                                      |
+| HP attribute root         | Six entries: `Sure_Start`, `pending_reboot`, four malformed names                                                                           |
+| Driver reboot flag        | `0`                                                                                                                                         |
+| AMD virtualization        | Kernel reports `SVM disabled (by BIOS) in MSR_VM_CR`; CPU `svm` flag absent, `kvm_amd` not loaded, `/dev/kvm` absent                        |
+| Saved UEFI BootOrder      | `0000`, `0001`, `0002`, `0004`, `0005`, `0006`, `0007`, `0008`                                                                              |
+| Sanitized entry classes   | `0000`: active Windows Boot Manager; `0001`/`0002`: active USB entries; `0004`–`0007`: active network entries; `0008`: inactive other entry |
+| Current UEFI boot         | `BootCurrent=0004` (network); `BootNext` absent at inspection                                                                               |
+| Linux priority assessment | No Linux Boot Manager entry in BootOrder; inventory reports `linux_before_network_by_label=null`                                            |
+
+The existing inventory source was streamed over SSH to an already-present
+Python 3.13.13 interpreter in `/nix/store`; it completed with exit status zero
+and an empty error list. Additional read-only EFI inspection classified Windows
+and USB descriptions without emitting descriptions or device paths. No files
+were copied to T3 and no packages were installed. No disk installation, BIOS
+write, firmware update, module loading, or reboot was performed.
+
+T3 also lacks usable HP settings attributes: it has the same six-entry,
+four-malformed-name layout as T1 and the duplicate-instantiation warning. There is no
+verified virtualization or boot-order setting to target declaratively through
+this interface. T3's kernel explicitly attributes unavailable AMD-V to BIOS
+configuration; this is stronger evidence than the unloaded KVM module alone.
+Enabling SVM requires a separately coordinated BIOS configuration path unless
+and until a usable setting interface is demonstrated.
+
+Windows Boot Manager precedes the network entries in the saved order, while
+the current installer session booted a network entry. This does not establish
+why network boot was selected or that the disk can boot successfully. No Linux
+entry exists in the saved order to prioritize yet. Re-check after any separately
+authorized installation; do not infer final Linux/PXE precedence from this PXE
+session. These observations do not authorize wiping the existing Windows disk.
 
 ## What upstream supports
 

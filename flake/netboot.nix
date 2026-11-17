@@ -129,7 +129,6 @@
         dhcp="dhcp-range=10.42.0.100,10.42.0.150,255.255.255.0,1h
       dhcp-option=option:router
       dhcp-option=option:dns-server
-      dhcp-leasefile=$work/leases
       dhcp-match=set:efi64,option:client-arch,7
       dhcp-match=set:efi64,option:client-arch,9
       dhcp-match=set:bios,option:client-arch,0
@@ -154,6 +153,7 @@
       bind-interfaces
       log-facility=-
       log-dhcp
+      dhcp-leasefile=$work/leases
       dhcp-match=set:ipxe,175
       $dhcp
       # iPXE's own DHCP request: point next-server at this Mac explicitly, which

@@ -273,13 +273,30 @@ image — no desktop stack, just enough to run `nixos-facter` and act as the
 `nixos-anywhere` install source. It is not a deploy-rs target; it is only ever
 booted over the network.
 
-1. Build the netboot artifacts and serve them from your TFTP/PXE server:
+1. Serve `t1-netboot` over PXE. It's the same image for every home-lab box,
+   with sshd and your key already in it, so the target needs no console.
+
+   **From a Mac** (no Linux box on the LAN yet). CI builds the bundle, since
+   a Mac can't build x86_64-linux. The Mac must be on the same network as
+   the target: the GN XPON's Wi-Fi works, with the target cabled to a GN
+   XPON LAN port.
 
    ```bash
-   nix build .#nixosConfigurations.t1-netboot.config.system.build.netbootRamdisk
-   nix build .#nixosConfigurations.t1-netboot.config.system.build.kernel
-   nix eval --raw .#nixosConfigurations.t1-netboot.config.system.build.netbootIpxeScript
+   # newest bundle from the netboot-build workflow
+   gh run download -R DivitMittal/infra-nixCfg -n t1-netboot-bundle -D ~/t1-netboot \
+     "$(gh run list -R DivitMittal/infra-nixCfg -w netboot-build.yml -s success -L 1 --json databaseId -q '.[0].databaseId')"
+   sudo nix run .#pxe-serve-darwin -- ~/t1-netboot   # Ctrl-C when the target has booted
    ```
+
+   It runs dnsmasq as **proxy-DHCP** (the GN XPON keeps handing out
+   addresses; dnsmasq only answers PXE) plus TFTP for the small iPXE binary,
+   and darkhttpd on `:8080` for the kernel and initrd. If macOS asks whether
+   to accept incoming connections, allow them. If the target never sees a
+   PXE offer, the GN XPON may not pass broadcasts between Wi-Fi and LAN; use
+   a wired Mac instead.
+
+   **From a Linux box** on the target's network: `sudo nix run .#pxe-serve`
+   (pixiecore, builds everything locally).
 
 2. PXE-boot the T640 into that image, then generate the real hardware report
    from within it:

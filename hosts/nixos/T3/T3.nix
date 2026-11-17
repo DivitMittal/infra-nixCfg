@@ -3,7 +3,8 @@
 # CLIs from ai-nixCfg via the tty+dev home-manager profile).
 #
 # Add each service as its own file in this directory (import-tree picks it
-# up), as a native NixOS module where one exists. Planned here as well: the
+# up), as k3s manifests where appropriate. T3 is the single SQLite-backed k3s
+# server; T2 is its worker. Planned here as well: the
 # heavier observability pieces (Loki/Tempo from PR #36) once MON1's light
 # stack is running.
 _: {}

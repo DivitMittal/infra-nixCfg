@@ -1,33 +1,202 @@
-# RSSHub (https://docs.rsshub.app) — RSS feed generator for sites that don't
-# publish feeds, served to the home LAN/tailnet. Uses the upstream nixpkgs
-# module (nixos/modules/services/web-apps/rsshub.nix): DynamicUser-sandboxed
-# systemd unit, plus a dedicated local Redis instance (`redis-rsshub`) as the
-# route cache instead of RSSHub's default in-process memory cache, so cached
-# feeds survive service restarts.
-#
-# Lives on T3 rather than the router (T1) so the router runs nothing but
-# routing.
-_: {
-  services.rsshub = {
-    enable = true;
-    # Firewall is off by default (common/hosts/nixos/networking.nix); this only
-    # matters if T3 ever turns it on.
-    openFirewall = true;
-    redis.enable = true;
-    settings = {
-      LISTEN_INADDR_ANY = true;
-      PORT = 1200;
-      # Route-level cache TTLs (seconds) — RSSHub defaults, made explicit.
-      CACHE_EXPIRE = "300";
-      CACHE_CONTENT_EXPIRE = "3600";
-    };
-    # Per-route credentials (e.g. GITHUB_ACCESS_TOKEN, TWITTER_AUTH_TOKEN) go
-    # in an agenix-decrypted env file once needed:
-    # secretFiles = [config.age.secrets."rsshub/env".path];
+# Public manifests only: credentials must be injected separately at runtime.
+_: let
+  namespace = "rsshub";
+  labels = name: {"app.kubernetes.io/name" = name;};
+  metadata = name: {
+    inherit name namespace;
+    labels = labels name;
   };
+  service = name: port: overrides: {
+    apiVersion = "v1";
+    kind = "Service";
+    metadata = metadata name;
+    spec =
+      {
+        selector = labels name;
+        ports = [
+          {
+            inherit port;
+            targetPort = port;
+          }
+        ];
+      }
+      // overrides;
+  };
+  deployment = name: container: podOptions: {
+    apiVersion = "apps/v1";
+    kind = "Deployment";
+    metadata = metadata name;
+    spec = {
+      replicas = 1;
+      # Redis's ReadWriteOnce volume must never have two writers on rollout.
+      strategy.type = "Recreate";
+      selector.matchLabels = labels name;
+      template = {
+        metadata.labels = labels name;
+        spec =
+          {
+            automountServiceAccountToken = false;
+            containers = [container];
+          }
+          // podOptions;
+      };
+    };
+  };
+  redis =
+    deployment "redis" {
+      name = "redis";
+      image = "docker.io/library/redis:7.4.12-alpine3.22";
+      args = ["redis-server" "--appendonly" "yes" "--maxmemory" "192mb" "--maxmemory-policy" "allkeys-lru"];
+      ports = [{containerPort = 6379;}];
+      resources = {
+        requests = {
+          cpu = "50m";
+          memory = "128Mi";
+        };
+        limits = {
+          cpu = "500m";
+          memory = "384Mi";
+        };
+      };
+      volumeMounts = [
+        {
+          name = "data";
+          mountPath = "/data";
+        }
+      ];
+      readinessProbe = {
+        exec.command = ["redis-cli" "ping"];
+        periodSeconds = 10;
+      };
+      livenessProbe = {
+        exec.command = ["redis-cli" "ping"];
+        initialDelaySeconds = 30;
+        periodSeconds = 10;
+      };
+    } {
+      # local-path data belongs to T3; Redis cannot fail over to T2.
+      nodeSelector = {
+        "kubernetes.io/hostname" = "t3";
+        "homelab-role" = "services";
+      };
+      volumes = [
+        {
+          name = "data";
+          persistentVolumeClaim.claimName = "redis-data";
+        }
+      ];
+    };
+  rsshub =
+    deployment "rsshub" {
+      name = "rsshub";
+      # Upstream release v2026.11.16-8658.b4990a8, commit-specific image tag.
+      image = "ghcr.io/diygod/rsshub:b4990a809138010275532fbab0efe8d55e2dc779";
+      ports = [
+        {
+          name = "http";
+          containerPort = 1200;
+        }
+      ];
+      env = builtins.map (name: {
+        inherit name;
+        value =
+          {
+            NODE_ENV = "production";
+            PORT = "1200";
+            LISTEN_INADDR_ANY = "true";
+            CACHE_TYPE = "redis";
+            REDIS_URL = "redis://redis:6379/";
+            CACHE_EXPIRE = "300";
+            CACHE_CONTENT_EXPIRE = "3600";
+          }.${
+            name
+          };
+      }) ["NODE_ENV" "PORT" "LISTEN_INADDR_ANY" "CACHE_TYPE" "REDIS_URL" "CACHE_EXPIRE" "CACHE_CONTENT_EXPIRE"];
+      resources = {
+        requests = {
+          cpu = "100m";
+          memory = "256Mi";
+        };
+        limits = {
+          cpu = "1000m";
+          memory = "768Mi";
+        };
+      };
+      readinessProbe = {
+        httpGet = {
+          path = "/";
+          port = "http";
+        };
+        periodSeconds = 10;
+      };
+      startupProbe = {
+        httpGet = {
+          path = "/";
+          port = "http";
+        };
+        periodSeconds = 5;
+        failureThreshold = 60;
+      };
+      livenessProbe = {
+        httpGet = {
+          path = "/";
+          port = "http";
+        };
+        periodSeconds = 30;
+      };
+    } {
+      # Prefer the services node, but allow spare worker capacity on T2.
+      affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution = [
+        {
+          weight = 100;
+          preference.matchExpressions = [
+            {
+              key = "homelab-role";
+              operator = "In";
+              values = ["services"];
+            }
+          ];
+        }
+      ];
+    };
+in {
+  # Prevent a native instance from surviving the migration alongside the pods.
+  services.rsshub.enable = false;
+  services.k3s.manifests.rsshub.content = [
+    {
+      apiVersion = "v1";
+      kind = "Namespace";
+      metadata.name = namespace;
+    }
+    {
+      apiVersion = "v1";
+      kind = "PersistentVolumeClaim";
+      metadata = metadata "redis-data";
+      spec = {
+        accessModes = ["ReadWriteOnce"];
+        storageClassName = "local-path";
+        resources.requests.storage = "2Gi";
+      };
+    }
+    redis
+    (service "redis" 6379 {})
+    rsshub
+    (service "rsshub" 1200 {
+      type = "NodePort";
+      # Preserve the T3 endpoint even when RSSHub is scheduled on T2.
+      externalTrafficPolicy = "Cluster";
+      ports = [
+        {
+          port = 1200;
+          targetPort = "http";
+          nodePort = 31200;
+        }
+      ];
+    })
+  ];
 
   topology.self.services.rsshub = {
     name = "RSSHub";
-    info = "http://T3:1200";
+    info = "http://T3.lan:31200";
   };
 }

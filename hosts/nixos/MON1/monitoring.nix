@@ -32,7 +32,7 @@
   httpTargets = [
     "http://192.168.2.1" # router LuCI
     "http://192.168.2.2" # S1 web UI
-    "http://T3.lan:1200" # RSSHub
+    "http://T3.lan:31200" # RSSHub
   ];
 
   # Probe through blackbox: the probed address goes in as a URL parameter and

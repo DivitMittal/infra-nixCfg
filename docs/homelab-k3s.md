@@ -1,0 +1,139 @@
+# Homelab k3s
+
+T3 runs the sole k3s server with the default SQLite datastore and hosts Redis.
+Stateless RSSHub can run on T2 or T3, preferring T3. T2 joins as an agent alongside
+its GUI and API-backed AI agents. Kubernetes node names are `t3` and `t2`, with
+`homelab-role=services` and `homelab-role=work` labels respectively. T1 remains
+the router outside Kubernetes; MON1 remains an external monitoring host.
+
+This is **not HA**. Losing T3 loses the control plane and Redis even
+while T2 is healthy. An RSSHub pod on T2 still depends on Redis on T3; this
+placement flexibility does not provide service failover. T2 is not a second server and provides no datastore
+redundancy. There is no live deployment yet: both compute hosts await install.
+
+## Bootstrap and configuration
+
+1. The parent provisioning flow must create
+   `secrets/homelab/k3s-token.age` in `infra-nixCfg-secrets`, encrypted for the
+   bootstrap identity, and update the private input before CI evaluation.
+   Use the same strong, randomly generated join token on both hosts. Do not
+   put its plaintext in a Nix expression, command argument, or manifest.
+2. Seed `/var/lib/agenix/id_ed25519` (root-only, mode 0600) on both hosts
+   before activation. The shared module imports agenix and decrypts the token
+   to `/run/agenix/k3s-token` with mode 0400. k3s reads that file at runtime;
+   only encrypted data enters the Nix store.
+3. Verify `T3.lan` resolves to T3's LAN address from T2 and MON1. The router's
+   DHCP/DNS configuration is authoritative; no fixed address is assumed here.
+   Ensure DHCP-provided LAN DNS remains usable alongside common public DNS
+   settings. Bring up T3 first, then T2. The worker joins
+   `https://T3.lan:6443`; the server certificate includes `T3.lan` as a TLS SAN.
+4. Keep the API, kubelet, VXLAN and NodePort on trusted LAN/tailnet networks.
+   Do not forward these from the WAN. The common host layer currently disables
+   the host firewall; the k3s modules still declare TCP 10250 and 31200 and UDP 8472 on
+   both nodes, plus TCP 6443 on T3 for when it is enabled. CNI and
+   flannel interfaces are trusted; NetworkManager leaves CNI, flannel and veth
+   interfaces unmanaged. The router's network isolation remains essential.
+
+The default flannel VXLAN networking, CoreDNS, local-path storage provisioner
+and metrics server remain enabled. Traefik and ServiceLB are disabled: RSSHub
+uses NodePort, so no Ingress, ingress DNS, certificates or host ports 80/443 are
+required. Default pod/service CIDRs must not overlap an existing network.
+
+Both nodes reserve 250 millicores and 512 MiB for Kubernetes. T2 additionally
+reserves 1 CPU and 2 GiB for host work; T3 reserves 500 millicores and 1 GiB.
+Kubelet evicts under memory/disk pressure. Reservations reduce pod allocatable
+capacity; they neither cap host processes nor guarantee desktop responsiveness
+under arbitrary load. Size additional pod requests/limits before scheduling
+work onto T2. Role labels are scheduling hints, not isolation or taints.
+
+## RSSHub and Redis
+
+`hosts/nixos/T3/rsshub.nix` supplies a single k3s auto-deploy manifest containing
+the `rsshub` namespace, two single-replica Deployments, two Services and a
+2 GiB Redis PVC. The native RSSHub module is disabled and no native Redis
+instance is configured. Redis requires node `t3` and the services label.
+RSSHub has soft preferred node affinity for `homelab-role=services`, with no
+required node selector: the scheduler can place it on either T640 compute node
+according to available resources. Existing pods are not automatically moved
+back to T3 when capacity changes.
+Redis uses the default `local-path` storage class, ReadWriteOnce and Recreate
+rollouts, with AOF persistence under `/data`. Its cache uses a 192 MiB
+allkeys-LRU bound; its container is limited to 384 MiB/500 millicores. RSSHub
+requests 256 MiB/100 millicores and is limited to 768 MiB/1 CPU. Both have
+readiness/liveness probes; RSSHub also has a startup probe.
+
+The endpoint is **http://T3.lan:31200**, replacing native port 1200. MON1's
+blackbox target and the topology annotation use this URL. NodePort uses
+`externalTrafficPolicy: Cluster`, so T3 forwards to RSSHub even when its pod
+runs on T2. Both nodes expose NodePort 31200; T3 remains the advertised endpoint.
+Redis remains cluster-internal. The small RSSHub image omits Chromium, so routes
+requiring a browser need a separately planned browser service or image change.
+Per-route credentials must be provided through runtime Kubernetes Secrets and
+`secretKeyRef`/`envFrom`, never plaintext manifest values.
+
+The RSSHub image is pinned to upstream commit
+`b4990a809138010275532fbab0efe8d55e2dc779`; Redis uses the explicit version
+`7.4.12-alpine3.22`. These are versioned tags, not digest locks: future updates
+should verify upstream provenance, test the release, and preferably pin an
+OCI manifest digest. No mutable `latest` tag is used.
+
+A local-path PVC is tied to T3's disk; it does not replicate to T2. Losing the
+node/disk loses the Redis cache unless backed up. The requested 2 GiB is not a
+filesystem quota for local-path, so monitor free space and AOF growth. Cache
+can be recreated if losing cached feeds is acceptable. There is no existing
+native cache migration because these hosts are uninstalled.
+
+## Operations after installation
+
+On T3, use root's local kubeconfig (`sudo k3s kubectl ...`):
+
+```sh
+sudo k3s kubectl get nodes -L homelab-role
+sudo k3s kubectl -n rsshub get deployments,pods,services,pvc
+sudo k3s kubectl -n rsshub rollout status deployment/redis
+sudo k3s kubectl -n rsshub rollout status deployment/rsshub
+sudo k3s kubectl -n rsshub logs deployment/rsshub
+sudo k3s kubectl -n rsshub get events --sort-by=.lastTimestamp
+curl --fail http://T3.lan:31200/
+sudo journalctl -u k3s
+```
+
+Verify both nodes are Ready, Redis's PVC is Bound on T3, both deployments are
+Available, and MON1's RSSHub probe succeeds. Restart the Redis pod and check
+cache persistence. Check T2's allocatable resources and GUI responsiveness
+before adding agent workloads. Kubeconfigs contain credentials: keep them
+root-only and never commit them.
+
+Back up T3's `/var/lib/rancher/k3s/server/db` SQLite state with k3s stopped,
+along with the server token in `/var/lib/rancher/k3s/server/token`, protecting
+the token as a secret. Back up the Redis volume separately with Redis stopped
+if cache restoration matters. Keep the bootstrap age identity recoverable.
+Test restoration onto T3 before treating backups as usable. A second agent
+cannot recover the server database.
+
+NixOS rebuilds update the auto-deploy manifest. Removing entries or the file
+does **not** garbage-collect Kubernetes resources. Plan explicit `kubectl`
+cleanup after removing declarative ownership; deleting a PVC may reclaim its
+local data. Do not delete the namespace/PVC casually. T3 rebuilds, Recreate
+rollouts and reboots can interrupt service. Upgrade server first, then agent,
+and keep their k3s versions compatible.
+
+## Validation and sources
+
+Follow `.apm/instructions/ci-eval.instructions.md`: complete host evaluation
+belongs in `.github/workflows/eval.yml` on native GitHub runners. The parent
+integrator must evaluate T2, T3 and MON1 after staging these new modules and
+updating the private secret input. Local validation is limited to formatting,
+Nix parsing, standalone manifest evaluation and Kubernetes schema checks.
+No host rebuild or cluster operation has been performed.
+
+- [Pinned nixpkgs k3s module](https://github.com/NixOS/nixpkgs/blob/6201e203d09599479a3b3450ed24fa81537ebc4e/nixos/modules/services/cluster/rancher/k3s.nix)
+  and [shared Rancher options](https://github.com/NixOS/nixpkgs/blob/6201e203d09599479a3b3450ed24fa81537ebc4e/nixos/modules/services/cluster/rancher/default.nix)
+  define `manifests.*.content`, `extraKubeletConfig`, `nodeName`, `nodeLabel`,
+  `tokenFile`, and the default standalone SQLite behavior.
+- [k3s requirements and ports](https://docs.k3s.io/installation/requirements),
+  [packaged components and manifest lifecycle](https://docs.k3s.io/installation/packaged-components),
+  [SQLite backup/restore](https://docs.k3s.io/datastore/backup-restore)
+  and [local-path storage](https://docs.k3s.io/storage).
+- [RSSHub upstream release and published image tags](https://github.com/DIYgod/RSSHub/releases/tag/v2026.11.16-8658.b4990a8)
+  and [official Redis image tags](https://hub.docker.com/_/redis/tags?name=7).

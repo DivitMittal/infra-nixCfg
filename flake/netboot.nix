@@ -123,13 +123,26 @@
       if [ "$direct" -eq 1 ]; then
         /sbin/ifconfig "$iface" inet ${directAddr} netmask 255.255.255.0 alias
         addr=${directAddr}
+        # As the only DHCP server, put the boot file straight in the offer
+        # (picked by client architecture). A pxe-service menu here makes UEFI
+        # firmware go off to boot-server discovery on :4011, which stalls.
         dhcp="dhcp-range=10.42.0.100,10.42.0.150,255.255.255.0,1h
       dhcp-option=option:router
       dhcp-option=option:dns-server
-      dhcp-leasefile=$work/leases"
+      dhcp-leasefile=$work/leases
+      dhcp-match=set:efi64,option:client-arch,7
+      dhcp-match=set:efi64,option:client-arch,9
+      dhcp-match=set:bios,option:client-arch,0
+      dhcp-boot=tag:!ipxe,tag:efi64,ipxe.efi,,$addr
+      dhcp-boot=tag:!ipxe,tag:bios,undionly.kpxe,,$addr"
       else
         addr="$(/usr/sbin/ipconfig getifaddr "$iface")"
-        dhcp="dhcp-range=$addr,proxy"
+        # Proxy-DHCP can't touch the router's offer, so it answers through
+        # the PXE menu instead.
+        dhcp="dhcp-range=$addr,proxy
+      pxe-service=tag:!ipxe,X86-64_EFI,\"t1-netboot\",ipxe.efi
+      pxe-service=tag:!ipxe,BC_EFI,\"t1-netboot\",ipxe.efi
+      pxe-service=tag:!ipxe,x86PC,\"t1-netboot\",undionly.kpxe"
       fi
       echo "pxe-serve-darwin: serving $bundle on $iface ($addr); Ctrl-C to stop"
       [ "$direct" -eq 1 ] && echo "the target's address shows up below as DHCPACK($iface) 10.42.0.1xx"
@@ -141,14 +154,11 @@
       bind-interfaces
       log-facility=-
       log-dhcp
-      $dhcp
       dhcp-match=set:ipxe,175
+      $dhcp
       # iPXE's own DHCP request: point next-server at this Mac explicitly, which
       # is where the embedded script fetches netboot.ipxe from.
       dhcp-boot=tag:ipxe,netboot.ipxe,,$addr
-      pxe-service=tag:!ipxe,X86-64_EFI,"t1-netboot",ipxe.efi
-      pxe-service=tag:!ipxe,BC_EFI,"t1-netboot",ipxe.efi
-      pxe-service=tag:!ipxe,x86PC,"t1-netboot",undionly.kpxe
       enable-tftp
       tftp-root=$bundle
       EOF

@@ -147,10 +147,7 @@
       };
     };
     infra-nixCfg-secrets = {
-      # TEMPORARY: `homelab` (MACs, disk ids, facter reports) only exists on
-      # this branch until infra-nixCfg-secrets#71 merges. Then set ref=master
-      # again and run `nix flake update infra-nixCfg-secrets`.
-      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=feat/t640-root-password";
+      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=master";
       #url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";

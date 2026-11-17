@@ -11,8 +11,8 @@ _: {
   };
 
   provider.tplinkeasysmart = {
-    # TP-Link TL-SG105E; mgmt IP pinned via DHCP host record (see
-    # hosts/openwrt/T640/modules/network.nix, dhcp.S1).
+    # TP-Link TL-SG105E: static management address, also reserved by the
+    # router so DHCP cannot allocate it to another device.
     host = "192.168.2.2";
     username = "admin";
     password = "\${var.switch_s1_password}";

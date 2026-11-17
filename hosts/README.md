@@ -229,8 +229,8 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 | Host | Hardware                         | Role                                                 | LAN address                     |
 | ---- | -------------------------------- | ---------------------------------------------------- | ------------------------------- |
 | T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (DMZ; PPPoE optional)    | host `192.168.2.3`, router `.1` |
-| T2   | HP t640, highest spec            | Sway GUI + API-backed AI agents (Claude Code, Codex) | DHCP, `T2.lan`                  |
-| T3   | HP t640, medium spec             | Services (RSSHub `:1200`, later Loki/Tempo) + agents | DHCP, `T3.lan`                  |
+| T2   | HP t640, highest spec            | Sway GUI + API-backed AI agents + k3s worker         | DHCP, `T2.lan`                  |
+| T3   | HP t640, medium spec             | k3s server + services (RSSHub `:31200`) + agents     | DHCP, `T3.lan`                  |
 | MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
 
 All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter
@@ -258,11 +258,15 @@ Bring them up in this order, because each step needs the one before it:
    `infra-nixCfg-secrets`; see "WAN modes" for later switching to PPPoE.
 2. **MON1** — so you can watch the rest come up. The Grafana admin password is
    generated on first start: `ssh root@MON1.lan cat /var/lib/grafana-secrets/admin-password`.
-3. **T3**, then **T2**.
+3. **T3**, then **T2** — the k3s server must be available before its worker
+   joins. See [the k3s runbook](../docs/homelab-k3s.md) for token provisioning,
+   workload placement, storage, and backup requirements. T1 stays outside
+   Kubernetes so cluster workloads cannot disrupt routing.
 
-S1 has no free ports for T2/T3/MON1, so the topology assumes they sit behind
-the unmanaged switch (`SW2`) on S1's port5; fix `flake/topology.nix` if the
-cabling differs. Neither switch is fully monitorable: S1 (Easy Smart) has no
+The diagram's port assignments are an example; the current setup connects
+L1, T1 and T3 to S1 directly. Confirm the port numbers before relying on its
+physical edges. The unmanaged switch (`SW2`) can expand the flat LAN when
+needed. Neither switch is fully monitorable: S1 (Easy Smart) has no
 SNMP, so MON1 only pings it and probes its web UI, and SW2 can't be monitored
 at all.
 

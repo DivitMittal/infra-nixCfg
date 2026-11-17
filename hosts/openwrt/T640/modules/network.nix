@@ -97,7 +97,6 @@ in {
   uci = {
     packages = [
       "kmod-macvlan"
-      "kmod-8021q" # not wired up below, kept available for future VLAN-tagged WAN lines
       "mwan3"
       "luci-app-mwan3"
       "kmod-pppoe"

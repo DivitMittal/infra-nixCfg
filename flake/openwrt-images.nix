@@ -37,7 +37,8 @@
         # onto a from-scratch image.
         packages = [
           "kmod-macvlan"
-          "kmod-8021q" # not wired up by the declarative config yet, kept available for future VLAN-tagged WAN lines
+          # No kmod-8021q: current x86 kernels build 802.1q in, and the
+          # ImageBuilder has no such package (evaluation fails if listed).
           "mwan3"
           "luci-app-mwan3"
           "kmod-pppoe"

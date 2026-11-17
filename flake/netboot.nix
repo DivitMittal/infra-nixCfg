@@ -155,6 +155,9 @@
 
       ${lib.getExe pkgs.darkhttpd} "$bundle" --port ${toString httpPort} --addr "$addr" &
       http_pid=$!
+      # dnsmasq closes every fd up to RLIMIT_NOFILE at startup; with an
+      # "unlimited" limit it spins there forever and never binds DHCP/TFTP.
+      ulimit -n 1024
       ${pkgs.dnsmasq}/bin/dnsmasq --no-daemon --conf-file="$work/dnsmasq.conf"
     '';
   in {

@@ -163,32 +163,70 @@ in {
           };
       };
 
-    # Partial-field edits of sections this module doesn't fully own (the
-    # stock `lan` interface and the `@zone[1]` wan firewall zone). Typed
-    # `settings` sections replace a section wholesale; rawUci touches only
-    # the named field.
-    rawUci =
-      [
-        # IPv6 from R0 isn't routed to a DMZ host, and PPPoE brings its own,
-        # so the stock DHCPv6 client goes in both modes.
-        "uci -q delete network.wan6 || true"
-      ]
-      ++ optionals isPppoe [
-        # The PPPoE lines replace the stock DHCP `wan` on eth1.
-        "uci -q delete network.wan || true"
-      ]
-      ++ [
-        "uci set network.lan.ipaddr='${lanAddress}'"
-        "uci set network.lan.netmask='255.255.255.0'"
-        "uci commit network"
+    # Partial-field edit of the stock `lan` interface, which this module
+    # doesn't own as a whole (a typed `settings` section would replace it
+    # wholesale; rawUci touches only the named field). rawUci lines run
+    # verbatim under `set -e` and may not contain shell metacharacters, so
+    # anything conditional lives in the reconcile.d hook below.
+    rawUci = [
+      "uci set network.lan.ipaddr='${lanAddress}'"
+      "uci set network.lan.netmask='255.255.255.0'"
+      "uci commit network"
+    ];
 
-        # Assumes the stock lan=0, wan=1 firewall zone order.
-        "uci del_list firewall.@zone[1].network='wan6'"
-      ]
-      ++ optionals isPppoe (
-        ["uci del_list firewall.@zone[1].network='wan'"]
-        ++ map (n: "uci add_list firewall.@zone[1].network='${wanName n}'") lineNums
-      )
-      ++ ["uci commit firewall"];
+    # Edits to stock sections that may or may not exist yet, so each step
+    # checks first and the hook stays idempotent across deploys. Assumes the
+    # stock lan=0, wan=1 firewall zone order.
+    files = [
+      {
+        path = "/etc/nuci/reconcile.d/40-stock-wan";
+        executable = true;
+        content = ''
+          #!/bin/sh
+          set -eu
+          changed_net=0
+          changed_fw=0
+
+          drop_section() {
+            if uci -q get "network.$1" >/dev/null; then
+              uci delete "network.$1"
+              changed_net=1
+            fi
+          }
+          zone_has() {
+            uci -q get firewall.@zone[1].network | tr ' ' '\n' | grep -qx "$1"
+          }
+          zone_del() {
+            if zone_has "$1"; then
+              uci del_list firewall.@zone[1].network="$1"
+              changed_fw=1
+            fi
+          }
+          zone_add() {
+            if ! zone_has "$1"; then
+              uci add_list firewall.@zone[1].network="$1"
+              changed_fw=1
+            fi
+          }
+
+          # IPv6 from R0 isn't routed to a DMZ host, and PPPoE brings its
+          # own, so the stock DHCPv6 client goes in both modes.
+          drop_section wan6
+          zone_del wan6
+          ${lib.optionalString isPppoe ''
+            # The PPPoE lines replace the stock DHCP `wan` on eth1.
+            drop_section wan
+            zone_del wan
+            ${lib.concatMapStringsSep "\n" (n: "zone_add ${wanName n}") lineNums}
+          ''}
+          if [ "$changed_net" -eq 1 ]; then uci commit network; fi
+          if [ "$changed_fw" -eq 1 ]; then uci commit firewall; fi
+          if [ "$changed_net" -eq 1 ] || [ "$changed_fw" -eq 1 ]; then
+            /etc/init.d/network reload
+            /etc/init.d/firewall reload
+          fi
+        '';
+      }
+    ];
   };
 }

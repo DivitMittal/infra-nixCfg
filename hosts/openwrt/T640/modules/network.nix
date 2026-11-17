@@ -135,7 +135,7 @@ in {
             mac = homelab.macs.S1;
             ip = "192.168.2.2";
           };
-          usb-eth = {
+          usb_eth = {
             _type = "host";
             name = "usb-eth";
             mac = homelab.macs.usb-eth;

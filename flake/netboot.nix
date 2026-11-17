@@ -79,33 +79,72 @@
       cp ${pkgs.ipxe.override {embedScript = ipxeEmbed;}}/{ipxe.efi,undionly.kpxe} $out/
     '';
 
-    # proxy-DHCP: the GN XPON keeps handing out leases; dnsmasq only adds the
-    # PXE answer. UEFI clients get ipxe.efi, legacy ones undionly.kpxe.
+    # Two modes. UEFI clients get ipxe.efi, legacy ones undionly.kpxe.
+    #   default:  proxy-DHCP on a shared LAN; the existing router keeps handing
+    #             out leases and dnsmasq only adds the PXE answer.
+    #   --direct: a cable straight from the Mac to the target. dnsmasq is the
+    #             only DHCP server there and hands out an address with no
+    #             gateway or DNS, so the target's default route and internet
+    #             stay on its other NIC (e.g. a USB adapter on the GN XPON).
+    directAddr = "10.42.0.1";
     darwinCommand = pkgs.writeShellScript "pxe-serve-darwin" ''
       set -eu
-      if [ "$#" -lt 1 ] || [ ! -f "$1/netboot.ipxe" ]; then
-        echo "usage: sudo nix run .#pxe-serve-darwin -- <unzipped netboot-bundle dir> [interface]" >&2
+      usage() {
+        echo "usage: sudo nix run .#pxe-serve-darwin -- <bundle dir> [<interface>]" >&2
+        echo "       sudo nix run .#pxe-serve-darwin -- <bundle dir> --direct <interface>" >&2
         echo "get the bundle: gh run download -n t1-netboot-bundle -D <dir> (see hosts/README.md)" >&2
         exit 2
-      fi
+      }
+      [ "$#" -ge 1 ] && [ -f "$1/netboot.ipxe" ] || usage
       if [ "$(id -u)" -ne 0 ]; then
         echo "pxe-serve-darwin: DHCP/TFTP ports need root; re-run with sudo" >&2
         exit 1
       fi
       bundle="$(cd "$1" && pwd)"
-      iface="''${2:-$(route -n get default | awk '/interface:/ {print $2}')}"
-      addr="$(ipconfig getifaddr "$iface")"
-      echo "pxe-serve-darwin: serving $bundle on $iface ($addr); Ctrl-C to stop"
+      shift
 
-      conf="$(mktemp -t pxe-dnsmasq)"
-      cat > "$conf" <<EOF
+      direct=0
+      if [ "''${1:-}" = "--direct" ]; then
+        [ "$#" -ge 2 ] || usage
+        direct=1
+        iface="$2"
+      else
+        iface="''${1:-$(route -n get default | awk '/interface:/ {print $2}')}"
+      fi
+
+      work="$(mktemp -d -t pxe-serve)"
+      cleanup() {
+        [ -n "''${http_pid:-}" ] && kill "$http_pid" 2>/dev/null || true
+        [ "$direct" -eq 1 ] && ifconfig "$iface" inet ${directAddr} -alias 2>/dev/null || true
+        rm -rf "$work"
+      }
+      trap cleanup EXIT INT TERM
+
+      if [ "$direct" -eq 1 ]; then
+        ifconfig "$iface" inet ${directAddr} netmask 255.255.255.0 alias
+        addr=${directAddr}
+        dhcp="dhcp-range=10.42.0.100,10.42.0.150,255.255.255.0,1h
+      dhcp-option=option:router
+      dhcp-option=option:dns-server
+      dhcp-leasefile=$work/leases"
+      else
+        addr="$(ipconfig getifaddr "$iface")"
+        dhcp="dhcp-range=$addr,proxy"
+      fi
+      echo "pxe-serve-darwin: serving $bundle on $iface ($addr); Ctrl-C to stop"
+      [ "$direct" -eq 1 ] && echo "the target's address shows up below as DHCPACK($iface) 10.42.0.1xx"
+
+      cat > "$work/dnsmasq.conf" <<EOF
       port=0
       user=root
       interface=$iface
       bind-interfaces
       log-dhcp
-      dhcp-range=$addr,proxy
+      $dhcp
       dhcp-match=set:ipxe,175
+      # iPXE's own DHCP request: point next-server at this Mac explicitly, which
+      # is where the embedded script fetches netboot.ipxe from.
+      dhcp-boot=tag:ipxe,netboot.ipxe,,$addr
       pxe-service=tag:!ipxe,X86-64_EFI,"t1-netboot",ipxe.efi
       pxe-service=tag:!ipxe,BC_EFI,"t1-netboot",ipxe.efi
       pxe-service=tag:!ipxe,x86PC,"t1-netboot",undionly.kpxe
@@ -115,8 +154,7 @@
 
       ${lib.getExe pkgs.darkhttpd} "$bundle" --port ${toString httpPort} --addr "$addr" &
       http_pid=$!
-      trap 'kill $http_pid 2>/dev/null; rm -f "$conf"' EXIT INT TERM
-      ${pkgs.dnsmasq}/bin/dnsmasq --no-daemon --conf-file="$conf"
+      ${pkgs.dnsmasq}/bin/dnsmasq --no-daemon --conf-file="$work/dnsmasq.conf"
     '';
   in {
     packages = lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {

@@ -277,23 +277,36 @@ booted over the network.
    with sshd and your key already in it, so the target needs no console.
 
    **From a Mac** (no Linux box on the LAN yet). CI builds the bundle, since
-   a Mac can't build x86_64-linux. The Mac must be on the same network as
-   the target: the GN XPON's Wi-Fi works, with the target cabled to a GN
-   XPON LAN port.
+   a Mac can't build x86_64-linux. Get the newest one:
 
    ```bash
-   # newest bundle from the netboot-build workflow
    gh run download -R DivitMittal/infra-nixCfg -n t1-netboot-bundle -D ~/t1-netboot \
      "$(gh run list -R DivitMittal/infra-nixCfg -w netboot-build.yml -s success -L 1 --json databaseId -q '.[0].databaseId')"
-   sudo nix run .#pxe-serve-darwin -- ~/t1-netboot   # Ctrl-C when the target has booted
    ```
 
-   It runs dnsmasq as **proxy-DHCP** (the GN XPON keeps handing out
-   addresses; dnsmasq only answers PXE) plus TFTP for the small iPXE binary,
-   and darkhttpd on `:8080` for the kernel and initrd. If macOS asks whether
-   to accept incoming connections, allow them. If the target never sees a
-   PXE offer, the GN XPON may not pass broadcasts between Wi-Fi and LAN; use
-   a wired Mac instead.
+   _Direct cable (recommended):_ the Mac's USB-C Ethernet adapter goes
+   straight to the target's **onboard** port, and the target's USB adapter
+   goes to a GN XPON LAN port for internet (the installer downloads packages).
+   Find the adapter's interface name with `networksetup -listallhardwareports`.
+
+   ```bash
+   sudo nix run .#pxe-serve-darwin -- ~/t1-netboot --direct en7   # your adapter's name
+   ```
+
+   The Mac takes `10.42.0.1` on that cable and hands the target a
+   `10.42.0.1xx` lease with **no gateway or DNS**, so the target's internet
+   stays on its USB adapter. The dnsmasq log shows the lease
+   (`DHCPACK(en7) 10.42.0.1xx ...`); SSH to that address.
+
+   _Shared LAN:_ with the Mac and target on the same network (for example the
+   Mac on the GN XPON's Wi-Fi and the target on a GN XPON LAN port), run it
+   without `--direct`. dnsmasq is then **proxy-DHCP**: the GN XPON keeps
+   handing out addresses and dnsmasq only answers PXE. This fails if the GN
+   XPON doesn't pass broadcasts between Wi-Fi and LAN.
+
+   Either way, TFTP carries only the small iPXE binary, and darkhttpd on
+   `:8080` serves the kernel and initrd. If macOS asks whether to accept
+   incoming connections, allow them. Ctrl-C once the target has booted.
 
    **From a Linux box** on the target's network: `sudo nix run .#pxe-serve`
    (pixiecore, builds everything locally).

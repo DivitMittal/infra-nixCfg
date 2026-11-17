@@ -24,7 +24,10 @@
       system = "aarch64-linux";
       additionalModules = [
         {
-          # Override topology for the ARM variant: runs on AS-darwin, not L1
+          # Override topology for the ARM variant: runs on AS-darwin, not L1.
+          # Same hostName as `colima`, so it needs its own node id or the
+          # two VMs collapse into one conflicting node.
+          topology.id = "colima-arm";
           topology.self = {
             hardware.info = "NixOS VM - Colima/Lima (aarch64) on ASL1 (Apple Silicon macOS)";
             interfaces.eth0 = {

@@ -1,7 +1,8 @@
-{lib, ...}: {
-  # Confirm the device with `lsblk` from the PXE shell before installing.
+{inputs, ...}: {
   disko.devices.disk.main = {
-    device = lib.mkDefault "/dev/sda";
+    # Stable by-id path of the S100's internal HDD; it embeds the drive's
+    # serial, so it lives in the private input.
+    device = inputs.infra-nixCfg-secrets.homelab.disks.MON1;
     type = "disk";
     content = {
       type = "gpt";

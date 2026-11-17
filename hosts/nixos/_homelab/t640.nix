@@ -3,6 +3,9 @@
 # `bootstrap-remote <host> --check`) before a destructive install; override
 # disko.devices.disk.main.device per host if it isn't /dev/sda.
 {lib, ...}: {
+  imports = [./hp-bios.nix];
+
+  hardware.hpBiosInventory.enable = lib.mkDefault true;
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;

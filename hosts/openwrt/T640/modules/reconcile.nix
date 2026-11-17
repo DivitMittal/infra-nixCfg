@@ -48,9 +48,13 @@ in {
         }
         trap cleanup EXIT INT TERM HUP
 
+        # The x86 image T1 boots is ext4, with no squashfs /rom to hold the
+        # factory package list, so there is nothing to diff against. Skip
+        # rather than fail the deploy: the image already ships the packages
+        # it needs (flake/openwrt-images.nix).
         [ -r "$base_world" ] || {
-          echo "Cannot reconcile APK world: $base_world is unavailable" >&2
-          exit 1
+          echo "Skipping APK world reconcile: $base_world is unavailable (ext4 image, no /rom)" >&2
+          exit 0
         }
         [ -r "$live_world" ] || {
           echo "Cannot reconcile APK world: $live_world is unavailable" >&2

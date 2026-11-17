@@ -32,7 +32,6 @@
   httpTargets = [
     "http://192.168.2.1" # router LuCI
     "http://192.168.2.2" # S1 web UI
-    "http://T3.lan:11434" # Ollama
     "http://T4.lan:1200" # RSSHub
   ];
 

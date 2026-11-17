@@ -18,7 +18,7 @@ hosts/
 │   ├── _homelab/               # shared by T1/T3/T4/MON1 (base.nix, t640.nix)
 │   ├── T1/                     # x86_64-linux HP t640 — edge router (ImmortalWrt VM)
 │   ├── T2/                     # x86_64-linux T2 MacBook
-│   ├── T3/                     # x86_64-linux HP t640 — GUI + AI (Ollama)
+│   ├── T3/                     # x86_64-linux HP t640 — GUI + AI agent runner
 │   ├── T4/                     # x86_64-linux HP t640 — home-lab services
 │   ├── MON1/                   # x86_64-linux Lenovo S100 — monitoring
 │   ├── ASL1N/                  # aarch64-linux on ASL1
@@ -228,13 +228,15 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 | Host | Hardware                         | Role                                                 | LAN address                     |
 | ---- | -------------------------------- | ---------------------------------------------------- | ------------------------------- |
 | T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (multi-PPPoE, mwan3)     | host `192.168.2.3`, router `.1` |
-| T3   | HP t640, highest spec            | Sway GUI + CPU AI inference (Ollama `:11434`)        | DHCP, `T3.lan`                  |
-| T4   | HP t640, medium spec             | Home-lab services (RSSHub `:1200`, later Loki/Tempo) | DHCP, `T4.lan`                  |
+| T3   | HP t640, highest spec            | Sway GUI + API-backed AI agents (Claude Code, Codex) | DHCP, `T3.lan`                  |
+| T4   | HP t640, medium spec             | Services (RSSHub `:1200`, later Loki/Tempo) + agents | DHCP, `T4.lan`                  |
 | MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
 
 All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter
 for MON1 to scrape); the t640s also share `_homelab/t640.nix` (systemd-boot,
-disko layout). Every box installs the same way, using T1's steps below: PXE
+disko layout), and T3/T4 add `_homelab/agents.nix` (user lingering,
+inotify/nofile limits, zram, systemd-oomd) so many API-backed agents can run
+there instead of on L1; SSH in and start them in tmux/herdr. Every box installs the same way, using T1's steps below: PXE
 into `t1-netboot` (it's a generic image, so any of them can boot it), capture
 `facter.json` into `hosts/nixos/<host>/`, then `bootstrap-remote <host>`.
 After that, `deploy .#<host>`.

@@ -69,7 +69,8 @@
       additionalModules = fullModules;
     };
 
-    # Home-lab GUI/AI t640.
+    # Home-lab agent boxes. Both need ai-nixCfg's agent CLIs, which arrive
+    # through ./tty: T3 gets the full GUI profile, T4 the tty+dev one.
     T3 = mkCfg {
       hostName = "T3";
       system = "x86_64-linux";
@@ -81,7 +82,7 @@
       hostName = "T4";
       system = "x86_64-linux";
       inherit class;
-      additionalModules = headlessModules;
+      additionalModules = ttyDevModules;
     };
 
     MON1 = mkCfg {

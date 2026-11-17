@@ -132,6 +132,46 @@ hostname/
 hts  # System rebuild
 ```
 
+`hts`, `hms` and `bootstrap` pick the flake attribute from `hostname`.
+
+### L1N: one-time switch from the old `T2` name
+
+The NixOS install on L1 (the T2-chip MacBook) was created as host `T2`.
+That configuration is now `L1N` (`nixosConfigurations.L1N`,
+`homeConfigurations.L1N`, installer `l1n-iso`). `T2` now belongs to an HP t640
+k3s worker. Until L1's NixOS is switched once, its hostname is still `T2`, so a
+plain `hts` would select the t640's config, with its disks, bootloader and k3s
+role. `utils/common.sh` (`refuse_stale_l1n_hostname`) stops `hts`, `hms` and
+`bootstrap` when the hostname is `T2` on Apple hardware.
+
+Boot L1 into NixOS and run this from the repo root (this branch or master):
+
+```bash
+git pull
+sudo nixos-rebuild build --flake .#L1N     # optional dry run; nothing is activated
+sudo nixos-rebuild switch --flake .#L1N    # sets networking.hostName = "L1N"
+hostname                                   # must print L1N
+hms                                        # now selects homeConfigurations.L1N
+```
+
+If `hostname` still shows `T2` after the switch, reboot. After that, `hts` and
+`hms` work as usual.
+
+Secrets and keys:
+
+- The hostname comes from `hostSpec.hostName` (`common/hosts/all/misc.nix`).
+  `infra-nixCfg-secrets` has no entries keyed by `T2` or `L1N`. Its
+  `homelab.disks` and `homelab.facter` cover only T1, T3 and MON1, so the
+  rename changes no secret lookups for this machine.
+- Home Manager agenix decrypts with the user key
+  `~/.ssh/agenix/id_ed25519`, not a host key. That key must already be on L1's
+  NixOS. Only VPS and k3s hosts use the system identity
+  `/var/lib/agenix/id_ed25519`, and L1N is neither.
+- `hosts/nixos/L1N/{disko,hardware}.nix` were moved unchanged from the old
+  `T2`, so filesystems and the systemd-boot setup stay the same.
+- `T2.lan` and SSH `known_hosts` entries for `T2` now mean the t640. Remove any
+  stale MacBook entry on other machines (`ssh-keygen -R T2.lan`).
+
 ## Remote NixOS Bootstrap
 
 Use `nixos-anywhere` for first install/reinstall of any NixOS host declared in

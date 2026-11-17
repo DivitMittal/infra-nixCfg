@@ -24,6 +24,17 @@
     ...
   }:
     lib.attrsets.optionalAttrs (system == "x86_64-linux") (let
+      openwrtCatalogHashes = import ./_openwrt-catalog-hashes.nix;
+      # Release feed indexes can change in place after ImageBuilder's cache
+      # was generated. Refresh only the verified indexes; package downloads
+      # retain their individual checksum verification.
+      openwrtFetchurl = args:
+        pkgs.fetchurl (
+          args
+          // lib.optionalAttrs (builtins.hasAttr (args.url or "") openwrtCatalogHashes) {
+            hash = openwrtCatalogHashes.${args.url};
+          }
+        );
       commonArgs = {
         inherit pkgs;
         target = "x86";
@@ -60,7 +71,11 @@
       };
     in {
       packages = {
-        openwrt-t640-router = inputs.openwrt-imagebuilder.lib.build commonArgs;
+        openwrt-t640-router = inputs.openwrt-imagebuilder.lib.build (commonArgs
+          // {
+            release = "25.12.6";
+            fetchurl = openwrtFetchurl;
+          });
         immortalwrt-t640-router = inputs.immortalwrt-imagebuilder.lib.build commonArgs;
       };
     });

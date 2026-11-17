@@ -1,6 +1,7 @@
 {
   inputs,
   self,
+  lib,
   ...
 }: {
   imports = [
@@ -299,9 +300,13 @@
             };
           };
         }
-        # Pass the nixosConfigurations so topology can discover them
+        # Pass the nixosConfigurations so topology can discover them. Only
+        # those that import the nix-topology module: it reads every passed
+        # config's `options.topology`, and classes without it (netboot's
+        # t1-netboot, a RAM-only PXE image) abort the whole build.
         {
-          inherit (self) nixosConfigurations;
+          nixosConfigurations =
+            lib.filterAttrs (_: cfg: cfg.options ? topology) self.nixosConfigurations;
         }
       ];
     };

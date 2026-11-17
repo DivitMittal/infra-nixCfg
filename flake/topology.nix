@@ -58,8 +58,8 @@
           # registers its own self-topology node under this same "router"
           # id (see hosts/nixos/T1/topology.nix's `topology.id` override
           # and the nixosConfigurations pass-through at the bottom of this
-          # file). R1 itself is now nodes.R1 below, repurposed as a
-          # Kubernetes worker; its old declarative OpenWrt config
+          # file). The S100 itself is now MON1 (hosts/nixos/MON1), the
+          # monitoring node; its old declarative OpenWrt config
           # (hosts/openwrt/R1) is kept in place as historical/rollback
           # reference, no longer deployed.
 
@@ -97,22 +97,39 @@
             };
           };
 
-          nodes.R1 = {
-            name = "R1";
-            deviceType = "device";
-            hardware.info = "Lenovo S100, Intel Atom, 2 GiB RAM, x86_64 — repurposed as a Kubernetes worker node (was the primary OpenWrt router; hosts/openwrt/R1 config kept as historical/rollback reference, no longer deployed)";
-            # Direct wired link to T1, replacing R1's old role as the LAN's
-            # router — T1's r1link is the other side of this edge (see
-            # hosts/nixos/T1/topology.nix).
-            interfaces.eth0 = {
+          # Unmanaged switch hanging off S1's last free port, carrying the
+          # home-lab nodes S1 has no room for. Cabling is assumed; adjust to
+          # match reality. The Lenovo S100 (formerly R1) is now MON1 and
+          # registers its own node from hosts/nixos/MON1/topology.nix.
+          nodes.SW2 = let
+            downlink = node: {
               network = "home";
               type = "ethernet";
               physicalConnections = [
                 {
-                  node = "router";
-                  interface = "r1link";
+                  inherit node;
+                  interface = "lan0";
                 }
               ];
+            };
+          in {
+            name = "SW2";
+            deviceType = "switch";
+            hardware.info = "Unmanaged switch (not monitorable; visible only through probes of the hosts behind it)";
+            interfaces = {
+              uplink = {
+                network = "home";
+                type = "ethernet";
+                physicalConnections = [
+                  {
+                    node = "S1";
+                    interface = "port5";
+                  }
+                ];
+              };
+              port2 = downlink "T3";
+              port3 = downlink "T4";
+              port4 = downlink "MON1";
             };
           };
 
@@ -164,8 +181,9 @@
                 }
               ];
             };
-            # port5: spare VLAN20 access port. The old VLAN10 WAN uplink from R0
-            # is gone — R0 now cables directly into T1's wan.
+            # port5: uplink to the unmanaged SW2 (declared from SW2's side).
+            # The old VLAN10 WAN uplink from R0 is gone — R0 now cables
+            # directly into T1's wan.
             interfaces.port5 = {
               network = "home";
               type = "ethernet";

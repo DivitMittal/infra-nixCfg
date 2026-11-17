@@ -22,6 +22,19 @@
   activateHome = system: configuration:
     inputs.deploy-rs.lib.${system}.activate.home-manager configuration;
 
+  # All home-lab boxes are x86_64-linux and built on the target, since the
+  # workstation may be macOS.
+  mkHomelabNode = hostname: configuration: {
+    inherit hostname;
+    profiles.system = {
+      sshUser = "root";
+      user = "root";
+      remoteBuild = true;
+      path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos configuration;
+      sshOpts = ["-i" "/Users/div/.ssh/agenix/id_ed25519" "-o" "StrictHostKeyChecking=accept-new"];
+    };
+  };
+
   mkVpsHomeProfile = {
     system,
     configuration,
@@ -70,6 +83,15 @@ in {
         path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
       };
     };
+
+    # Home lab, reached over the LAN. T1's host address is static
+    # (router-vm.nix); the rest resolve through the router's dnsmasq. Unlike
+    # the VPSes, magicRollback stays on: a change that cuts SSH reverts by
+    # itself instead of needing a trip to the box with a keyboard.
+    T1 = mkHomelabNode "192.168.2.3" self.nixosConfigurations.T1;
+    T3 = mkHomelabNode "T3.lan" self.nixosConfigurations.T3;
+    T4 = mkHomelabNode "T4.lan" self.nixosConfigurations.T4;
+    MON1 = mkHomelabNode "MON1.lan" self.nixosConfigurations.MON1;
 
     # Oracle Cloud A1 Flex VPS in Mumbai.
     VPS0 = {

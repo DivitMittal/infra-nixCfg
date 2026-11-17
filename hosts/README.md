@@ -15,8 +15,12 @@ hosts/
 ├── nixos/                      # NixOS systems
 │   ├── enum.nix
 │   ├── L2/                     # x86_64-linux desktop
-│   ├── T1/                     # x86_64-linux HP t640 thin client (PXE/facter, see below)
+│   ├── _homelab/               # shared by T1/T3/T4/MON1 (base.nix, t640.nix)
+│   ├── T1/                     # x86_64-linux HP t640 — edge router (ImmortalWrt VM)
 │   ├── T2/                     # x86_64-linux T2 MacBook
+│   ├── T3/                     # x86_64-linux HP t640 — GUI + AI (Ollama)
+│   ├── T4/                     # x86_64-linux HP t640 — home-lab services
+│   ├── MON1/                   # x86_64-linux Lenovo S100 — monitoring
 │   ├── ASL1N/                  # aarch64-linux on ASL1
 │   ├── colima/                 # x86_64-linux VM
 │   ├── VPS0/                   # aarch64-linux Oracle A1 Flex VPS (Mumbai)
@@ -219,12 +223,44 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --check
 bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 ```
 
+### Home lab: roles and bring-up order
+
+| Host | Hardware                         | Role                                                 | LAN address                     |
+| ---- | -------------------------------- | ---------------------------------------------------- | ------------------------------- |
+| T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (multi-PPPoE, mwan3)     | host `192.168.2.3`, router `.1` |
+| T3   | HP t640, highest spec            | Sway GUI + CPU AI inference (Ollama `:11434`)        | DHCP, `T3.lan`                  |
+| T4   | HP t640, medium spec             | Home-lab services (RSSHub `:1200`, later Loki/Tempo) | DHCP, `T4.lan`                  |
+| MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
+
+All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter
+for MON1 to scrape); the t640s also share `_homelab/t640.nix` (systemd-boot,
+disko layout). Every box installs the same way, using T1's steps below: PXE
+into `t1-netboot` (it's a generic image, so any of them can boot it), capture
+`facter.json` into `hosts/nixos/<host>/`, then `bootstrap-remote <host>`.
+After that, `deploy .#<host>`.
+
+Bring them up in this order, because each step needs the one before it:
+
+1. **T1** — until the router is up, nothing else gets a `.lan` name or
+   internet. Before the first `nix run .#t640-router root@192.168.1.1`,
+   create `secrets/network/T640.age`, `T640-wan1.age` and `T640-wan2.age` in
+   `infra-nixCfg-secrets` (see "Entering real PPPoE credentials").
+2. **MON1** — so you can watch the rest come up. The Grafana admin password is
+   generated on first start: `ssh root@MON1.lan cat /var/lib/grafana-secrets/admin-password`.
+3. **T4**, then **T3**.
+
+S1 has no free ports for T3/T4/MON1, so the topology assumes they sit behind
+the unmanaged switch (`SW2`) on S1's port5; fix `flake/topology.nix` if the
+cabling differs. Neither switch is fully monitorable: S1 (Easy Smart) has no
+SNMP, so MON1 only pings it and probes its web UI, and SW2 can't be monitored
+at all.
+
 ### T1 (HP t640 thin client) — PXE/facter bootstrap
 
 `T1` is a diskless-by-default thin client bootstrapped over PXE. Unlike the VPS
 hosts, it has no known-good `hardware-configuration.nix`: hardware detection
 comes from [nixos-facter](https://github.com/nix-community/nixos-facter)
-(`hardware.facter.reportPath` in `hosts/nixos/T1/hardware.nix`, module
+(`hardware.facter.reportPath` in `hosts/nixos/_homelab/base.nix`, module
 upstreamed into nixpkgs). `hosts/nixos/T1/facter.json` starts as a `{}`
 placeholder — `hardware.facter.enable` stays off until it's replaced with a
 real report, so evaluation is safe before you've touched the hardware.
@@ -254,7 +290,7 @@ booted over the network.
    temporary `python3 -m http.server` and `curl` it from your workstation),
    replacing the `{}` placeholder, and commit it.
 
-3. Confirm the target disk (`lsblk` from the PXE shell — `hosts/nixos/T1/disko.nix`
+3. Confirm the target disk (`lsblk` from the PXE shell — `hosts/nixos/_homelab/t640.nix`
    assumes `/dev/sda`, adjust if the report says otherwise), then install for
    real from the still-PXE-booted host:
 

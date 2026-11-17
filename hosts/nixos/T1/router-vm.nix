@@ -17,16 +17,14 @@
   lib,
   ...
 }: let
-  # --- Placeholder physical NIC names -------------------------------------
-  # T1 has two+ NICs (onboard + add-in) but isn't physically bootstrapped yet
-  # in this branch, so the real interface names are unknown. CONFIRM the
-  # actual names via `ip link` (or `lsblk`-equivalent `ip -br link show`) once
-  # the hardware is in hand, same spirit as `disko.nix`'s "confirm the exact
-  # device via `lsblk`" note — adjust before relying on this module.
-  # WAN is the USB 3 gigabit adapter (systemd names these enp<bus>s<slot>u<port>
-  # or enx<mac>); LAN is the t640's onboard port.
-  wanPhysIface = "enp1s0"; # WAN-facing (ISP) USB NIC — CONFIRM via `ip link`
-  lanPhysIface = "enp2s0"; # LAN-facing onboard NIC — CONFIRM via `ip link`
+  # --- Physical NICs, pinned by MAC (from T1's facter report) -------------
+  # The kernel's names for USB NICs encode the USB port path
+  # (enp3s0f3u4u2), so moving the adapter would rename it. These .link
+  # files give both NICs fixed names by MAC instead.
+  wanPhysIface = "wan0"; # USB RTL8153 adapter, cabled to the GN XPON
+  wanMac = "00:e0:4c:4d:2e:78";
+  lanPhysIface = "lan0"; # onboard Realtek (r8169), cabled to S1
+  lanMac = "84:3a:5b:17:32:0a";
 
   wanMacvtap = "wan-mvtap";
   lanMacvtap = "lan-mvtap";
@@ -118,6 +116,16 @@ in {
   # session tracking and any home-LAN DHCP/ARP expects).
   systemd.network = {
     enable = true;
+    links = {
+      "10-${wanPhysIface}" = {
+        matchConfig.PermanentMACAddress = wanMac;
+        linkConfig.Name = wanPhysIface;
+      };
+      "10-${lanPhysIface}" = {
+        matchConfig.PermanentMACAddress = lanMac;
+        linkConfig.Name = lanPhysIface;
+      };
+    };
     netdevs = {
       "25-${wanMacvtap}" = {
         netdevConfig = {

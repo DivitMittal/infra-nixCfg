@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   modulesPath,
   pkgs,
   ...
@@ -39,7 +40,13 @@ in {
   # EspLocation override is needed once it's mounted there).
   services.fwupd.enable = true;
 
-  environment.systemPackages = [pkgs.nixos-facter];
+  environment.systemPackages = [
+    pkgs.nixos-facter
+    # common/hosts/all swaps in uutils-tar, which rejects the GNU flags
+    # nixos-anywhere pipes extra files through (`tar -C /mnt -x`); an install
+    # source needs the real thing ahead of it on PATH.
+    (lib.hiPrio pkgs.gnutar)
+  ];
 
   # nixos-anywhere (via bootstrap-remote) drives the install over SSH as root,
   # so the ramdisk must come up with sshd and the key already authorized.

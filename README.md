@@ -2,7 +2,7 @@
     <div align="center">
         <img alt='An abstract image of a donut-like object' title='Qezta' height=250 width=250 src='./assets/qezta.gif' style="position: relative; top: 0; right: 0;" />
         <h1 align='center'>infra-nixCfg</h1>
-        <strong>My personal declarative Nix configurations for macOS, Android, and Linux (NixOS/WSL).</strong>
+        <strong>Declarative, reproducible infrastructure-as-code platform for a multi-OS fleet spanning macOS, Windows, Android, and Linux (NixOS/WSL).</strong>
     </div>
 
 </div>
@@ -60,11 +60,14 @@
 
 ## Overview
 
-This repository contains primarily [nix](https://github.com/nixos/nix) configurations, leveraging [Nix Flakes](https://nixos.wiki/wiki/Flakes), [Home Manager](https://github.com/nix-community/home-manager), and system-specific modules ([NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), [nix-on-droid](https://github.com/nix-community/nix-on-droid)) to achieve a purely declarative, reproducible, and consistent environment across multiple OSes on multiple hosts for multiple users:
+This repository is a configuration-management platform built on [Nix](https://github.com/nixos/nix), using [Nix Flakes](https://nixos.wiki/wiki/Flakes), [Home Manager](https://github.com/nix-community/home-manager), and system-specific modules ([NixOS](https://nixos.org/), [nix-darwin](https://github.com/LnL7/nix-darwin), [nix-on-droid](https://github.com/nix-community/nix-on-droid)) to deliver a declarative, reproducible, and auditable environment across a heterogeneous fleet of hosts, operating systems, and user profiles:
 
 - **macOS** (via `nix-darwin`)
 - **Android** (via `nix-on-droid`)
 - **\*nix (NixOS)** (including WSL via `NixOS-WSL`)
+- **Windows** (via [`nix-win`](https://github.com/jacobbrugh/nix-win), applying machine-scope state through PowerShell **DSC v3**)
+
+A single universal builder composes shared infrastructure, platform defaults, and per-host overrides into reproducible system closures, so every node in the fleet is built from the same codified module graph rather than bespoke, hand-maintained setup.
 
 ## Quick Start
 
@@ -195,29 +198,31 @@ Focused visualization of network segments and connectivity:
 
 ## Secrets Management
 
-Secrets (API keys, passwords, sensitive configurations) are managed via [agenix](https://github.com/ryantm/agenix) or specificaly [ragenix](https://github.com/yaxitech/ragenix).
+Secrets (API keys, passwords, sensitive configurations) are managed via [agenix](https://github.com/ryantm/agenix), specifically [ragenix](https://github.com/yaxitech/ragenix).
 
-1.  Secrets are encrypted using `ssh` keys. My public key is explicitly available to `ragenix`.
+1.  Secrets are encrypted against authorized maintainers' `ssh` public keys, registered explicitly with `ragenix`.
 2.  The encrypted files reside in a **private** GitHub repository: `DivitMittal/infra-nixCfg-secrets`. This repository is referenced as a flake input.
-3.  During the Nix build process, `agenix` decrypts these files using my private key.
+3.  During the Nix build process, `agenix` decrypts these files using the matching private key held by the building maintainer.
 4.  The decrypted files are placed in the Nix store & symlinked to their target locations.
 
-⚠️ **Building this configuration requires access to the private `DivitMittal/infra-nixCfg-secrets` repo and the corresponding [age](https://github.com/FiloSottile/age) private `ssh` key.**
+⚠️ **Building this configuration requires access to the private `DivitMittal/infra-nixCfg-secrets` repo and a corresponding [age](https://github.com/FiloSottile/age)-compatible `ssh` private key.**
 
 ## Satellite Repositories
 
+Functionality is deliberately extracted into satellite repositories and consumed back as flake inputs, keeping this repository focused on fleet-wide orchestration rather than growing into a monolith:
+
 - [DivitMittal/ai-nixCfg](https://github.com/DivitMittal/ai-nixCfg): AI/LLM tool configurations extracted for modularity (CLI tools, cloud services, MCP servers, REPL configurations).
-- [DivitMittal/quant-nixCfg](https://github.com/DivitMittal/quant-nixCfg): Experimental sandbox + Nix home-manager modules/packages for open-source algo trading and quant workflows.
+- [DivitMittal/quant-nixCfg](https://github.com/DivitMittal/quant-nixCfg): Sandbox environment plus Nix home-manager modules/packages for open-source algorithmic-trading and quant workflows.
 - [DivitMittal/playbooks-4-windows](https://github.com/DivitMittal/playbooks-4-windows): Ansible IaC for the Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & T2); manages Scoop/Winget/MSYS2 packages, registry, and dotfiles.
 - `DivitMittal/infra-nixCfg-secrets`: (Private) Contains encrypted secrets managed by `agenix` & `ragenix`.
-- [DivitMittal/Vim-Cfg](https://github.com/DivitMittal/Vim-Cfg): Pure lua standalone Neovim configuration, deployed via `nix4nvchad`.
-- [DivitMittal/Emacs-Cfg](https://github.com/DivitMittal/Emacs-Cfg): An elisp doomemacs configuration, used as an input via `nix-doom-emacs-unstraightened`.
-- [DivitMittal/TLTR](https://github.com/DivitMittal/TLTR): Cross-platform complex multi-layer keyboard layout tailored for programmers.
-- [DivitMittal/hammerspoon-nix](https://github.com/DivitMittal/hammerspoon-nix): A nix home-manager module for hammerspoon & my hammerspoon lua configuration.
-- [DivitMittal/firefox-nixCfg](https://github.com/DivitMittal/firefox-nixCfg): A personal nix home-manager module/configurations for firefox.
-- [DivitMittal/tidalcycles-nix](https://github.com/DivitMittal/tidalcycles-nix): A nix flake for TidalCycles live coding environment.
-- [DivitMittal/term-nixCfg](https://github.com/DivitMittal/term-nixCfg): Terminal emulator configuration.
-- [DivitMittal/forge-tofu](https://github.com/DivitMittal/forge-tofu): Terraform configurations for managing the GitHub organization infrastructure.
+- [DivitMittal/Vim-Cfg](https://github.com/DivitMittal/Vim-Cfg): Pure-Lua standalone Neovim configuration, deployed via `nix4nvchad`.
+- [DivitMittal/Emacs-Cfg](https://github.com/DivitMittal/Emacs-Cfg): An Elisp Doom Emacs configuration, consumed as a flake input via `nix-doom-emacs-unstraightened`.
+- [DivitMittal/TLTR](https://github.com/DivitMittal/TLTR): Cross-platform, multi-layer keyboard layout engineered for programmers.
+- [DivitMittal/hammerspoon-nix](https://github.com/DivitMittal/hammerspoon-nix): Home-manager module for Hammerspoon, bundling a companion Lua automation configuration.
+- [DivitMittal/firefox-nixCfg](https://github.com/DivitMittal/firefox-nixCfg): Home-manager module and configuration set for Firefox.
+- [DivitMittal/tidalcycles-nix](https://github.com/DivitMittal/tidalcycles-nix): A Nix flake for the TidalCycles live-coding environment.
+- [DivitMittal/term-nixCfg](https://github.com/DivitMittal/term-nixCfg): Terminal emulator configuration module.
+- [DivitMittal/forge-tofu](https://github.com/DivitMittal/forge-tofu): Terraform configurations for managing the GitHub organization's infrastructure.
 
 <div align="right">
 

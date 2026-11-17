@@ -98,9 +98,10 @@ in {
   # System Settings toggle. Targets the SYSTEM TCC.db (writable as root here
   # because yabai's scripting addition already requires SIP filesystem
   # protection off). Idempotent + best-effort: never fails the build.
-  # Uses the predefined `postActivation` slot (mkForce) because nix-darwin's
-  # renderer silently drops custom-named activation scripts.
-  system.activationScripts.postActivation.text = lib.mkForce ''
+  # Uses the predefined `postActivation` slot because nix-darwin's renderer
+  # silently drops custom-named activation scripts. Not mkForce: other modules
+  # (e.g. the spicetify hosts block) append to the same slot.
+  system.activationScripts.postActivation.text = ''
     echo ">> yabai: syncing Accessibility TCC grant for current binary path..."
     if [ ! -x "${tcc}" ]; then
       echo "   tccutil missing; skipping TCC automation." >&2

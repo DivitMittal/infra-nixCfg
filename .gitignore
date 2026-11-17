@@ -14,6 +14,7 @@ result-*
 
 ## Tools
 /tmp/
+.worktrees/
 .omo/
 .serena/
 .vscode/

@@ -1,7 +1,7 @@
-_: let
+{inputs, ...}: let
   # Import custom overlays once and reuse
   # This is evaluated once per Nix evaluation and cached
-  custom-overlays = import ./custom.nix {};
+  custom-overlays = import ./custom.nix {inherit inputs;};
 in {
   flake.overlays = {
     # Named overlays for selective use

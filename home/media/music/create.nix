@@ -2,6 +2,7 @@
   pkgs,
   lib,
   inputs,
+  hostPlatform,
   ...
 }: {
   imports = [
@@ -21,7 +22,11 @@
     # SuperCollider configuration
     supercollider = {
       enable = true;
-      package = pkgs.brewCasks.supercollider;
+      # brewCasks only exists on darwin (brew-nix overlay).
+      package =
+        if hostPlatform.isDarwin
+        then pkgs.brewCasks.supercollider
+        else pkgs.supercollider;
     };
 
     # SuperDirt configuration

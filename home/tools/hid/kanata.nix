@@ -1,16 +1,18 @@
 {
   pkgs,
+  lib,
   inputs,
+  hostPlatform,
   ...
 }: let
   configFile = inputs.TLTR + "/kanata/tltr.kbd";
 in {
   imports = [inputs.kanata-tray.homeManagerModules.kanata-tray];
 
-  home.packages = [
-    pkgs.customDarwin.kanata-tray-daemon
-    pkgs.kanata-with-cmd
-  ];
+  home.packages =
+    [pkgs.kanata-with-cmd]
+    # Launch helper for kanata-tray + the Karabiner VirtualHID daemon (macOS only).
+    ++ lib.optional hostPlatform.isDarwin pkgs.customDarwin.kanata-tray-daemon;
 
   programs.kanata-tray = {
     enable = true;

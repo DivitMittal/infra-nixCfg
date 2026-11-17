@@ -33,7 +33,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     home.packages =
-      lib.lists.optional hostPlatform.isLinux [pkgs.mullvad pkgs.tailscale]
+      lib.lists.optionals hostPlatform.isLinux [pkgs.mullvad pkgs.tailscale]
       ++ lib.lists.optionals hostPlatform.isDarwin [mullvadCliWrapper tailscaleCliWrapper];
   };
 }

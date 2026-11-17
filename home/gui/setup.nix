@@ -7,6 +7,7 @@
   imports =
     [(inputs.import-tree ./ide)]
     ++ [(inputs.import-tree ./music)]
+    ++ [(inputs.import-tree ./vicinae)]
     ++ [
       ./comms.nix
       ./docs.nix

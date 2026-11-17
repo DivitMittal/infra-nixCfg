@@ -94,6 +94,12 @@ src.prefix = "v"
 # Tag "v1.23.4" → version "1.23.4"; asset filename uses bare version (no v prefix)
 fetch.url = "https://github.com/ruittenb/Spaceman/releases/download/v$ver/Spaceman-$ver.dmg"
 
+[BattOpt]
+src.github = "js4jiang5/BattOpt"
+src.prefix = "v"
+# Tag "v1.2.9" → version "1.2.9"; asset filename uses "v" + bare version
+fetch.url = "https://github.com/js4jiang5/BattOpt/releases/download/v$ver/BattOpt_v$ver.dmg"
+
 [LosslessSwitcher]
 src.github = "vincentneo/LosslessSwitcher"
 fetch.url = "https://github.com/vincentneo/LosslessSwitcher/releases/download/$ver/LosslessSwitcher2.app.zip"

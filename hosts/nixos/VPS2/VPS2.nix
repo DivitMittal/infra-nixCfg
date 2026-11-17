@@ -58,7 +58,7 @@ in {
   # Mullvad WG private key — decrypted at activation by ragenix, same path-input
   # mechanism as users/*.age above (works under deploy-rs remoteBuild because
   # deploy-rs archives the flake closure, including path inputs, to the remote).
-  age.secrets."mullvad".file = secretsPath + "/mullvad/wg-private.age";
+  age.secrets."mullvad".file = secretsPath + "/network/mullvad.wg-private.age";
 
   # --- Admin user (common layer creates `div`; grant sudo + SSH key + password) ---
   users.users.root = {

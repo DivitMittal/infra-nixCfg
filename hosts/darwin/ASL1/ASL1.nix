@@ -2,7 +2,7 @@
 # L1 modules are picked up automatically and internal renames don't break
 # this host's build.
 # Move shared pieces to common/hosts/darwin/ once configs diverge.
-_: {
+{inputs, ...}: {
   imports = [
     ../L1/defaults/defaults.nix
     (inputs.import-tree ../L1/programs)

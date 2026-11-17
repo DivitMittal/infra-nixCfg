@@ -1,6 +1,6 @@
 # Packages Directory
 
-Custom package definitions not in nixpkgs.
+Custom package definitions maintained outside of nixpkgs for platform-specific tooling.
 
 ## Structure
 

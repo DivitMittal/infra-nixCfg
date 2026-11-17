@@ -1,6 +1,6 @@
 # Common Directory
 
-Shared configurations applied to all hosts and users.
+Shared configuration layers applied uniformly across the fleet — the common base every host and user profile builds on before host- or user-specific overrides are applied.
 
 ## Structure
 

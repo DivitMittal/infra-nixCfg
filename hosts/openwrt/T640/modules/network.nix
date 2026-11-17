@@ -192,6 +192,14 @@ in {
             mac = homelab.macs.usb-eth;
             ip = "192.168.2.4";
           };
+          # Fixed so the monitoring node's address doesn't move with each
+          # lease; MON1's dashboards are bookmarked by IP.
+          MON1 = {
+            _type = "host";
+            name = "MON1";
+            mac = homelab.macs.MON1;
+            ip = "192.168.2.5";
+          };
         };
       }
       // optionalAttrs isPppoe {

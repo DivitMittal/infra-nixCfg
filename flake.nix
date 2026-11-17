@@ -147,7 +147,7 @@
       };
     };
     infra-nixCfg-secrets = {
-      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=feat/homelab-k3s";
+      url = "git+ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git?ref=master";
       #url = "path:/Users/div/Projects/Cfgs/infra-nixCfg-secrets";
       inputs = {
         nixpkgs.follows = "nixpkgs";

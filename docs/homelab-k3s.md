@@ -9,7 +9,9 @@ the router outside Kubernetes; MON1 remains an external monitoring host.
 This is **not HA**. Losing T3 loses the control plane and Redis even
 while T2 is healthy. An RSSHub pod on T2 still depends on Redis on T3; this
 placement flexibility does not provide service failover. T2 is not a second server and provides no datastore
-redundancy. There is no live deployment yet: both compute hosts await install.
+redundancy. T3 was installed and verified on 2026-11-18: its node is Ready,
+RSSHub and Redis are healthy, and Redis's local volume survives pod replacement.
+T2 still awaits installation and has not joined the cluster.
 
 ## Bootstrap and configuration
 
@@ -125,7 +127,10 @@ belongs in `.github/workflows/eval.yml` on native GitHub runners. The parent
 integrator must evaluate T2, T3 and MON1 after staging these new modules and
 updating the private secret input. Local validation is limited to formatting,
 Nix parsing, standalone manifest evaluation and Kubernetes schema checks.
-No host rebuild or cluster operation has been performed.
+The focused whole-host CI evaluation passed for T1/T2/T3/MON1. T3 was then
+installed and booted from NVMe. Live checks confirmed a real RSS feed, healthy
+system pods, a Bound Redis PVC, and a temporary Redis test value surviving pod
+replacement. T2 scheduling remains untested until the worker joins.
 
 - [Pinned nixpkgs k3s module](https://github.com/NixOS/nixpkgs/blob/6201e203d09599479a3b3450ed24fa81537ebc4e/nixos/modules/services/cluster/rancher/k3s.nix)
   and [shared Rancher options](https://github.com/NixOS/nixpkgs/blob/6201e203d09599479a3b3450ed24fa81537ebc4e/nixos/modules/services/cluster/rancher/default.nix)

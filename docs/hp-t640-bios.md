@@ -97,6 +97,15 @@ entry exists in the saved order to prioritize yet. Re-check after any separately
 authorized installation; do not infer final Linux/PXE precedence from this PXE
 session. These observations do not authorize wiping the existing Windows disk.
 
+## Post-install UEFI boot order
+
+After T3's NixOS installation, Linux Boot Manager was registered but placed
+after the network entries. Its standard UEFI BootOrder was updated with
+`efibootmgr`, preserving the other entries, and the inventory confirmed Linux
+first before reboot. T3 then booted from NVMe successfully. This demonstrates
+working OS-side UEFI boot-order control independently of the broken HP settings
+interface; AMD-V remains disabled and no HP virtualization attribute was written.
+
 ## What upstream supports
 
 The [Linux firmware-attributes ABI](https://github.com/torvalds/linux/blob/master/Documentation/ABI/testing/sysfs-class-firmware-attributes)

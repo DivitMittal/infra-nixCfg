@@ -13,6 +13,7 @@
 # acceleration as any other option, no framework mismatch.
 {
   self,
+  inputs,
   pkgs,
   lib,
   ...
@@ -21,10 +22,12 @@
   # The kernel's names for USB NICs encode the USB port path
   # (enp3s0f3u4u2), so moving the adapter would rename it. These .link
   # files give both NICs fixed names by MAC instead.
+  # MACs live in the private infra-nixCfg-secrets (`homelab.macs`).
+  inherit (inputs.infra-nixCfg-secrets.homelab) macs;
   wanPhysIface = "wan0"; # USB RTL8153 adapter, cabled to the GN XPON
-  wanMac = "00:e0:4c:4d:2e:78";
+  wanMac = macs.T1-wan;
   lanPhysIface = "lan0"; # onboard Realtek (r8169), cabled to S1
-  lanMac = "84:3a:5b:17:32:0a";
+  lanMac = macs.T1-lan;
 
   wanMacvtap = "wan-mvtap";
   lanMacvtap = "lan-mvtap";

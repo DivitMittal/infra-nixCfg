@@ -6,7 +6,10 @@
 # or t1-netboot), from the workstation:
 #
 #   ssh root@<target-ip> 'bash -s' < utils/collect_hw.sh > <host>-hw.txt
-#   ssh root@<target-ip> cat /tmp/facter.json > hosts/nixos/<host>/facter.json
+#   ssh root@<target-ip> cat /tmp/facter.json > <host>-facter.json
+#
+# The report carries component serials and MACs: add it to the private
+# infra-nixCfg-secrets (homelab/facter/<host>.json), not to this public repo.
 #
 # Read-only: it never writes to the disks.
 set -euo pipefail

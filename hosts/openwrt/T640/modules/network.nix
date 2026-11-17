@@ -1,6 +1,7 @@
 {
   lib,
   wanMode,
+  homelab,
   ...
 }: let
   inherit (lib.lists) range optionals;
@@ -131,13 +132,13 @@ in {
           S1 = {
             _type = "host";
             name = "S1";
-            mac = "ac:a7:f1:aa:2b:12";
+            mac = homelab.macs.S1;
             ip = "192.168.2.2";
           };
-          M1 = {
+          usb-eth = {
             _type = "host";
-            name = "M1";
-            mac = "9c:69:d3:7f:90:de";
+            name = "usb-eth";
+            mac = homelab.macs.usb-eth;
             ip = "192.168.2.4";
           };
         };

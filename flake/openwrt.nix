@@ -15,7 +15,7 @@
     # and S1 intentionally share one admin password, one ciphertext.
     r1Secret = inputs.infra-nixCfg-secrets + "/secrets/network/R1.age";
 
-    # WPA2 PSK for R0's own Wi-Fi (Airtel_anku_8585), used only by the
+    # WPA2 PSK for R0's own Wi-Fi (SSID in homelab.r0.ssid), used only by the
     # wifi-backup wanMode. A real external secret, not one we can generate —
     # encrypted at rest, decrypted here at deploy time, and injected onto R1
     # over SSH; it never touches the Nix store or the declarative UCI JSON.

@@ -1,4 +1,4 @@
-_: {
+{homelab, ...}: {
   ## Stable NIC naming by MAC.
   #
   # R1 carries an onboard RTL8105e (PCI) plus two USB RTL8153 gigabit adapters.
@@ -28,8 +28,8 @@ _: {
 
         mac=$(cat "/sys/class/net/$DEVICENAME/address" 2>/dev/null)
         case "$mac" in
-          00:e0:4c:4d:2e:78) want=lan0 ;;  # USB RTL8153 → S1 port1 (flat LAN)
-          00:e0:4c:55:34:28) want=wan0 ;;  # USB RTL8153 → R0 (WAN)
+          ${homelab.macs.R1-lan}) want=lan0 ;;  # USB RTL8153 → S1 port1 (flat LAN)
+          ${homelab.macs.R1-wan}) want=wan0 ;;  # USB RTL8153 → R0 (WAN)
           *) exit 0 ;;
         esac
         [ "$DEVICENAME" = "$want" ] && exit 0

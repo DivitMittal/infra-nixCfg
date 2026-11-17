@@ -4,6 +4,7 @@
 {
   config,
   lib,
+  inputs,
   hostPlatform,
   ...
 }: let
@@ -15,10 +16,12 @@ in {
   # (which sets it from the report) still wins.
   nixpkgs.hostPlatform = lib.mkOptionDefault hostPlatform.system;
 
-  # Each host keeps its own report next to its config. It starts as `{}`,
-  # which leaves hardware.facter.enable off until the real report is copied
-  # in (see hosts/README.md, "Home-lab bootstrap").
-  hardware.facter.reportPath = lib.mkDefault (../. + "/${config.hostSpec.hostName}/facter.json");
+  # Reports live in the private infra-nixCfg-secrets (`homelab.facter`): they
+  # carry component serials and MACs. Hosts without one yet get a `{}`
+  # placeholder, which leaves hardware.facter.enable off.
+  hardware.facter.reportPath = lib.mkDefault (
+    inputs.infra-nixCfg-secrets.homelab.facter.${config.hostSpec.hostName} or ./facter-placeholder.json
+  );
 
   # Headless and key-only; root key login is what nixos-anywhere and
   # deploy-rs use.

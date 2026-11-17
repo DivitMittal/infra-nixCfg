@@ -1,5 +1,6 @@
 {
   wanMode,
+  homelab,
   lib,
   ...
 }: let
@@ -8,8 +9,8 @@ in {
   # R1's onboard RTL8188EU (0bda:8179) binds cleanly to rtl8xxxu and loads
   # firmware, but `iw list` only advertises managed/monitor modes — no AP —
   # so it can't host a recovery AP. Repurposed as a Wi-Fi *station* instead:
-  # a backup WAN path that associates to R0's own Wi-Fi (SSID
-  # Airtel_anku_8585) when wanMode = "wifi-backup", as an alternative to the
+  # a backup WAN path that associates to R0's own Wi-Fi (SSID in
+  # homelab.r0.ssid) when wanMode = "wifi-backup", as an alternative to the
   # normal wan0 Ethernet uplink or the android-tether USB path.
   uci = {
     packages = [
@@ -46,7 +47,7 @@ in {
           device = "radio0";
           mode = "sta";
           network = "wan";
-          ssid = "Airtel_anku_8585";
+          ssid = homelab.r0.ssid;
           encryption = "psk2";
         };
       };

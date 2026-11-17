@@ -16,7 +16,7 @@ in {
   boot.initrd.kernelModules = ["virtio_pci" "virtio_scsi" "virtio_blk" "virtio_net" "virtio_balloon"];
 
   # --- Networking: IPv6-only direct public address ---
-  # Germany KVM VPS for server/background workloads (~200ms RTT): 2a0e:97c0:3e3:34d::1/64, MAC 4a:ca:80:0a:0f:ce, iface eth0.
+  # Germany KVM VPS for server/background workloads (~200ms RTT): 2a0e:97c0:3e3:34d::1/64, iface eth0.
   # The default gateway is link-local, so the interface must be specified.
   networking.networkmanager.enable = lib.mkForce false; # override common/hosts/nixos/networking.nix
   networking.useDHCP = false;

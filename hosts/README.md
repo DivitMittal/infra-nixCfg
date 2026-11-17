@@ -199,9 +199,9 @@ bootstrap-remote <host> --target root@203.0.113.10 --build-on auto --check
 
 - `VPS0` is the Oracle Cloud VM.Standard.A1.Flex VPS in Mumbai. It is
   `aarch64-linux`, boots via UEFI GRUB installed as removable media, uses OCI
-  DHCPv4 matched by MAC `02:00:17:05:eb:38`, and its disko layout targets the
-  stable OCI by-id path
-  `/dev/disk/by-id/scsi-36075f9bc9c73417586c6fd09a98be681`.
+  DHCPv4 matched by its NIC's MAC, and its disko layout targets the stable OCI
+  by-id path of its boot volume. Both values live in the private
+  `infra-nixCfg-secrets` (`homelab.macs.VPS0`, `homelab.disks.VPS0`).
 - `VPS1` is the Mumbai KVM VPS. It uses static private IPv4
   `10.10.10.51/24` and is reached for deploys through public NAT at
   `148.113.8.216:20041`.
@@ -213,8 +213,9 @@ disk. For an Oracle Ubuntu image, bootstrap through the `ubuntu` user only after
 confirming passwordless sudo works.
 
 ```bash
-bootstrap-remote VPS0 --target ubuntu@80.225.249.202 --disk /dev/disk/by-id/scsi-36075f9bc9c73417586c6fd09a98be681 --check
-bootstrap-remote VPS0 --target ubuntu@80.225.249.202 --disk /dev/disk/by-id/scsi-36075f9bc9c73417586c6fd09a98be681 --yes-destroy-disk
+# VPS0's by-id disk path: homelab.disks.VPS0 in infra-nixCfg-secrets
+bootstrap-remote VPS0 --target ubuntu@80.225.249.202 --disk /dev/disk/by-id/scsi-<VPS0-volume-id> --check
+bootstrap-remote VPS0 --target ubuntu@80.225.249.202 --disk /dev/disk/by-id/scsi-<VPS0-volume-id> --yes-destroy-disk
 
 bootstrap-remote VPS1 --target root@148.113.8.216 --port 20041 --check
 bootstrap-remote VPS1 --target root@148.113.8.216 --port 20041 --yes-destroy-disk
@@ -237,9 +238,16 @@ for MON1 to scrape); the t640s also share `_homelab/t640.nix` (systemd-boot,
 disko layout), and T2/T3 add `_homelab/agents.nix` (user lingering,
 inotify/nofile limits, zram, systemd-oomd) so many API-backed agents can run
 there instead of on L1; SSH in and start them in tmux/herdr. Every box installs the same way, using T1's steps below: PXE
-into `t1-netboot` (it's a generic image, so any of them can boot it), capture
-`facter.json` into `hosts/nixos/<host>/`, then `bootstrap-remote <host>`.
-After that, `deploy .#<host>`.
+into `t1-netboot` (it's a generic image, so any of them can boot it), run
+`utils/collect_hw.sh`, then `bootstrap-remote <host>`. After that,
+`deploy .#<host>`.
+
+Host identifiers that shouldn't be public (the facter report with its
+component serials, NIC MACs, disk by-id paths) go in the **private**
+`infra-nixCfg-secrets` under `homelab` (`flake/homelab.nix` there, with
+reports at `homelab/facter/<host>.json`), and this repo reads them from
+`inputs.infra-nixCfg-secrets.homelab`. Hosts without a report fall back to
+`_homelab/facter-placeholder.json` (`{}`, facter off).
 
 Bring them up in this order, because each step needs the one before it:
 
@@ -264,9 +272,10 @@ at all.
 hosts, it has no known-good `hardware-configuration.nix`: hardware detection
 comes from [nixos-facter](https://github.com/nix-community/nixos-facter)
 (`hardware.facter.reportPath` in `hosts/nixos/_homelab/base.nix`, module
-upstreamed into nixpkgs). `hosts/nixos/T1/facter.json` starts as a `{}`
-placeholder — `hardware.facter.enable` stays off until it's replaced with a
-real report, so evaluation is safe before you've touched the hardware.
+upstreamed into nixpkgs). Until a host's report is in
+`infra-nixCfg-secrets` (`homelab.facter.<host>`), it gets a `{}` placeholder
+and `hardware.facter.enable` stays off, so evaluation is safe before you've
+touched the hardware.
 
 `t1-netboot` (`.#nixosConfigurations.t1-netboot`) is a minimal PXE ramdisk
 image — no desktop stack, just enough to run `nixos-facter` and act as the
@@ -311,17 +320,19 @@ booted over the network.
    **From a Linux box** on the target's network: `sudo nix run .#pxe-serve`
    (pixiecore, builds everything locally).
 
-2. PXE-boot the T640 into that image, then generate the real hardware report
-   from within it:
+2. PXE-boot the T640 into that image, then collect its hardware report,
+   disks and NICs from the workstation (read-only):
 
    ```bash
-   nixos-facter -o facter.json
+   ssh root@<target-ip> 'bash -s' < utils/collect_hw.sh > <host>-hw.txt
+   ssh root@<target-ip> cat /tmp/facter.json > <host>-facter.json
    ```
 
-   Copy the resulting `facter.json` back over
-   `hosts/nixos/T1/facter.json` (e.g. `scp` it out, or serve it with a
-   temporary `python3 -m http.server` and `curl` it from your workstation),
-   replacing the `{}` placeholder, and commit it.
+   Add the report to **`infra-nixCfg-secrets`** as
+   `homelab/facter/<host>.json`, register it under `homelab.facter` in that
+   repo's `flake/homelab.nix` (with the host's NIC MACs and disk by-id
+   path), then `nix flake update infra-nixCfg-secrets` here. Don't commit it
+   to this public repo.
 
 3. Confirm the target disk (`lsblk` from the PXE shell — `hosts/nixos/_homelab/t640.nix`
    assumes `/dev/sda`, adjust if the report says otherwise), then install for

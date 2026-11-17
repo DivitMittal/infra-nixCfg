@@ -16,7 +16,7 @@ in {
   boot.initrd.kernelModules = ["virtio_pci" "virtio_scsi" "virtio_blk" "virtio_net" "virtio_balloon"];
 
   # --- Networking: VPS1 uses a static private IP, NAT'd to the public IP ---
-  # Mumbai KVM VPS for interactive workloads (~30ms RTT): 10.10.10.51/24 via 10.10.10.1, MAC bc:24:11:65:b5:d8, iface eth0.
+  # Mumbai KVM VPS for interactive workloads (~30ms RTT): 10.10.10.51/24 via 10.10.10.1, iface eth0.
   # Public NAT forwards 148.113.8.216:20041 → internal 10.10.10.51:22, so sshd stays on 22.
   networking.networkmanager.enable = lib.mkForce false; # override common/hosts/nixos/networking.nix
   networking.useDHCP = false;

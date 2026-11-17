@@ -1,4 +1,8 @@
-{wanMode, ...}: let
+{
+  wanMode,
+  homelab,
+  ...
+}: let
   isAndroidTether = wanMode == "android-tether";
   isWifiBackup = wanMode == "wifi-backup";
 in {
@@ -103,18 +107,18 @@ in {
         S1 = {
           _type = "host";
           name = "S1";
-          mac = "ac:a7:f1:aa:2b:12";
+          mac = homelab.macs.S1;
           ip = "192.168.2.2";
         };
 
-        M1 = {
+        usb-eth = {
           _type = "host";
-          name = "M1";
-          mac = "9c:69:d3:7f:90:de";
+          name = "usb-eth";
+          mac = homelab.macs.usb-eth;
           ip = "192.168.2.4";
         };
 
-        # L1's former reservation (00:e0:4c:55:34:28) is gone: that adapter is
+        # L1's former reservation is gone: that adapter (homelab.macs.R1-wan) is
         # now R1's own wan0 NIC. Re-add L1 here once its real LAN MAC is known.
       };
 

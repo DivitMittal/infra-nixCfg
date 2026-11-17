@@ -7,7 +7,7 @@ _: {
   # name you use to refer to that node.") — so a custom id IS supported.
   #
   # T1 now takes over R1's old router role entirely (see flake/topology.nix
-  # nodes.R1's hardware.info), so register it under R1's old node id
+  # comment above nodes.ont), so register it under R1's old node id
   # ("router") instead of the default "T1". This means every existing
   # `physicalConnections = [{node = "router"; ...}]` reference on S1/ASL1/
   # windows-host/L2-windows (flake/topology.nix) now resolves to T1
@@ -17,18 +17,14 @@ _: {
   topology.self = {
     hardware.info = "HP t640 Thin Client (AMD Ryzen Embedded, x86_64) - PXE/netboot install via t1-netboot, hardware detected via nixos-facter. Edge router: hosts a multi-PPPoE OpenWrt/ImmortalWrt VM (macvtap passthrough of physical NICs) — see router-vm.nix";
 
-    # Best-effort until T1's real hardware/interface names are confirmed —
-    # same caveat as router-vm.nix's placeholder physical NIC names and
-    # disko.nix's /dev/sda assumption. T1 needs at least 3 wired NICs (WAN,
-    # S1 uplink, direct R1 link) plus a USB Wi-Fi adapter; whether the t640
-    # actually has that many onboard/add-in ports, or some of these share a
-    # link via VLANs on fewer physical NICs, is unconfirmed until the
-    # hardware is in hand.
+    # Two wired NICs: the onboard port (LAN, to S1) and a USB 3 gigabit
+    # adapter (WAN), plus a USB Wi-Fi adapter. Interface names in
+    # router-vm.nix stay placeholders until `ip link` on the real box.
     interfaces = {
-      # WAN uplink: R0 (now in bridge mode) passes the ISP's PPPoE session(s)
-      # straight through to this NIC; the router VM terminates PPPoE itself
-      # (macvtap passthrough — see router-vm.nix). Mirrors R1's old wan0
-      # edge exactly, just moved to T1.
+      # WAN uplink (USB 3 gigabit adapter): R0 (now in bridge mode) passes
+      # the ISP's PPPoE session(s) straight through to this NIC; the router
+      # VM terminates PPPoE itself (macvtap passthrough — see router-vm.nix).
+      # Mirrors R1's old wan0 edge exactly, just moved to T1.
       wan = {
         network = "ont";
         type = "ethernet";
@@ -59,21 +55,14 @@ _: {
         type = "wifi";
       };
 
-      # New direct wired link to R1, now repurposed as a Kubernetes worker
-      # node (flake/topology.nix nodes.R1) instead of a router.
-      r1link = {
-        network = "home";
-        type = "ethernet";
-      };
-
       # R1's old tailscale0 (hosts/openwrt/R1/modules/tailscale.nix) moves
-      # here rather than to the new R1-as-k8s-worker node: every other
+      # here rather than to MON1 (the S100's new role): every other
       # Tailscale usage in this repo (home/tty/network/vpn.nix,
       # home/gui/vpn.nix) is a per-user client, but R1's was the one
       # router-level instance — advertising/exit-noding the whole home LAN
       # over Tailscale. That's a function of *being the router*, which
       # transfers to T1 (and its T640 router VM) wholesale along with
-      # wan/lan0/wlan above, not to R1's unrelated new k8s-worker role.
+      # wan/lan0/wlan above.
       tailscale0 = {
         network = "tailnet";
         type = "virtual";

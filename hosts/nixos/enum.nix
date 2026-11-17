@@ -5,6 +5,7 @@
 }: {
   flake.nixosConfigurations = let
     class = "nixos";
+    homelabT640 = [./_homelab/base.nix ./_homelab/t640.nix];
   in {
     WSL = mkCfg {
       inherit class;
@@ -49,10 +50,31 @@
       hostName = "T2";
       system = "x86_64-linux";
     };
+    # ── home lab (hosts/README.md, "Home-lab bootstrap") ─────────────────
+    # T1 router, T3 GUI/AI, T4 services: HP t640s. MON1: Lenovo S100.
     T1 = mkCfg {
       inherit class;
       hostName = "T1";
       system = "x86_64-linux";
+      additionalModules = homelabT640;
+    };
+    T3 = mkCfg {
+      inherit class;
+      hostName = "T3";
+      system = "x86_64-linux";
+      additionalModules = homelabT640;
+    };
+    T4 = mkCfg {
+      inherit class;
+      hostName = "T4";
+      system = "x86_64-linux";
+      additionalModules = homelabT640;
+    };
+    MON1 = mkCfg {
+      inherit class;
+      hostName = "MON1";
+      system = "x86_64-linux";
+      additionalModules = [./_homelab/base.nix];
     };
     ASL1N = mkCfg {
       inherit class;

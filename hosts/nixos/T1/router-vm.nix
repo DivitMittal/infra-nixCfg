@@ -23,8 +23,10 @@
   # actual names via `ip link` (or `lsblk`-equivalent `ip -br link show`) once
   # the hardware is in hand, same spirit as `disko.nix`'s "confirm the exact
   # device via `lsblk`" note — adjust before relying on this module.
-  wanPhysIface = "enp1s0"; # WAN-facing (ISP) physical NIC — CONFIRM via `ip link`
-  lanPhysIface = "enp2s0"; # LAN-facing (home network) physical NIC — CONFIRM via `ip link`
+  # WAN is the USB 3 gigabit adapter (systemd names these enp<bus>s<slot>u<port>
+  # or enx<mac>); LAN is the t640's onboard port.
+  wanPhysIface = "enp1s0"; # WAN-facing (ISP) USB NIC — CONFIRM via `ip link`
+  lanPhysIface = "enp2s0"; # LAN-facing onboard NIC — CONFIRM via `ip link`
 
   wanMacvtap = "wan-mvtap";
   lanMacvtap = "lan-mvtap";

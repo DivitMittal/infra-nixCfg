@@ -17,7 +17,7 @@
           };
 
           networks.ont = {
-            name = "ONT/WAN Network (VLAN10)";
+            name = "R0 network (GN XPON ONT/router)";
             cidrv4 = "192.168.1.0/24";
           };
 
@@ -63,37 +63,24 @@
           # (hosts/openwrt/R1) is kept in place as historical/rollback
           # reference, no longer deployed.
 
-          nodes.ont = {
-            name = "ONT";
+          # One box: a GN XPON ONT with a built-in router (fiber in,
+          # Ethernet/Wi-Fi out).
+          nodes.r0 = {
+            name = "R0";
             deviceType = "router";
-            hardware.info = "Airtel fiber ONT (optical-to-ethernet media converter)";
-            interfaces.lan = {
-              network = "internet";
-              type = "ethernet";
-              physicalConnections = [
-                {
-                  node = "r0";
-                  interface = "wan";
-                }
-              ];
-            };
+            hardware.info = "GN XPON ONT/router (ISP-provided, fiber in) in router mode (192.168.1.1), DMZ-forwarding to the T640 router's static WAN (192.168.1.254). Later option: bridge mode, passing PPPoE through for T640 to dial itself (`nix run .#t640-router-pppoe`) — see hosts/README.md. Also keeps its own Wi-Fi AP, which L1 currently uses (unmanaged by this flake)";
             interfaces.wan = {
               network = "internet";
               type = "wan";
             };
-          };
-
-          nodes.r0 = {
-            name = "R0";
-            deviceType = "router";
-            hardware.info = "Airtel-provided router, reconfigured into bridge mode: passes the ISP's PPPoE session(s) straight through to T1's WAN NIC (T1 terminates PPPoE itself). Fallback: DMZ-forwards a static IP to T1's WAN (192.168.1.254) if PPPoE passthrough proves unreliable — see hosts/README.md. Also independently keeps broadcasting its own legacy 2.4GHz Wi-Fi AP for older/IoT devices (unmanaged by this flake)";
-            interfaces.wan = {
-              network = "internet";
-              type = "ethernet";
-            };
             interfaces.lan = {
               network = "ont";
               type = "ethernet";
+            };
+            # R0's own Wi-Fi AP (L1 currently associates here).
+            interfaces.wlan = {
+              network = "ont";
+              type = "wifi";
             };
           };
 
@@ -156,7 +143,7 @@
               type = "ethernet";
               physicalConnections = [
                 {
-                  node = "L1";
+                  node = "ASL1";
                   interface = "eth0";
                 }
               ];
@@ -195,14 +182,17 @@
             name = "L1";
             deviceType = "device";
             hardware.info = "macOS nix-darwin (x86_64) - triple-boot with T2 NixOS & Windows 11";
+            # On R0's own Wi-Fi (the ISP router's network, outside the home
+            # LAN), not wired to S1.
             interfaces.en0 = {
-              network = "home";
+              network = "ont";
               type = "wifi";
-            };
-            # Wired uplink to S1 (VLAN20, port2).
-            interfaces.eth0 = {
-              network = "home";
-              type = "ethernet";
+              physicalConnections = [
+                {
+                  node = "r0";
+                  interface = "wlan";
+                }
+              ];
             };
             # Virtual bridge for the Colima x86_64 VM
             interfaces.col0 = {
@@ -226,6 +216,11 @@
                   interface = "wlan";
                 }
               ];
+            };
+            # Wired into S1 (port2); S1 declares the edge from its side.
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
             };
             # Virtual bridge for the Colima ARM VM
             interfaces.col0 = {

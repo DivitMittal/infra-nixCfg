@@ -7,7 +7,7 @@ _: {
   # name you use to refer to that node.") — so a custom id IS supported.
   #
   # T1 now takes over R1's old router role entirely (see flake/topology.nix
-  # comment above nodes.ont), so register it under R1's old node id
+  # comment above nodes.r0), so register it under R1's old node id
   # ("router") instead of the default "T1". This means every existing
   # `physicalConnections = [{node = "router"; ...}]` reference on S1/ASL1/
   # windows-host/L2-windows (flake/topology.nix) now resolves to T1
@@ -15,7 +15,7 @@ _: {
   topology.id = "router";
 
   topology.self = {
-    hardware.info = "HP t640 Thin Client (AMD Ryzen Embedded, x86_64) - PXE/netboot install via t1-netboot, hardware detected via nixos-facter. Edge router: hosts a multi-PPPoE OpenWrt/ImmortalWrt VM (macvtap passthrough of physical NICs) — see router-vm.nix";
+    hardware.info = "HP t640 Thin Client (AMD Ryzen Embedded, x86_64) - PXE/netboot install via t1-netboot, hardware detected via nixos-facter. Edge router: hosts an ImmortalWrt VM (DMZ behind R0 by default, multi-PPPoE optional) (macvtap passthrough of physical NICs) — see router-vm.nix";
 
     # Two wired NICs: the onboard port (LAN, to S1) and a USB 3 gigabit
     # adapter (WAN), plus a USB Wi-Fi adapter. Interface names in

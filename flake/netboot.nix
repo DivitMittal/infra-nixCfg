@@ -112,7 +112,7 @@
         iface="''${1:-$(/sbin/route -n get default | awk '/interface:/ {print $2}')}"
       fi
 
-      work="$(mktemp -d -t pxe-serve)"
+      work="$(mktemp -d "''${TMPDIR:-/tmp}/pxe-serve.XXXXXX")"
       cleanup() {
         [ -n "''${http_pid:-}" ] && kill "$http_pid" 2>/dev/null || true
         [ "$direct" -eq 1 ] && /sbin/ifconfig "$iface" inet ${directAddr} -alias 2>/dev/null || true

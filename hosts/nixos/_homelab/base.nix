@@ -39,6 +39,10 @@ in {
     openssh.authorizedKeys.keys = [sshPubKey];
   };
 
+  # The public resolver defaults cannot answer the router's local .lan names
+  # used by monitoring and the k3s worker's server-discovery address.
+  networking.nameservers = ["192.168.2.1"];
+
   # Scraped by MON1 (hosts/nixos/MON1/monitoring.nix).
   services.prometheus.exporters.node = {
     enable = true;

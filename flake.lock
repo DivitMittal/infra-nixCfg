@@ -1755,16 +1755,16 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1794929682,
-        "narHash": "sha256-rdZEow5qmmxJ/JVPoycj8cbSRASfQ8nOaiQs/HEGYTk=",
-        "ref": "master",
-        "rev": "55cf4a2e0772f4ff35bfffdfe451758ad03c00d1",
-        "revCount": 276,
+        "lastModified": 1794937017,
+        "narHash": "sha256-E23QRoOZdJrTFw46NDqyuN35BvRa8JhQzyMMEugIRa4=",
+        "ref": "feat/homelab-k3s",
+        "rev": "d0c284a1e42a4b72cad3bbc3200bd8e75f6c7a24",
+        "revCount": 280,
         "type": "git",
         "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       },
       "original": {
-        "ref": "master",
+        "ref": "feat/homelab-k3s",
         "type": "git",
         "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       }

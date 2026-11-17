@@ -5,6 +5,8 @@
 # Or commit to trigger the pre-commit hook if enabled.
 jobs:
   build-netboot-bundle:
+    environment:
+      name: dev
     permissions:
       contents: write
       id-token: write
@@ -80,6 +82,7 @@ jobs:
   push:
     paths:
     - flake/netboot.nix
+    - .github/workflows/netboot-build.yml
     - hosts/netboot/**
     - common/hosts/netboot/**
   workflow_dispatch: {}

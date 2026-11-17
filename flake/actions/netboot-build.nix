@@ -1,6 +1,7 @@
 {
   common-permissions,
   common-post-actions,
+  environment,
   ...
 }: {
   # Builds the t1-netboot PXE bundle (kernel, initrd, iPXE binaries + script;
@@ -13,11 +14,15 @@
       workflow_dispatch = {};
       push.paths = [
         "flake/netboot.nix"
+        ".github/workflows/netboot-build.yml"
         "hosts/netboot/**"
         "common/hosts/netboot/**"
       ];
     };
     jobs.build-netboot-bundle = {
+      # The repo secrets (SSH key for the private secrets input, Cachix)
+      # live in the `dev` environment.
+      inherit environment;
       permissions = common-permissions;
       steps =
         [

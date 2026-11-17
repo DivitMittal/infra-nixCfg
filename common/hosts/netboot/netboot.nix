@@ -25,6 +25,12 @@ in {
 
   system.stateVersion = "26.11";
 
+  # VARIANT_ID=installer in /etc/os-release is how nixos-anywhere recognises
+  # a NixOS installer and skips its kexec step. Without it, nixos-anywhere
+  # tries to kexec, which fails here (its script's tar flags don't work on
+  # this image) and isn't needed: this ramdisk already is an installer.
+  system.nixos.variant_id = "installer";
+
   # fwupd here lets you check/apply UEFI firmware updates from the PXE shell
   # before (or without) installing NixOS to local disk — see hosts/README.md.
   # EspLocation isn't set: netboot has no fstab/persistent mounts, so there's

@@ -8,7 +8,7 @@
   #     ImageBuilder's own defaults.
   #   - nuci (flake/openwrt-t640.nix, hosts/openwrt/T640/): all ongoing
   #     declarative UCI config — the multi-PPPoE WAN, mwan3 policy, and the
-  #     eth0→eth1 `lan` device fix — deployed post-boot the same way R1's
+  #     home LAN address — deployed post-boot the same way R1's
   #     config is (`nix run .#t640-router <target>`). This replaces what
   #     used to be a one-shot `uci-defaults` script baked into the image at
   #     build time. See hosts/README.md's "T1 as an edge router" section.

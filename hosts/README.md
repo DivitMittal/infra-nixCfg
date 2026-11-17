@@ -294,11 +294,18 @@ repo:
   immediately capable offline. It does not configure any UCI itself.
 - **nuci** (`hosts/openwrt/T640/`, deployed via `flake/openwrt-t640.nix`)
   owns all ongoing declarative config — the multi-PPPoE WAN interfaces,
-  `mwan3` balanced policy, and the `eth0`→`eth1` `lan` device reassignment —
+  `mwan3` balanced policy, and moving the LAN to `192.168.2.1` —
   pushed post-boot the same way R1's config is (`nix run .#t640-router
 <target>`, see `hosts/openwrt/R1`/`flake/openwrt.nix` for the pattern this
   mirrors). This replaced an earlier one-shot `uci-defaults` script that
   used to be baked into the image at build time.
+
+The VM attaches the LAN NIC first, so the guest sees `eth0` = LAN and `eth1` =
+WAN, which matches a stock x86 image. A fresh guest therefore answers at
+`192.168.1.1` (stock), and the first `nix run .#t640-router root@192.168.1.1`
+moves it to `192.168.2.1`. The T1 host keeps its own LAN address,
+`192.168.2.3`, on a `lan-host` macvlan, so you can still SSH in while the
+router guest is down.
 
 **This is unverified on real hardware** — T1 isn't physically bootstrapped in
 this branch, and the two physical NIC names in `router-vm.nix`
@@ -398,7 +405,7 @@ it directly over SSH:
 ```sh
 uci set network.wan1=interface
 uci set network.wan1.proto='static'
-uci set network.wan1.device='eth0'
+uci set network.wan1.device='eth1'
 uci set network.wan1.ipaddr='192.168.1.254'
 uci set network.wan1.netmask='255.255.255.0'
 uci set network.wan1.gateway='192.168.1.1'

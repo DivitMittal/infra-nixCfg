@@ -255,17 +255,8 @@
             };
           };
 
-          # x86_64 desktop — dual-boot: NixOS (L2) | Windows 11 (L2-windows) — user: vanee
-          nodes.L2 = {
-            name = "L2";
-            deviceType = "device";
-            hardware.info = "NixOS desktop (x86_64) - dual-boot with Windows 11 (L2-windows) — user: vanee";
-            # Wired uplink to S1 (VLAN20, port3).
-            interfaces.eth0 = {
-              network = "home";
-              type = "ethernet";
-            };
-          };
+          # L2 (NixOS desktop, dual-boot with L2-windows) registers itself
+          # from hosts/nixos/L2/topology.nix.
 
           # Windows 11 boot on the x86_64 machine (dual-boot partner of L2 NixOS) — user: vanee
           # Managed by https://github.com/DivitMittal/playbooks-4-windows (Ansible IaC)

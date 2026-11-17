@@ -162,6 +162,24 @@ in {
 
         # Static leases carried over from R1, below the stock .100+ dynamic pool.
         dhcp = {
+          # Declare the serving interface as well as its reservations: a
+          # running dnsmasq without this section only answers DNS queries.
+          lan = {
+            _type = "dhcp";
+            interface = "lan";
+            start = "100";
+            limit = "100";
+            leasetime = "12h";
+            ignore = "0";
+            dhcpv4 = "server";
+            dhcpv6 = "disabled";
+            ra = "disabled";
+          };
+          wan = {
+            _type = "dhcp";
+            interface = "wan";
+            ignore = "1";
+          };
           S1 = {
             _type = "host";
             name = "S1";

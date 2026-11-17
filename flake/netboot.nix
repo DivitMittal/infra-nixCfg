@@ -139,6 +139,7 @@
       user=root
       interface=$iface
       bind-interfaces
+      log-facility=-
       log-dhcp
       $dhcp
       dhcp-match=set:ipxe,175

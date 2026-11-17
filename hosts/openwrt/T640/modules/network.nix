@@ -14,16 +14,15 @@
   pppoeLines = 2;
   lineNums = range 1 pppoeLines;
 
-  # Guest-internal virtio-net naming under OpenWrt/ImmortalWrt is predictably
-  # PCI-enumeration order — hosts/nixos/T1/router-vm.nix attaches the WAN
-  # macvtap first, LAN macvtap second, so:
-  #   eth0 = WAN uplink (macvtap passthrough of T1's WAN-facing physical
-  #          NIC) — the shared base device the macvlan lines attach to.
-  #   eth1 = LAN downlink (macvtap passthrough of T1's LAN-facing NIC).
-  # Adjust if `ip link` inside the booted guest disagrees, same caveat as
-  # router-vm.nix's wanPhysIface/lanPhysIface placeholders.
-  wanBaseDevice = "eth0";
-  lanDevice = "eth1";
+  # Guest-internal virtio-net naming follows PCI enumeration order, and
+  # hosts/nixos/T1/router-vm.nix attaches the LAN macvtap first, so:
+  #   eth0 = LAN downlink, already br-lan's port in the stock image.
+  #   eth1 = WAN uplink, the shared base device the macvlan lines attach to.
+  # Adjust if `ip link` inside the booted guest disagrees.
+  wanBaseDevice = "eth1";
+
+  # Home LAN, taken over from R1 (hosts/openwrt/R1/modules/network.nix).
+  lanAddress = "192.168.2.1";
 
   # Locally-administered, unicast MAC addresses (IEEE 802: the "02"
   # first-octet prefix sets the U/L and I/G bits appropriately) for each
@@ -108,6 +107,22 @@ in {
     settings = {
       network = wanmvDevices // wanInterfaces;
 
+      # Static leases carried over from R1, below the stock .100+ dynamic pool.
+      dhcp = {
+        S1 = {
+          _type = "host";
+          name = "S1";
+          mac = "ac:a7:f1:aa:2b:12";
+          ip = "192.168.2.2";
+        };
+        M1 = {
+          _type = "host";
+          name = "M1";
+          mac = "9c:69:d3:7f:90:de";
+          ip = "192.168.2.4";
+        };
+      };
+
       # mwan3: one interface + member per line, balanced (equal-weight)
       # policy by default. To switch to primary/backup failover instead,
       # give the backup line a higher metric (e.g. '2') than the primary
@@ -139,18 +154,22 @@ in {
     # reasoning as R1's cleanup.nix use of rawUci for one-off deletes.
     rawUci =
       [
-        # Free the WAN base device from the image's default `lan` binding
-        # first — otherwise the macvlan devices above would be layered on
-        # top of an interface still serving as the LAN bridge member. The
-        # stock image binds `lan` directly to eth0 (no bridge, since a
-        # generic x86 image doesn't assume a switch).
-        "uci set network.lan.device='${lanDevice}'"
+        # The stock image runs a DHCP client (`wan`/`wan6`) on eth1; the
+        # PPPoE lines replace it, so eth1 stays a bare base device.
+        "uci -q delete network.wan || true"
+        "uci -q delete network.wan6 || true"
+
+        # Move the LAN onto the home subnet. A fresh guest is first deployed
+        # at the stock 192.168.1.1; every later deploy targets this address.
+        "uci set network.lan.ipaddr='${lanAddress}'"
+        "uci set network.lan.netmask='255.255.255.0'"
         "uci commit network"
 
         # wan firewall zone: cover every pppoe interface (assumes the
         # default image ships firewall zones in the usual lan=0, wan=1
         # order).
         "uci del_list firewall.@zone[1].network='wan'"
+        "uci del_list firewall.@zone[1].network='wan6'"
       ]
       ++ (map (n: "uci add_list firewall.@zone[1].network='${wanName n}'") lineNums)
       ++ ["uci commit firewall"];

@@ -29,6 +29,15 @@
   wanMacvtap = "wan-mvtap";
   lanMacvtap = "lan-mvtap";
 
+  # The host's own foothold on the home LAN. Both physical NICs are handed to
+  # the guest, so without this T1 would be unreachable (no SSH, no RSSHub).
+  # A macvlan and a macvtap in bridge mode on the same parent can reach each
+  # other, so the host talks to the router guest through the LAN NIC.
+  # Static rather than DHCP so T1 stays reachable while the guest is down.
+  lanHostIface = "lan-host";
+  lanHostAddress = "192.168.2.3/24";
+  routerLanAddress = "192.168.2.1"; # T640 guest, hosts/openwrt/T640/modules/network.nix
+
   # VM defaults to ImmortalWrt (more actively maintained fork). Both
   # `openwrt-t640-router` and `immortalwrt-t640-router` are always built by
   # flake/openwrt-images.nix — switching images is this one line.
@@ -78,15 +87,23 @@
     exec {wanFd}<>"/dev/tap$wanIfindex"
     exec {lanFd}<>"/dev/tap$lanIfindex"
 
+    # q35, not microvm: microvm has no PCI bus by default and its qboot
+    # firmware can't be relied on to boot a raw OpenWrt disk image.
+    #
+    # LAN is attached first so the guest enumerates it as eth0 and WAN as
+    # eth1, the stock generic-x86 layout (br-lan on eth0, wan on eth1), so a
+    # fresh image is reachable on the LAN before nuci has touched it. Each
+    # NIC reuses its macvtap's MAC: macvtap drops frames for any other MAC.
     exec ${pkgs.qemu_kvm}/bin/qemu-system-x86_64 \
       -enable-kvm \
-      -M microvm \
+      -M q35 \
+      -cpu host \
       -m 1024 \
       -smp 2 \
-      -netdev tap,id=wan,fd=$wanFd \
-      -device virtio-net-pci,netdev=wan \
       -netdev tap,id=lan,fd=$lanFd \
-      -device virtio-net-pci,netdev=lan \
+      -device virtio-net-pci,netdev=lan,mac=$(cat /sys/class/net/${lanMacvtap}/address) \
+      -netdev tap,id=wan,fd=$wanFd \
+      -device virtio-net-pci,netdev=wan,mac=$(cat /sys/class/net/${wanMacvtap}/address) \
       -drive file=${lib.escapeShellArg diskImage},if=virtio,format=raw \
       -nographic \
       -serial mon:stdio
@@ -105,7 +122,11 @@ in {
           Name = wanMacvtap;
           Kind = "macvtap";
         };
-        macvtapConfig.Mode = "bridge";
+        # passthru, not bridge: a bridge-mode macvtap only accepts frames for
+        # its own MAC, so the guest's per-line PPPoE macvlans (distinct MACs,
+        # hosts/openwrt/T640/modules/network.nix) would never see replies.
+        # passthru hands the guest the whole NIC; the host has no WAN presence.
+        macvtapConfig.Mode = "passthru";
       };
       "25-${lanMacvtap}" = {
         netdevConfig = {
@@ -113,6 +134,13 @@ in {
           Kind = "macvtap";
         };
         macvtapConfig.Mode = "bridge";
+      };
+      "25-${lanHostIface}" = {
+        netdevConfig = {
+          Name = lanHostIface;
+          Kind = "macvlan";
+        };
+        macvlanConfig.Mode = "bridge";
       };
     };
     networks = {
@@ -122,7 +150,16 @@ in {
       };
       "25-${lanPhysIface}" = {
         matchConfig.Name = lanPhysIface;
-        networkConfig.MACVTAP = [lanMacvtap];
+        networkConfig = {
+          MACVTAP = [lanMacvtap];
+          MACVLAN = [lanHostIface];
+        };
+      };
+      "25-${lanHostIface}" = {
+        matchConfig.Name = lanHostIface;
+        address = [lanHostAddress];
+        gateway = [routerLanAddress];
+        dns = [routerLanAddress];
       };
     };
   };
@@ -136,6 +173,7 @@ in {
       "interface-name:${lanPhysIface}"
       "interface-name:${wanMacvtap}"
       "interface-name:${lanMacvtap}"
+      "interface-name:${lanHostIface}"
     ];
 
     # T1's hardware.nix defaults networking.useDHCP to true (legacy scripted
@@ -143,7 +181,7 @@ in {
     # these four so only systemd-networkd manages them — the physical
     # uplinks are passed through to the guest and shouldn't get a host-side
     # DHCP lease, and the macvtap devices are unaddressed passthrough taps.
-    interfaces = lib.genAttrs [wanPhysIface lanPhysIface wanMacvtap lanMacvtap] (_: {useDHCP = false;});
+    interfaces = lib.genAttrs [wanPhysIface lanPhysIface wanMacvtap lanMacvtap lanHostIface] (_: {useDHCP = false;});
 
     # Silence the nixpkgs networking module's own recommendation: with
     # `systemd.network.enable = true` (needed for the macvtap netdevs above)

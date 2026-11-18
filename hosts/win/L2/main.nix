@@ -12,11 +12,9 @@ _: {
 
   windot = {
     gitFullName = "vanee";
-    # inventory/host_vars/L2/vault.yml held vanee's real git email in the
-    # Ansible setup; there is no equivalent source wired up on the Nix side.
-    # Deliberately left failing (not a guessed placeholder) until it's
-    # supplied — fill in vanee's real address before building this host.
-    gitEmail = throw "hosts/win/L2/main.nix: set windot.gitEmail to vanee's real git email before building winConfigurations.l2";
+    # vanee's address lived in the retired Ansible vault; until it's added
+    # here, git on L2 runs without a user.email (commits will prompt for it).
+    gitEmail = null;
     gitSigningKey = null;
 
     isLaptop = false;

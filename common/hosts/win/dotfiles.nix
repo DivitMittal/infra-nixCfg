@@ -20,8 +20,9 @@ in {
       description = "git user.name for this Windows account.";
     };
     gitEmail = lib.mkOption {
-      type = lib.types.str;
-      description = "git user.email for this Windows account.";
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "git user.email for this Windows account; null leaves it unset.";
     };
     gitSigningKey = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
@@ -71,7 +72,7 @@ in {
 
         [user]
         	name  = ${cfg.gitFullName}
-        	email = ${cfg.gitEmail}
+        ${lib.optionalString (cfg.gitEmail != null) "\temail = ${cfg.gitEmail}"}
         ${lib.optionalString (cfg.gitSigningKey != null) ''
           	signingkey = ${cfg.gitSigningKey}
 

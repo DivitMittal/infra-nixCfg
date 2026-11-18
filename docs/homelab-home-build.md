@@ -79,3 +79,18 @@ Success requires the dependency store hash check, aicommit2 build, and complete
 T2 activation build to pass; evaluation alone cannot establish those results.
 If the dependency hash differs, inspect the actual store-format difference
 before changing it. Do not guess a new hash or disable optional dependencies.
+
+## First deployment build result
+
+The patched dependency build on T2 completed all 1045 dependency additions,
+including the large Copilot archives that timed out before. The subsequent
+fixed-output hash check failed:
+
+```text
+expected: sha256-oemBe947Rq6toX7t+ukWzohwqBzbYqHlSSet3yoGBmY=
+actual:   sha256-BKrEDtmqd1Xtt9lEaAZ679GIca09gjLgjFflT09x8rM=
+```
+
+The expected hash has not been replaced. Investigate the pnpm/store-format and
+upstream recipe compatibility before accepting new dependency contents. The
+timeout fix alone is not proof that the full Home Manager profile builds.

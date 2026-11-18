@@ -183,11 +183,6 @@ in {
           remotePort = 8022;
         }
         ++ mkAdbDeployCommands {
-          host = "M1N";
-          localPort = 18023;
-          remotePort = 8023;
-        }
-        ++ mkAdbDeployCommands {
           host = "E1";
           localPort = 18024;
           remotePort = 8022;

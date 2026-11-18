@@ -15,13 +15,8 @@
         additionalModules = [(inputs.import-tree ../../common/hosts/droid-launcher)];
       };
   in {
-    M1 = mkCfg {
-      inherit class;
-      hostName = "M1";
-      system = "aarch64-linux";
-    };
-    # Installs side by side with M1's stock Termux on the same phone.
-    M1N = mkLauncherHost "M1N";
+    # The phone (DN2103). Stock nix-on-droid was retired for the launcher.
+    M1 = mkLauncherHost "M1";
     # Amazon Echo Show 5.
     E1 = mkLauncherHost "E1";
   };

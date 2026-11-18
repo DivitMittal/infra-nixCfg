@@ -80,18 +80,20 @@
   };
 in {
   flake.deploy.nodes = {
-    # nix-on-droid device on the local network
+    # The phone, on Termux Launcher's Nix edition. Its fixed LAN address is a
+    # router reservation (hosts/openwrt/T640); uid/gid are pinned in
+    # hosts/droid/M1/M1.nix because the build happens off-device.
     M1 = mkDroidNode {
-      hostname = "M1";
+      hostname = "192.168.2.7";
       configuration = self.nixOnDroidConfigurations.M1;
-      sshOpts = ["-p" "8022"];
+      sshOpts = ["-p" "8022" "-i" "~/.ssh/agenix/id_ed25519" "-o" "HostKeyAlias=M1"];
     };
 
     M1-adb = mkAdbDroidNode {
       name = "M1-adb";
       configuration = self.nixOnDroidConfigurations.M1;
       port = 18022;
-      key = "~/.ssh/nix-on-droid/ssh_host_rsa_key";
+      key = "~/.ssh/agenix/id_ed25519";
     };
 
     # Home lab, reached over the LAN. T1's host address is static
@@ -103,23 +105,7 @@ in {
     T3 = mkHomelabNode "T3.lan" self.nixosConfigurations.T3;
     MON1 = mkHomelabNode "MON1.lan" self.nixosConfigurations.MON1;
 
-    # Termux Launcher (Nix edition) on the same phone as M1: a separate app
-    # sandbox with its own sshd on 8023. Built off-device, so pin user.uid/gid in
-    # hosts/droid/M1N/M1N.nix first — unpinned they default to the builder's `id -u`.
-    M1N = mkDroidNode {
-      hostname = "M1";
-      configuration = self.nixOnDroidConfigurations.M1N;
-      sshOpts = ["-p" "8023" "-i" "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key" "-o" "HostKeyAlias=M1N"];
-    };
-
-    M1N-adb = mkAdbDroidNode {
-      name = "M1N-adb";
-      configuration = self.nixOnDroidConfigurations.M1N;
-      port = 18023;
-      key = "~/.ssh/nix-on-droid-launcher/ssh_host_rsa_key";
-    };
-
-    # Echo Show 5 running Termux Launcher (Nix edition). Same uid caveat as M1N.
+    # Echo Show 5 running Termux Launcher (Nix edition). Same uid caveat as M1.
     E1 = mkDroidNode {
       hostname = "E1";
       configuration = self.nixOnDroidConfigurations.E1;

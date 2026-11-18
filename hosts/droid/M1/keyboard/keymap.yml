@@ -1,9 +1,9 @@
 # keymap-drawer source for layout.xml. Regenerate the SVG with:
-#   keymap draw hosts/droid/M1N/keyboard/keymap.yml > hosts/droid/M1N/keyboard/keymap.svg
+#   keymap draw hosts/droid/M1/keyboard/keymap.yml > hosts/droid/M1/keyboard/keymap.svg
 # Swipe directions map onto legend slots: nw/ne/sw/se -> tl/tr/bl/br,
 # n/s -> shifted/hold (top/bottom), w/e -> left/right.
 layout:
-  qmk_info_json: hosts/droid/M1N/keyboard/physical.json
+  qmk_info_json: hosts/droid/M1/keyboard/physical.json
   layout_name: LAYOUT
 
 layers:

@@ -265,7 +265,7 @@
           nodes.M1 = {
             name = "M1";
             deviceType = "device";
-            hardware.info = "Android - nix-on-droid (aarch64 MediaTek)";
+            hardware.info = "Android 16 phone (DN2103, aarch64 MediaTek) - Termux Launcher Nix edition (nix-on-droid fork); SSH on 8022 with the home-lab key";
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";

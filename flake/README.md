@@ -44,6 +44,7 @@ The pkgs handed to each config is extended with `master` / `stable` channels (an
 - **formatters.nix** - Code formatting (`nix fmt`: alejandra, deadnix, statix)
 - **iso-packages.nix** - ISO build packages
 - **mkCfg.nix** - Universal host builder (nixos/darwin/droid/home)
+- **openwrt-images.nix** - OpenWrt/ImmortalWrt multi-PPPoE router images for T1 (x86_64-linux only, see `hosts/README.md`)
 - **topology.nix** - Infrastructure visualization (nix-topology)
 - **actions/** - GitHub Actions workflows
   - default.nix - Actions module exports

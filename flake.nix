@@ -219,6 +219,12 @@
     };
 
     ## AI
+    # aicommit2 pins a pnpm 10 dependency store. Following the main nixpkgs
+    # silently switches it to pnpm 11's different store representation.
+    aicommit2-build-nixpkgs = {
+      url = "github:NixOS/nixpkgs/7fd36ee82c0275fb545775cc5e4d30542899511d";
+      flake = false;
+    };
     ai-nixCfg = {
       url = "github:DivitMittal/ai-nixCfg";
       #url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
@@ -289,6 +295,16 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## OpenWrt/ImmortalWrt image builders (Nix-native wrappers around the
+    ## upstream binary ImageBuilder, x86_64-linux only — see flake/openwrt-images.nix)
+    openwrt-imagebuilder = {
+      url = "github:astro/nix-openwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    immortalwrt-imagebuilder = {
+      url = "github:codgician/nix-immortalwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-wsl = {
       url = "github:nix-community/nixos-wsl/main";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -297,6 +313,20 @@
     nixos-apple-silicon = {
       url = "github:nix-community/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    ## OpenWrt UCI compiler and safe SSH deployer
+    openwrt-nix = {
+      url = "github:lonerOrz/openwrt-nix";
+      flake = false;
+    };
+    ## Terraform config generator, used for the S1 switch (Nix instead of HCL)
+    terranix = {
+      url = "github:terranix/terranix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+        flake-parts.follows = "flake-parts";
+      };
     };
     ## Android
     nix-on-droid = {

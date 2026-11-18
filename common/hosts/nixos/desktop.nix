@@ -10,13 +10,16 @@
   config,
   ...
 }:
-lib.mkIf (lib.elem config.hostSpec.hostName ["L2" "T2" "ASL1N"]) {
+lib.mkIf (lib.elem config.hostSpec.hostName ["L2" "L1N" "T2" "ASL1N"]) {
   # greetd + agreety (greetd's built-in TUI greeter). Launch Sway through a login shell so the
   # user's nix profile (which provides the home-manager-built sway) is on PATH at exec time.
   services.greetd = {
     enable = true;
+    # agreety asks for the login, then runs Sway as that user. Running
+    # `bash -lc sway` here directly ran it as `greeter`, which has no sway, so
+    # greetd restart-looped into start-limit-hit (seen on T2's first boot).
     settings.default_session = {
-      command = "${pkgs.bash}/bin/bash -lc sway";
+      command = "${config.services.greetd.package}/bin/agreety --cmd ${lib.escapeShellArg "${pkgs.bash}/bin/bash -lc sway"}";
       user = "greeter";
     };
   };

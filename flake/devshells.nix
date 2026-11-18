@@ -27,6 +27,7 @@ in {
       "TLTR"
       "PKMS"
     ];
+    uci = pkgs.callPackage "${inputs.openwrt-nix}/nix" {};
   in {
     devshells.default = {
       devshell = rec {
@@ -61,6 +62,7 @@ in {
           }
           ++ [
             inputs.deploy-rs.packages.${pkgs.stdenvNoCC.hostPlatform.system}.default # Deploy-rs for remote deployment
+            uci.nuci
           ];
       };
       commands = [

@@ -5,6 +5,7 @@
 }: {
   flake.nixosConfigurations = let
     class = "nixos";
+    homelabT640 = [./_homelab/base.nix ./_homelab/t640.nix];
   in {
     WSL = mkCfg {
       inherit class;
@@ -23,7 +24,10 @@
       system = "aarch64-linux";
       additionalModules = [
         {
-          # Override topology for the ARM variant: runs on AS-darwin, not L1
+          # Override topology for the ARM variant: runs on AS-darwin, not L1.
+          # Same hostName as `colima`, so it needs its own node id or the
+          # two VMs collapse into one conflicting node.
+          topology.id = "colima-arm";
           topology.self = {
             hardware.info = "NixOS VM - Colima/Lima (aarch64) on ASL1 (Apple Silicon macOS)";
             interfaces.eth0 = {
@@ -44,10 +48,36 @@
       hostName = "L2";
       system = "x86_64-linux";
     };
+    L1N = mkCfg {
+      inherit class;
+      hostName = "L1N";
+      system = "x86_64-linux";
+    };
+    # ── home lab (hosts/README.md, "Home-lab bootstrap") ─────────────────
+    # T1 router, T2 GUI/AI, T3 services: HP t640s. MON1: Lenovo S100.
+    T1 = mkCfg {
+      inherit class;
+      hostName = "T1";
+      system = "x86_64-linux";
+      additionalModules = homelabT640;
+    };
     T2 = mkCfg {
       inherit class;
       hostName = "T2";
       system = "x86_64-linux";
+      additionalModules = homelabT640 ++ [./_homelab/agents.nix ./_homelab/wired-link.nix];
+    };
+    T3 = mkCfg {
+      inherit class;
+      hostName = "T3";
+      system = "x86_64-linux";
+      additionalModules = homelabT640 ++ [./_homelab/agents.nix ./_homelab/wired-link.nix];
+    };
+    MON1 = mkCfg {
+      inherit class;
+      hostName = "MON1";
+      system = "x86_64-linux";
+      additionalModules = [./_homelab/base.nix];
     };
     ASL1N = mkCfg {
       inherit class;

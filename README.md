@@ -2,7 +2,7 @@
     <div align="center">
         <img alt='An abstract image of a donut-like object' title='Qezta' height=250 width=250 src='./assets/qezta.gif' style="position: relative; top: 0; right: 0;" />
         <h1 align='center'>infra-nixCfg</h1>
-        <strong>Declarative, reproducible infrastructure-as-code platform for a multi-OS fleet spanning macOS, Android, and Linux (NixOS/WSL).</strong>
+        <strong>Declarative, reproducible infrastructure-as-code platform for a multi-OS fleet spanning macOS, Windows, Android, and Linux (NixOS/WSL).</strong>
     </div>
 
 </div>
@@ -65,7 +65,7 @@ This repository is a configuration-management platform built on [Nix](https://gi
 - **macOS** (via `nix-darwin`)
 - **Android** (via `nix-on-droid`)
 - **\*nix (NixOS)** (including WSL via `NixOS-WSL`)
-- **Windows** (via [`nix-win`](https://github.com/jacobbrugh/nix-win), applying machine-scope state through PowerShell **DSC v3** — in progress, see [PR #41](https://github.com/DivitMittal/infra-nixCfg/pull/41))
+- **Windows** (via [`nix-win`](https://github.com/jacobbrugh/nix-win), applying machine-scope state through PowerShell **DSC v3**)
 
 A single universal builder composes shared infrastructure, platform defaults, and per-host overrides into reproducible system closures, so every node in the fleet is built from the same codified module graph rather than bespoke, hand-maintained setup.
 
@@ -139,7 +139,7 @@ The repository is organized using [flake-parts](https://github.com/hercules-ci/f
 .
 ├── flake/      # flake-parts modules — mkCfg, devshells, checks, actions, topology
 ├── common/     # shared layers: all/, home/, hosts/{all,darwin,droid,iso,nixos}/
-├── hosts/      # per-host overrides: darwin/L1, nixos/{L2,T2,WSL}, droid/M1, iso/
+├── hosts/      # per-host overrides: darwin/L1, nixos/{L2,L1N,WSL}, droid/M1, iso/
 ├── home/       # home-manager modules by domain: tty/ gui/ tools/ media/ comms/ dev/ web/
 ├── modules/    # reusable NixOS/HM/darwin modules
 ├── overlays/   # nixpkgs overlays (custom, customDarwin)
@@ -213,7 +213,7 @@ Functionality is deliberately extracted into satellite repositories and consumed
 
 - [DivitMittal/ai-nixCfg](https://github.com/DivitMittal/ai-nixCfg): AI/LLM tool configurations extracted for modularity (CLI tools, cloud services, MCP servers, REPL configurations).
 - [DivitMittal/quant-nixCfg](https://github.com/DivitMittal/quant-nixCfg): Sandbox environment plus Nix home-manager modules/packages for open-source algorithmic-trading and quant workflows.
-- [DivitMittal/playbooks-4-windows](https://github.com/DivitMittal/playbooks-4-windows): Ansible IaC for the Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & T2); manages Scoop/Winget/MSYS2 packages, registry, and dotfiles.
+- [DivitMittal/playbooks-4-windows](https://github.com/DivitMittal/playbooks-4-windows): Ansible IaC for the Windows 11 boot on the x86_64 MacBook (triple-boot partner of L1 & L1N); manages Scoop/Winget/MSYS2 packages, registry, and dotfiles.
 - `DivitMittal/infra-nixCfg-secrets`: (Private) Contains encrypted secrets managed by `agenix` & `ragenix`.
 - [DivitMittal/Vim-Cfg](https://github.com/DivitMittal/Vim-Cfg): Pure-Lua standalone Neovim configuration, deployed via `nix4nvchad`.
 - [DivitMittal/Emacs-Cfg](https://github.com/DivitMittal/Emacs-Cfg): An Elisp Doom Emacs configuration, consumed as a flake input via `nix-doom-emacs-unstraightened`.

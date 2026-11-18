@@ -7,9 +7,9 @@ in {
       hostName = "iso";
       system = "x86_64-linux";
     };
-    t2-iso = mkCfg {
+    l1n-iso = mkCfg {
       inherit class;
-      hostName = "t2-iso";
+      hostName = "l1n-iso";
       system = "x86_64-linux";
     };
     # aarch64-linux — requires a native aarch64 builder or binfmt+QEMU to build

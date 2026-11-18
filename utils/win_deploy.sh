@@ -47,7 +47,7 @@ all | --wsl-only | --win-only | --build) ;;
 esac
 
 ssh_key="${WIN_DEPLOY_SSH_KEY:-$HOME/.ssh/agenix/id_ed25519}"
-ssh_opts=(-o BatchMode=yes -o ServerAliveInterval=15 -i "$ssh_key" -o IdentitiesOnly=yes)
+ssh_opts=(-o BatchMode=yes -o ServerAliveInterval=15 -o StrictHostKeyChecking=accept-new -i "$ssh_key" -o IdentitiesOnly=yes)
 remote() { ssh "${ssh_opts[@]}" "$target" "$@"; }
 # Run a command as root in the distro. sh -c, not -lc: a login shell prints
 # NixOS-WSL's welcome banner into the output.

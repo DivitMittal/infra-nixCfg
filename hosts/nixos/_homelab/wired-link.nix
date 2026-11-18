@@ -70,8 +70,12 @@
 in {
   # NetworkManager already holds the lease, gateway and DNS on these boxes;
   # the scripted dhcpcd from t640.nix's useDHCP default was a second DHCP
-  # client on the same port, doubling every route.
+  # client on the same port, doubling every route. useDHCP = false alone left
+  # dhcpcd.service in place, so disable it outright. Switching a live box over:
+  # make sure `nmcli device show` reports "connected" first, since NM can drop
+  # the link during activation and dhcpcd may be all that's left.
   networking.useDHCP = false;
+  networking.dhcpcd.enable = false;
 
   systemd.services.wired-link-watchdog = {
     description = "Recover the onboard NIC after a stuck link";

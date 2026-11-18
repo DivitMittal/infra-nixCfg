@@ -15,6 +15,7 @@ _: {
   # NetworkManager (common layer) holds the lease; dhcpcd on top of it was a
   # second client on the same port.
   networking.useDHCP = false;
+  networking.dhcpcd.enable = false;
 
   # 2 GiB of RAM: compressed swap in RAM before touching the disk.
   zramSwap.enable = true;

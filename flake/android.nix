@@ -10,6 +10,13 @@
     lockFile = ../android/M1/apps.lock.json;
   };
 
+  # Echo Show 5, plugged into T3 by USB; T3 is its controller.
+  flake.androidConfigurations.E1 = inputs.nix-android.lib.mkDevice {
+    system = "x86_64-linux"; # T3
+    modules = [../android/E1/device.nix];
+    lockFile = ../android/E1/apps.lock.json;
+  };
+
   perSystem = {
     system,
     pkgs,

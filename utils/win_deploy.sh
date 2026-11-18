@@ -64,7 +64,8 @@ archive=$(nix flake archive --dry-run --json "git+file://$root?rev=$rev")
 src=$(jq -r .path <<<"$archive")
 secrets=$(jq -r '.inputs["infra-nixCfg-secrets"].path' <<<"$archive")
 nixwin_rev=$(jq -r '.nodes["nix-win"].locked.rev' "$root/flake.lock")
-nix_flags="--extra-experimental-features 'nix-command flakes' --option accept-flake-config false --override-input infra-nixCfg-secrets path:$secrets"
+# The fresh distro has flakes off, and nixos-rebuild only takes --option.
+nix_flags="--option experimental-features 'nix-command flakes' --option accept-flake-config false --override-input infra-nixCfg-secrets path:$secrets"
 
 echo "win-deploy: importing $rev into $host's $distro store..."
 nix-store --export "$src" "$secrets" | in_wsl "nix-store --import >/dev/null"

@@ -1755,11 +1755,11 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1794944464,
-        "narHash": "sha256-yqj8xUI6CakSnZzRQomVNhD7gv9bmX5rlt1ENIu1xPQ=",
+        "lastModified": 1795005549,
+        "narHash": "sha256-OAod6+FaPq7p0LjQsqTROiYIBZpVjk2yuTOy6enRW8s=",
         "ref": "master",
-        "rev": "0d9705e53f88ec7cb9d735f7e626276b37336a03",
-        "revCount": 284,
+        "rev": "d8872aaadded946817028ec076b75aa965542065",
+        "revCount": 287,
         "type": "git",
         "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       },

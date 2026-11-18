@@ -65,13 +65,13 @@
       inherit class;
       hostName = "T2";
       system = "x86_64-linux";
-      additionalModules = homelabT640 ++ [./_homelab/agents.nix];
+      additionalModules = homelabT640 ++ [./_homelab/agents.nix ./_homelab/wired-link.nix];
     };
     T3 = mkCfg {
       inherit class;
       hostName = "T3";
       system = "x86_64-linux";
-      additionalModules = homelabT640 ++ [./_homelab/agents.nix];
+      additionalModules = homelabT640 ++ [./_homelab/agents.nix ./_homelab/wired-link.nix];
     };
     MON1 = mkCfg {
       inherit class;

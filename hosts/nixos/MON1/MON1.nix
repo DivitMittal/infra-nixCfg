@@ -2,7 +2,7 @@
 # "R1" (its UCI config stays in hosts/openwrt/R1 as a rollback reference).
 # Now the home lab's monitoring node; see monitoring.nix. It sits off the
 # router on purpose, so it can still alert when T1 is down.
-{lib, ...}: {
+_: {
   # The S100's firmware may be legacy-BIOS only, so GRUB is installed for both
   # BIOS (via the EF02 partition in disko.nix) and UEFI (as removable media,
   # which needs no NVRAM entry).
@@ -12,7 +12,9 @@
     efiInstallAsRemovable = true;
   };
 
-  networking.useDHCP = lib.mkDefault true;
+  # NetworkManager (common layer) holds the lease; dhcpcd on top of it was a
+  # second client on the same port.
+  networking.useDHCP = false;
 
   # 2 GiB of RAM: compressed swap in RAM before touching the disk.
   zramSwap.enable = true;

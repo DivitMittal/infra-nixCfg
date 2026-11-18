@@ -80,7 +80,7 @@
       {
         name = "Check for attic credentials";
         id = "attic";
-        run = "echo \"enabled=\${{ secrets.ATTIC_TOKEN != '' }}\" >> \"$GITHUB_OUTPUT\"";
+        run = "echo \"enabled=\${{ secrets.ATTIC_TOKEN != '' && secrets.TS_OAUTH_CLIENT_ID != '' && secrets.TS_OAUTH_SECRET != '' }}\" >> \"$GITHUB_OUTPUT\"";
       }
       {
         name = "Join the tailnet to reach attic on T3";

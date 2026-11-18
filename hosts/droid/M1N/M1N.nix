@@ -1,10 +1,11 @@
 {pkgs, ...}: {
-  # user.uid/gid default to `id -u`/`id -g`, auto-detected at build time — accurate
-  # when building on-device (the running process's uid *is* the app's Android uid).
-  # M1 (hosts/droid/M1/M1.nix) pins these explicitly instead; if this host ever needs
-  # the same (e.g. cross-building off-device), find the value post-install via
-  # `id -u` inside a com.termux.launcher.nix session, or `stat -c %u ~` and pin it here.
+  # Android's uid for com.termux.launcher.nix on this phone, read with
+  # `adb shell stat -c %u /data/data/com.termux.launcher.nix` (2026-11-19).
+  # Pinned because deploys build off-device, where `id -u` is the builder's.
+  # Changes if the app is reinstalled.
   user = {
+    uid = 10317;
+    gid = 10317;
     shell = "${pkgs.fish}/bin/fish";
   };
 

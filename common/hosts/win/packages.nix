@@ -60,6 +60,10 @@
       "Microsoft.VCRedist.2015+.x64" = {};
       "Microsoft.VCRedist.2015+.x86" = {};
       "Microsoft.DotNet.Runtime.8" = {};
+      # DSC v3. Without it nix-win skips the win.dsc phase (registry settings
+      # in settings.nix) with only a warning. Installed before that phase,
+      # but only on PATH from the next switch on.
+      "Microsoft.DSC" = {};
     };
   };
 }

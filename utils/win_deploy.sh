@@ -8,8 +8,12 @@
 #   win-deploy L2 --build      # nix-win build, no activation
 #
 # Why not deploy-rs: the SSH target is Windows, which has no Nix to receive a
-# closure. Windows OpenSSH admin sessions are elevated, so nix-win's
-# machine-scope registry writes work without a scheduled-task detour.
+# closure.
+#
+# Why a scheduled task: nix-win copies its build output from the distro's
+# \\wsl.localhost share, which an OpenSSH session can't see. A task running
+# as the logged-on user (interactive, highest run level) can, and is elevated
+# for nix-win's machine-scope registry writes. So that user must be logged on.
 #
 # Why the store import: the flake has a private input (infra-nixCfg-secrets)
 # that WSL can't fetch without GitHub credentials. The committed flake source
@@ -32,6 +36,7 @@ L2)
   target="vanee@192.168.2.6" # T640 router reservation
   distro="NixOS"
   wsl_user="vanee"
+  win_user="vanee"
   wsl_attr="L2W"
   win_attr="l2"
   ;;
@@ -84,9 +89,45 @@ echo "win-deploy: building winConfigurations.$win_attr..."
 remote "wsl -d $distro -u $wsl_user -- /bin/sh -c \"PATH=/run/current-system/sw/bin; nix build --no-link $nix_flags path:$src#winConfigurations.$win_attr.config.system.build.toplevel\""
 
 cli=$(in_wsl "nix build --no-link --print-out-paths --extra-experimental-features 'nix-command flakes' github:jacobbrugh/nix-win/$nixwin_rev#nix-win" | tr -d '\r' | tail -1)
-cli_win="\\\\wsl.localhost\\$distro${cli//\//\\}\\nix-win.ps1"
 
 command="switch"
 [ "$mode" = --build ] && command="build"
+
+console_user=$(remote 'powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystem).UserName"' | tr -d '\r' | tail -1)
+if [ "${console_user##*\\}" != "$win_user" ]; then
+  echo "win-deploy: $win_user must be logged on at $host's console (found '${console_user:-nobody}')" >&2
+  exit 1
+fi
+
+## Stage the CLI and a runner on the Windows disk (through the distro's
+## /mnt/c), then run the runner as a task in the user's session.
+stage="/mnt/c/Users/$win_user/AppData/Local/nix-win/deploy"
+stage_win="C:\\Users\\$win_user\\AppData\\Local\\nix-win\\deploy"
+remote "wsl -d $distro -u $wsl_user -- /bin/sh -c \"PATH=/run/current-system/sw/bin; mkdir -p $stage && rm -f $stage/done $stage/log.txt && cp -f $cli/nix-win.ps1 $stage/nix-win.ps1 && cat > $stage/run.ps1\"" <<EOF
+\$ErrorActionPreference = 'Continue'
+Start-Transcript -Path '$stage_win\\log.txt' | Out-Null
+try {
+  & '$stage_win\\nix-win.ps1' $command -FlakeUri 'path:$src' -FlakeAttr 'winConfigurations.$win_attr' -WslDistro '$distro' -WslUser '$wsl_user'
+  \$code = if (\$LASTEXITCODE) { \$LASTEXITCODE } else { 0 }
+} catch {
+  Write-Host \$_
+  \$code = 1
+}
+Stop-Transcript | Out-Null
+Set-Content -Path '$stage_win\\done' -Value \$code
+EOF
+
 echo "win-deploy: nix-win $command on $host..."
-remote "pwsh -NoProfile -ExecutionPolicy Bypass -File \"$cli_win\" $command -FlakeUri \"path:$src\" -FlakeAttr winConfigurations.$win_attr -WslDistro $distro -WslUser $wsl_user"
+remote "schtasks /create /f /tn nix-win-deploy /sc once /st 23:59 /ru $win_user /it /rl highest /tr \"pwsh -NoProfile -ExecutionPolicy Bypass -File $stage_win\\run.ps1\" >nul && schtasks /run /tn nix-win-deploy >nul"
+
+for _ in $(seq 1 360); do
+  code=$(remote "type $stage_win\\done 2>nul" | tr -d '\r\377\376\000' | tr -d '[:space:]' || true)
+  [ -n "$code" ] && break
+  sleep 10
+done
+remote "type $stage_win\\log.txt & schtasks /delete /f /tn nix-win-deploy >nul" | tr -d '\r\000'
+if [ -z "${code:-}" ]; then
+  echo "win-deploy: nix-win did not finish within an hour" >&2
+  exit 1
+fi
+exit "$code"

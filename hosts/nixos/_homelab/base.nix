@@ -36,6 +36,14 @@ in {
   # Console login at a keyboard and screen uses the same passwords as the
   # VPSes (yescrypt hashes, decrypted by agenix at activation). SSH stays
   # key-only above. The identity is seeded at install time by bootstrap.
+  # The home lab's attic cache on T3 (hosts/nixos/T3/attic.nix). LAN-only, so
+  # it's set here rather than for every host: off-LAN machines would stall
+  # on it until connect-timeout.
+  nix.settings = {
+    extra-substituters = ["http://192.168.2.8:8080/infra"];
+    extra-trusted-public-keys = ["infra:D0to97aI1ZMSTtxcsl5VxSga2caAi20bWFrBaGJZ3VM="];
+  };
+
   imports = [inputs.agenix.nixosModules.default];
   age.identityPaths = ["/var/lib/agenix/id_ed25519"];
   age.secrets."users/div".file = inputs.infra-nixCfg-secrets + "/secrets/users/div.age";

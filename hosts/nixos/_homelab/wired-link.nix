@@ -77,6 +77,21 @@ in {
   networking.useDHCP = false;
   networking.dhcpcd.enable = false;
 
+  # Provision a persistent profile before dhcpcd is removed. Importing its
+  # live lease into NM leaves no reliable autoconnect policy after reboot.
+  networking.networkmanager.ensureProfiles.profiles.homelab-wired = {
+    connection = {
+      id = "homelab-wired";
+      type = "ethernet";
+      interface-name = "enp2s0f0";
+      autoconnect = true;
+      autoconnect-priority = 100;
+      autoconnect-retries = 0;
+    };
+    ipv4.method = "auto";
+    ipv6.method = "auto";
+  };
+
   systemd.services.wired-link-watchdog = {
     description = "Recover the onboard NIC after a stuck link";
     wantedBy = ["multi-user.target"];

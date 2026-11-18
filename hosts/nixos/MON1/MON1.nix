@@ -16,6 +16,18 @@ _: {
   # second client on the same port.
   networking.useDHCP = false;
   networking.dhcpcd.enable = false;
+  networking.networkmanager.ensureProfiles.profiles.homelab-wired = {
+    connection = {
+      id = "homelab-wired";
+      type = "ethernet";
+      interface-name = "enp1s0";
+      autoconnect = true;
+      autoconnect-priority = 100;
+      autoconnect-retries = 0;
+    };
+    ipv4.method = "auto";
+    ipv6.method = "auto";
+  };
 
   # 2 GiB of RAM: compressed swap in RAM before touching the disk.
   zramSwap.enable = true;

@@ -105,20 +105,6 @@ in {
     T3 = mkHomelabNode "T3.lan" self.nixosConfigurations.T3;
     MON1 = mkHomelabNode "MON1.lan" self.nixosConfigurations.MON1;
 
-    # Echo Show 5 running Termux Launcher (Nix edition). Same uid caveat as M1.
-    E1 = mkDroidNode {
-      hostname = "E1";
-      configuration = self.nixOnDroidConfigurations.E1;
-      sshOpts = ["-p" "8022" "-i" "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key" "-o" "HostKeyAlias=E1"];
-    };
-
-    E1-adb = mkAdbDroidNode {
-      name = "E1-adb";
-      configuration = self.nixOnDroidConfigurations.E1;
-      port = 18024;
-      key = "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key";
-    };
-
     # Oracle Cloud A1 Flex VPS in Mumbai.
     VPS0 = {
       hostname = "80.225.249.202";

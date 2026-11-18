@@ -182,11 +182,6 @@ in {
           localPort = 18022;
           remotePort = 8022;
         }
-        ++ mkAdbDeployCommands {
-          host = "E1";
-          localPort = 18024;
-          remotePort = 8022;
-        }
         ++ [
           {
             name = "pkgs-update";

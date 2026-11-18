@@ -17,7 +17,5 @@
   in {
     # The phone (DN2103). Stock nix-on-droid was retired for the launcher.
     M1 = mkLauncherHost "M1";
-    # Amazon Echo Show 5.
-    E1 = mkLauncherHost "E1";
   };
 }

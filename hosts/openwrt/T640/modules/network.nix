@@ -200,6 +200,19 @@ in {
             mac = homelab.macs.MON1;
             ip = "192.168.2.5";
           };
+          # Wired workstations on S2, fixed so SSH aliases stay valid.
+          L2 = {
+            _type = "host";
+            name = "L2";
+            mac = homelab.macs.L2-eth;
+            ip = "192.168.2.6";
+          };
+          M1 = {
+            _type = "host";
+            name = "M1";
+            mac = homelab.macs.M1-eth;
+            ip = "192.168.2.7";
+          };
         };
       }
       // optionalAttrs isPppoe {

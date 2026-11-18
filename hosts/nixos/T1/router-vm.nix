@@ -119,6 +119,9 @@ in {
   # session tracking and any home-LAN DHCP/ARP expects).
   systemd.network = {
     enable = true;
+    # The host is online through lan-host. Unaddressed macvtap links belong
+    # to the router guest and must not stall activation waiting for host IPs.
+    wait-online.anyInterface = true;
     links = {
       "10-${wanPhysIface}" = {
         matchConfig.PermanentMACAddress = wanMac;

@@ -4,16 +4,19 @@
 # github:devindudeman/nix-android for the full option surface.
 {
   device.name = "M1";
-  # Placeholder — confirm with `adb shell getprop ro.product.cpu.abi` against
-  # the real phone, then re-run `android-rebuild update` if it differs.
+  # Read from the phone (DN2103, Android 16) on 2026-11-19.
   device.abi = "arm64-v8a";
 
   apps.fdroid.packages = [
     "org.fdroid.fdroid"
-    "com.termux" # already managed on-device per hosts/droid/M1/M1.nix's termux-gui usage
   ];
+  # The Nix environment is Termux Launcher's Nix edition
+  # (com.termux.launcher.nix, from PickleHik3/termux-launcher's `-nix`
+  # releases), configured by hosts/droid/M1N. Stock com.termux is not used.
 
   # First Obtainium-tracked app to migrate off Obtainium itself — nix-android's
   # own bench config uses this exact source as its worked example.
-  apps.release."dev.imranr.obtainium.fdroid".github = "ImranR98/Obtainium";
+  # The installed build is the GitHub one (dev.imranr.obtainium), not the
+  # F-Droid flavour.
+  apps.release."dev.imranr.obtainium".github = "ImranR98/Obtainium";
 }

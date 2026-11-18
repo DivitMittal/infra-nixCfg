@@ -4,9 +4,7 @@
   inputs,
   ...
 }: {
-  imports = [inputs.agenix.nixosModules.default];
-
-  age.identityPaths = ["/var/lib/agenix/id_ed25519"];
+  # agenix and its identity path come from _homelab/base.nix.
   age.secrets.k3s-token = {
     file = inputs.infra-nixCfg-secrets + "/secrets/homelab/k3s-token.age";
     mode = "0400";

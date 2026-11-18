@@ -33,10 +33,22 @@ in {
       PermitRootLogin = "prohibit-password";
     };
   };
-  users.users.root.openssh.authorizedKeys.keys = [sshPubKey];
+  # Console login at a keyboard and screen uses the same passwords as the
+  # VPSes (yescrypt hashes, decrypted by agenix at activation). SSH stays
+  # key-only above. The identity is seeded at install time by bootstrap.
+  imports = [inputs.agenix.nixosModules.default];
+  age.identityPaths = ["/var/lib/agenix/id_ed25519"];
+  age.secrets."users/div".file = inputs.infra-nixCfg-secrets + "/secrets/users/div.age";
+  age.secrets."users/root".file = inputs.infra-nixCfg-secrets + "/secrets/users/root.age";
+
+  users.users.root = {
+    openssh.authorizedKeys.keys = [sshPubKey];
+    hashedPasswordFile = config.age.secrets."users/root".path;
+  };
   users.users."${config.hostSpec.username}" = {
     extraGroups = ["wheel"];
     openssh.authorizedKeys.keys = [sshPubKey];
+    hashedPasswordFile = config.age.secrets."users/div".path;
   };
 
   # The public resolver defaults cannot answer the router's local .lan names

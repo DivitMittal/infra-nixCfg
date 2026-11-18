@@ -68,17 +68,39 @@ in {
             {
               name = "List configurations to evaluate";
               id = "targets";
-              # The filter comes from the dispatch input or, on pushes, an
-              # `Eval-Filter: <regex>` trailer on the head commit. Both reach the
-              # shell via env/git only, never interpolated into the script.
-              env.FILTER_INPUT = "\${{ inputs.filter }}";
+              # Selection, first match wins:
+              #   1. the dispatch input or an `Eval-Filter: <regex>` trailer on
+              #      the head commit (manual override);
+              #   2. on pull requests, the targets the changed files can affect
+              #      (flake/actions/select-targets.sh), possibly none;
+              #   3. everything (pushes to master, eval/** without a trailer).
+              # Values reach the shell via env/git only, never interpolated into
+              # the script.
+              env = {
+                FILTER_INPUT = "\${{ inputs.filter }}";
+                EVENT_NAME = "\${{ github.event_name }}";
+                BASE_SHA = "\${{ github.event.pull_request.base.sha }}";
+              };
               # Assign first: inside `echo "$(...)"` a failed eval is swallowed
               # and the step passes with an empty matrix.
               run = ''
                 filter=''${FILTER_INPUT:-$(git log -1 --format='%(trailers:key=Eval-Filter,valueonly,separator=|)')}
+                source=manual
+                if [ -z "$filter" ] && [ "$EVENT_NAME" = pull_request ]; then
+                  git fetch --quiet --depth=1 origin "$BASE_SHA"
+                  changed=$(git diff --name-only "$BASE_SHA" HEAD)
+                  echo "changed files:"; sed 's/^/  /' <<<"$changed"
+                  selected=$(bash flake/actions/select-targets.sh <<<"$changed")
+                  if [ -z "$selected" ]; then
+                    echo "No evaluated configuration depends on these changes."
+                    echo "targets=[]" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  [ "$selected" = ALL ] || { filter=$selected; source=changes; }
+                fi
                 all=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
                 targets=$(jq -c --arg f "$filter" 'map(select(.attr | test($f)))' <<<"$all")
-                echo "filter: ''${filter:-<none>}"
+                echo "filter ($source): ''${filter:-<none>}"
                 jq -r '.[].attr' <<<"$targets"
                 if [ "$(jq length <<<"$targets")" -eq 0 ]; then
                   echo "::error::Eval filter '$filter' matched no targets"
@@ -92,6 +114,9 @@ in {
       evaluate = {
         name = "\${{ matrix.target.attr }}";
         needs = ["list-targets"];
+        # A PR whose changes no configuration depends on selects nothing; an
+        # empty matrix would fail the workflow instead of skipping.
+        "if" = "needs.list-targets.outputs.targets != '[]'";
         runs-on = "\${{ matrix.target.runner }}";
         permissions = common-permissions;
         inherit environment;

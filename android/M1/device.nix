@@ -12,7 +12,7 @@
   ];
   # The Nix environment is Termux Launcher's Nix edition
   # (com.termux.launcher.nix, from PickleHik3/termux-launcher's `-nix`
-  # releases), configured by hosts/droid/M1N. Stock com.termux is not used.
+  # releases), configured by hosts/droid/M1 (#70). Stock com.termux is not used.
 
   # First Obtainium-tracked app to migrate off Obtainium itself — nix-android's
   # own bench config uses this exact source as its worked example.

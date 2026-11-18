@@ -57,3 +57,27 @@ network/DHCP/system configurations are backed up locally under
 
 The temporary management namespace was on T3's installer and disappeared on
 reboot. T1 remained the router. T3's normal post-boot gateway is dynamic again.
+
+## 2026-11-18 power interruption (unresolved, needs someone on site)
+
+At 12:00 IST T1's previous boot ended with no shutdown record, i.e. a power cut.
+
+- **T1** powered back on by itself (12:02), but both USB 3 gigabit adapters on its
+  USB hub are missing: every port of the USB 3 hub reports "not attached", and a
+  hub re-enumeration found nothing. The WAN adapter is one of them, so
+  `openwrt-router-vm` crash-loops (`/sys/class/net/wan-mvtap` doesn't exist) and
+  the LAN has no router, DHCP or internet. Check the hub's external power supply
+  and that both adapters are seated, then restart the service or reboot T1.
+- **T3 and MON1** don't answer even ARP from L1 or T1, so they most likely stayed
+  off after the outage. Power them on.
+- S1 and T1's host address (192.168.2.3) stayed reachable.
+
+Follow-up for the BIOS work: setting "After Power Loss / AC recovery" to power on
+is exactly the kind of setting the declarative-BIOS module should enforce, so a
+power cut brings the whole fleet back without anyone at the boxes.
+
+Pending deploys (committed, CI green, not yet applied):
+
+- T2/T3 `wired-link.nix` (NIC watchdog, drop duplicate dhcpcd): apply to T3 with
+  a test-first switch once it is back.
+- MON1 `useDHCP = false`: rebuild MON1.

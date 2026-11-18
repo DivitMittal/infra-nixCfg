@@ -249,7 +249,7 @@ in {
     # see playbooks-4-windows' feat/nix-win-migration branch for the
     # remaining Ansible-driven bootstrap that has to happen first).
     l2-windows = {
-      hostname = "192.168.1.XXX"; # TODO: L2's real address, once known
+      hostname = "192.168.2.6"; # T640 router reservation (L2-eth)
       profiles.system = {
         sshUser = "vanee";
         user = "vanee";

@@ -35,6 +35,35 @@
     };
   };
 
+  mkDroidNode = {
+    hostname,
+    configuration,
+    sshOpts,
+  }: {
+    inherit hostname;
+    profiles.system = {
+      sshUser = "nix-on-droid";
+      user = "nix-on-droid";
+      magicRollback = true;
+      inherit sshOpts;
+      path = activateNixOnDroid configuration;
+    };
+  };
+
+  # Reached through `adb forward` (the devshell's <host>-adb-forward). Every
+  # forwarded device is 127.0.0.1, so known_hosts needs a per-node alias.
+  mkAdbDroidNode = {
+    name,
+    configuration,
+    port,
+    key,
+  }:
+    mkDroidNode {
+      hostname = "127.0.0.1";
+      inherit configuration;
+      sshOpts = ["-p" (toString port) "-i" key "-o" "HostKeyAlias=${name}" "-o" "CheckHostIP=no"];
+    };
+
   mkVpsHomeProfile = {
     system,
     configuration,
@@ -51,37 +80,20 @@
   };
 in {
   flake.deploy.nodes = {
-    # nix-on-droid device on the local network
-    M1 = {
-      hostname = "M1";
-      profiles.system = {
-        sshUser = "nix-on-droid";
-        user = "nix-on-droid";
-        magicRollback = true;
-        sshOpts = ["-p" "8022"];
-        path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
-      };
+    # The phone, on Termux Launcher's Nix edition. Its fixed LAN address is a
+    # router reservation (hosts/openwrt/T640); uid/gid are pinned in
+    # hosts/droid/M1/M1.nix because the build happens off-device.
+    M1 = mkDroidNode {
+      hostname = "192.168.2.7";
+      configuration = self.nixOnDroidConfigurations.M1;
+      sshOpts = ["-p" "8022" "-i" "~/.ssh/agenix/id_ed25519" "-o" "HostKeyAlias=M1"];
     };
 
-    # nix-on-droid device over ADB-forwarded SSH
-    M1-adb = {
-      hostname = "127.0.0.1";
-      profiles.system = {
-        sshUser = "nix-on-droid";
-        user = "nix-on-droid";
-        magicRollback = true;
-        sshOpts = [
-          "-p"
-          "18022"
-          "-i"
-          "~/.ssh/nix-on-droid/ssh_host_rsa_key"
-          "-o"
-          "HostKeyAlias=M1-adb"
-          "-o"
-          "CheckHostIP=no"
-        ];
-        path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
-      };
+    M1-adb = mkAdbDroidNode {
+      name = "M1-adb";
+      configuration = self.nixOnDroidConfigurations.M1;
+      port = 18022;
+      key = "~/.ssh/agenix/id_ed25519";
     };
 
     # Home lab, reached over the LAN. T1's host address is static
@@ -92,6 +104,20 @@ in {
     T2 = mkHomelabNode "T2.lan" self.nixosConfigurations.T2;
     T3 = mkHomelabNode "T3.lan" self.nixosConfigurations.T3;
     MON1 = mkHomelabNode "MON1.lan" self.nixosConfigurations.MON1;
+
+    # Echo Show 5 running Termux Launcher (Nix edition). Same uid caveat as M1.
+    E1 = mkDroidNode {
+      hostname = "E1";
+      configuration = self.nixOnDroidConfigurations.E1;
+      sshOpts = ["-p" "8022" "-i" "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key" "-o" "HostKeyAlias=E1"];
+    };
+
+    E1-adb = mkAdbDroidNode {
+      name = "E1-adb";
+      configuration = self.nixOnDroidConfigurations.E1;
+      port = 18024;
+      key = "~/.ssh/nix-on-droid-E1/ssh_host_rsa_key";
+    };
 
     # Oracle Cloud A1 Flex VPS in Mumbai.
     VPS0 = {

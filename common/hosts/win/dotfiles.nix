@@ -56,7 +56,7 @@ in {
 
         [core]
         	editor        = nvim
-        	excludesfile  = ${configHome}/git/ignore
+        	excludesfile  = ~/.config/git/ignore
         	autocrlf      = false
         	eol           = lf
         	symlinks      = true

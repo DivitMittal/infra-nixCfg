@@ -13,7 +13,7 @@
     buckets = {
       main = "https://github.com/ScoopInstaller/Main";
       extras = "https://github.com/ScoopInstaller/Extras";
-      nerd-fonts = "https://github.com/ScoopInstaller/Nerd-Fonts";
+      nerd-fonts = "https://github.com/matthewjberger/scoop-nerd-fonts"; # scoop's known nerd-fonts bucket
       versions = "https://github.com/ScoopInstaller/Versions";
     };
 
@@ -33,14 +33,14 @@
 
       # ── Dev Environment ──────────────────────────────────────────────────
       msys2.bucket = "main";
-      mingw-winlibs-llvm-ucrt.bucket = "main";
+      mingw-winlibs-llvm-ucrt.bucket = "versions";
       whkd.bucket = "extras";
 
       # ── Applications ─────────────────────────────────────────────────────
       wezterm.bucket = "extras";
       firefox.bucket = "extras";
       starship.bucket = "main";
-      fastfetch.bucket = "extras";
+      fastfetch.bucket = "main";
       dark.bucket = "extras";
       onlyoffice-desktopeditors.bucket = "extras";
       localsend.bucket = "extras";

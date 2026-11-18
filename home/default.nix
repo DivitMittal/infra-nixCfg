@@ -75,14 +75,14 @@
       hostName = "T2";
       system = "x86_64-linux";
       inherit class;
-      additionalModules = fullModules;
+      additionalModules = fullModules ++ [./_homelab-package-fixes.nix];
     };
 
     T3 = mkCfg {
       hostName = "T3";
       system = "x86_64-linux";
       inherit class;
-      additionalModules = ttyDevModules;
+      additionalModules = ttyDevModules ++ [./_homelab-package-fixes.nix];
     };
 
     MON1 = mkCfg {

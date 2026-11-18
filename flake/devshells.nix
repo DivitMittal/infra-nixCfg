@@ -159,6 +159,12 @@ in {
             category = "bootstrap";
           }
           {
+            name = "win-deploy";
+            help = "Deploy a Windows host's NixOS-WSL distro and nix-win config: win-deploy L2 [--wsl-only|--win-only|--build]";
+            command = "${self}/utils/win_deploy.sh \"$@\"";
+            category = "hosts";
+          }
+          {
             name = "deploy-home";
             help = "Deploy a remote standalone Home Manager profile: deploy-home VPS1 [deploy-rs flags]";
             command = ''

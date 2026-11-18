@@ -85,12 +85,11 @@
             };
           };
 
-          # Unmanaged switch hanging off S1's last free port, carrying the
-          # home-lab nodes S1 has no room for. Cabling is assumed; adjust to
-          # match reality. The Lenovo S100 (formerly R1) is now MON1 and
-          # registers its own node from hosts/nixos/MON1/topology.nix.
-          nodes.SW2 = let
-            downlink = node: {
+          # Two-switch home LAN, one flat untagged network. Port map measured
+          # 2026-11-19 from S1's per-port counters (ping each host, watch
+          # which port its replies arrive on).
+          nodes.S1 = let
+            hostPort = node: {
               network = "home";
               type = "ethernet";
               physicalConnections = [
@@ -101,9 +100,30 @@
               ];
             };
           in {
-            name = "SW2";
+            name = "S1";
             deviceType = "switch";
-            hardware.info = "Unmanaged switch (not monitorable; visible only through probes of the hosts behind it)";
+            hardware.info = "TP-Link TL-SG105E managed switch (Easy Smart, no SNMP); mgmt IP 192.168.2.2. Carries the home-lab nodes; S2 hangs off port5";
+            interfaces = {
+              port1 = hostPort "T3";
+              # T1's router VM owns lan0 through a macvtap, so the edge
+              # lands on the router node (T1's topology.id).
+              port2 = hostPort "router";
+              port3 = hostPort "MON1";
+              port4 = hostPort "T2";
+              # port5: uplink to S2, declared from S2's side.
+              port5 = {
+                network = "home";
+                type = "ethernet";
+              };
+            };
+          };
+
+          # Unmanaged desktop switch for the workstations. Not monitorable;
+          # its port numbers carry no meaning, only the edges do.
+          nodes.S2 = {
+            name = "S2";
+            deviceType = "switch";
+            hardware.info = "Unmanaged switch (not monitorable). Uplinked to S1 port5; carries the workstations";
             interfaces = {
               uplink = {
                 network = "home";
@@ -115,66 +135,27 @@
                   }
                 ];
               };
-              port2 = downlink "T2";
-              port3 = downlink "T3";
-              port4 = downlink "MON1";
-            };
-          };
-
-          nodes.S1 = {
-            name = "S1";
-            deviceType = "switch";
-            hardware.info = "TP-Link TL-SG105E managed switch; mgmt IP 192.168.2.2 (VLAN20; the router's LAN gateway IP moved from R1's old 192.168.2.1 to T1/T640 — exact value TBD, not yet configured)";
-            # Uplink to T1 (lan0, on its router VM) on the flat untagged LAN
-            # — no VLAN tagging. WAN is not trunked here; R0 cables directly
-            # into T1's wan.
-            interfaces.port1 = {
-              network = "home";
-              type = "ethernet";
-              physicalConnections = [
-                {
-                  node = "router";
-                  interface = "lan0";
-                }
-              ];
-            };
-            # VLAN20 access ports.
-            interfaces.port2 = {
-              network = "home";
-              type = "ethernet";
-              physicalConnections = [
-                {
-                  node = "ASL1";
-                  interface = "eth0";
-                }
-              ];
-            };
-            interfaces.port3 = {
-              network = "home";
-              type = "ethernet";
-              physicalConnections = [
-                {
-                  node = "L2";
-                  interface = "eth0";
-                }
-              ];
-            };
-            interfaces.port4 = {
-              network = "home";
-              type = "ethernet";
-              physicalConnections = [
-                {
-                  node = "M1";
-                  interface = "eth0";
-                }
-              ];
-            };
-            # port5: uplink to the unmanaged SW2 (declared from SW2's side).
-            # The old VLAN10 WAN uplink from R0 is gone — R0 now cables
-            # directly into T1's wan.
-            interfaces.port5 = {
-              network = "home";
-              type = "ethernet";
+              # L1's AX88179B USB-C adapter (macOS en23).
+              port2 = {
+                network = "home";
+                type = "ethernet";
+                physicalConnections = [
+                  {
+                    node = "L1";
+                    interface = "eth0";
+                  }
+                ];
+              };
+              port3 = {
+                network = "home";
+                type = "ethernet";
+                physicalConnections = [
+                  {
+                    node = "M1";
+                    interface = "eth0";
+                  }
+                ];
+              };
             };
           };
 
@@ -183,8 +164,13 @@
             name = "L1";
             deviceType = "device";
             hardware.info = "macOS nix-darwin (x86_64) - triple-boot with L1N NixOS & Windows 11";
-            # On R0's own Wi-Fi (the ISP router's network, outside the home
-            # LAN), not wired to S1.
+            # Wired into the home LAN through S2 (edge declared from S2).
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
+            };
+            # Also on R0's own Wi-Fi (the ISP router's network, outside the
+            # home LAN).
             interfaces.en0 = {
               network = "ont";
               type = "wifi";
@@ -218,7 +204,7 @@
                 }
               ];
             };
-            # Wired into S1 (port2); S1 declares the edge from its side.
+            # Wired Ethernet; not currently cabled to either switch.
             interfaces.eth0 = {
               network = "home";
               type = "ethernet";
@@ -284,7 +270,7 @@
               network = "home";
               type = "wifi";
             };
-            # Wired uplink to S1 (VLAN20, port4).
+            # Wired over a USB-C Ethernet adapter into S2 (edge declared from S2).
             interfaces.eth0 = {
               network = "home";
               type = "ethernet";

@@ -303,12 +303,11 @@ Bring them up in this order, because each step needs the one before it:
    workload placement, storage, and backup requirements. T1 stays outside
    Kubernetes so cluster workloads cannot disrupt routing.
 
-The diagram's port assignments are an example; the current setup connects
-L1, T1 and T3 to S1 directly. Confirm the port numbers before relying on its
-physical edges. The unmanaged switch (`SW2`) can expand the flat LAN when
-needed. Neither switch is fully monitorable: S1 (Easy Smart) has no
-SNMP, so MON1 only pings it and probes its web UI, and SW2 can't be monitored
-at all.
+S1 ports 1–4 carry T3, T1 (router), MON1 and T2; port 5 uplinks the
+unmanaged switch S2, which carries the workstations (L1, M1). The port map was
+measured from S1's per-port counters on 2026-11-19, so re-measure after
+recabling. Neither switch is fully monitorable: S1 (Easy Smart) has no SNMP,
+so MON1 only pings it and probes its web UI, and S2 can't be monitored at all.
 
 ### T1 (HP t640 thin client) — PXE/facter bootstrap
 

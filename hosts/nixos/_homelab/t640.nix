@@ -3,9 +3,14 @@
 # `bootstrap-remote <host> --check`) before a destructive install; override
 # disko.devices.disk.main.device per host if it isn't /dev/sda.
 {lib, ...}: {
-  imports = [./hp-bios.nix];
+  imports = [./hp-bios.nix ./hp-bios-boot-order.nix];
 
   hardware.hpBiosInventory.enable = lib.mkDefault true;
+  # Drift detection only; set mode = "enforce" per host once approved. HP
+  # setup settings (AMD-V, "After Power Loss", ...) have no working Linux
+  # backend on M43 v01.11, so UEFI BootOrder is the one boot policy NixOS can
+  # own. Power-loss recovery must be set in F10 (docs/hp-t640-bios.md).
+  hardware.uefiBootOrder.enable = lib.mkDefault true;
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;

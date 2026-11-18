@@ -113,6 +113,9 @@
         return "\\" + path.replace("/", "\\").strip("\\").lower()
 
 
+    FALLBACK = "\\efi\\boot\\bootx64.efi"
+
+
     def esp_partuuid(esp):
         target = os.path.realpath(esp)
         device = None
@@ -139,6 +142,11 @@
         partuuid = (args.esp_partuuid or esp_partuuid(args.esp)).lower()
         loader = normalise(args.loader)
         matches = []
+        # HP firmware generates its own entry for the disk ("UEFI: SSD ...,
+        # Partition 1") and can put it first after a setup change. It boots
+        # the same ESP via the removable-media fallback, which systemd-boot
+        # also installs, so it is equivalent to the loader entry.
+        equivalent = set()
         for name in sorted(os.listdir(args.efivars)):
             stem = name[:-len(GLOBAL) - 1]
             if not (name.endswith(GLOBAL) and len(stem) == 8 and stem.startswith("Boot")):
@@ -150,6 +158,10 @@
             option = parse_load_option(read_var(args.efivars, stem))
             if option["partuuid"] == partuuid and option["file"] and normalise(option["file"]) == loader:
                 matches.append((number, option))
+            elif option["partuuid"] == partuuid and option["active"] and (
+                option["file"] is None or normalise(option["file"]) == FALLBACK
+            ):
+                equivalent.add(number)
         if not matches:
             raise Failure("no Boot#### entry points at the configured loader on the ESP")
         if len(matches) > 1:
@@ -158,6 +170,11 @@
         number, option = matches[0]
         if not option["active"]:
             raise Failure(f"Boot{number:04X} points at the loader but is inactive")
+        position = order.index(number) if number in order else len(order)
+        if all(n in equivalent for n in order[:position]):
+            # Everything ahead of the loader boots it anyway: compliant as is,
+            # so never write (that would fight the firmware on every boot).
+            return order, list(order), number
         desired = [number] + [n for n in order if n != number]
         return order, desired, number
 

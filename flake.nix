@@ -219,6 +219,12 @@
     };
 
     ## AI
+    # aicommit2 pins a pnpm 10 dependency store. Following the main nixpkgs
+    # silently switches it to pnpm 11's different store representation.
+    aicommit2-build-nixpkgs = {
+      url = "github:NixOS/nixpkgs/7fd36ee82c0275fb545775cc5e4d30542899511d";
+      flake = false;
+    };
     ai-nixCfg = {
       url = "github:DivitMittal/ai-nixCfg";
       #url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";

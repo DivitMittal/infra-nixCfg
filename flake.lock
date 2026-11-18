@@ -236,11 +236,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793748325,
-        "narHash": "sha256-Tt8O5qBtlqOGo7Ifuk6kxKEgHdMX+CWzq88PRHoVWcE=",
+        "lastModified": 1795028771,
+        "narHash": "sha256-/TuaKsIEXE9ZKKoOH5ZKGLdUJ8uh63wrlsBRkCpBZdc=",
         "owner": "DivitMittal",
         "repo": "ai-nixCfg",
-        "rev": "013bad150b9ab59b1c7af7d00e009f1aa7a04a49",
+        "rev": "d9d730f5dc487391b921171be639d1a2dbf449b9",
         "type": "github"
       },
       "original": {
@@ -271,6 +271,23 @@
       "original": {
         "owner": "tak-bro",
         "repo": "aicommit2",
+        "type": "github"
+      }
+    },
+    "aicommit2-build-nixpkgs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1753429684,
+        "narHash": "sha256-9h7+4/53cSfQ/uA3pSvCaBepmZaz/dLlLVJnbQ+SJjk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fd36ee82c0275fb545775cc5e4d30542899511d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fd36ee82c0275fb545775cc5e4d30542899511d",
         "type": "github"
       }
     },
@@ -3282,6 +3299,7 @@
         "actions-nix": "actions-nix",
         "agenix": "agenix",
         "ai-nixCfg": "ai-nixCfg",
+        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs",
         "android-kvm": "android-kvm",
         "areofyl-fetch": "areofyl-fetch",
         "brew-api": "brew-api",

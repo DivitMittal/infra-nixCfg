@@ -4,6 +4,11 @@ The complete T2 desktop and AI profile failed at
 `/nix/store/37z0sbnsi9r1igmi4vgwsb3nw6xlganm-aicommit2-pnpm-deps.drv`.
 This investigation made no changes and started no builds on T2.
 
+The final scoped override uses upstream's locked pnpm 10.13.1 fetcher and
+matching configure hook. The parent's original-builder replay passed the
+original expected hash; the timeout-only investigation below records why
+the initial pnpm 11 attempt was insufficient.
+
 ## Evidence and diagnosis
 
 - Owner: `ai-nixCfg` at `013bad150b9ab59b1c7af7d00e009f1aa7a04a49`,
@@ -36,11 +41,11 @@ This investigation made no changes and started no builds on T2.
 
 ## Patch and parent wiring
 
-`home/_homelab-package-fixes.nix` raises only this package's dependency-fetch
-timeout to ten minutes and limits network concurrency to four. It preserves
-the existing dependency hash, source, lockfile, pnpm version, build hook,
-Copilot SDK, and all other Home Manager packages. The existing hash remains
-an integrity check; a build must confirm that the fetched store matches it.
+The initial version of `home/_homelab-package-fixes.nix` raised this package's
+dependency-fetch timeout to ten minutes and limited network concurrency to
+four. That completed the downloads but exposed the builder/hash incompatibility
+described below. The final override restores the locked dependency builder
+instead; the timeout-only override has been removed.
 
 The module is explicitly imported by the additional modules for T2 and T3 in
 `home/default.nix`. The internal guard also
@@ -51,7 +56,7 @@ Do not add this module to an auto-imported directory or change the lockfile.
 
 ## Validation and remaining deployment check
 
-Completed locally without builds:
+Initial timeout-only validation completed locally without builds:
 
 - Alejandra formatting, `nix-instantiate --parse`, and `git diff --check` pass.
 - A narrow evaluation of the locked aicommit2 package confirms the two
@@ -167,6 +172,69 @@ set. If it also mismatches, the upstream hash is stale for that baseline;
 record its actual result before choosing a maintained pnpm 10 recipe or
 pnpm 11 with fetcherVersion 4 and a deliberately regenerated hash.
 
-No further code override or hash replacement was made in this follow-up:
-the original-builder replay is required to distinguish a recoverable upstream
-hash from a stale one. No builds or changes were made on T2.
+At this stage no further code override or hash replacement was made: the
+original-builder replay was required to distinguish a recoverable upstream
+hash from a stale one. No builds or changes were made on T2 by this investigation.
+
+## Final candidate: preserve the verified pnpm 10 baseline
+
+The parent's `aicommit-original-deps.service` replay completed successfully:
+`SubState=exited`, `Result=success`, `ExecMainStatus=0`. The log reports pnpm
+10.13.1 completing installation in 3m21.6s. Read-only `nix path-info` inspection
+independently confirms the original expected hash at:
+
+```text
+/nix/store/zcchxayql3dxv90vp474jnaf6zgprfvh-aicommit2-pnpm-deps
+sha256-oemBe947Rq6toX7t+ukWzohwqBzbYqHlSSet3yoGBmY=
+```
+
+This output contains `.fetcher-version` and a raw `v10/` store. The successful
+replay demonstrates that the original hash is current for the original builder
+and dependency lock; the pnpm 11 result was an incompatible store representation.
+
+The parent supplies one new source-only root input:
+
+```nix
+aicommit2-build-nixpkgs = {
+  url = "github:NixOS/nixpkgs/7fd36ee82c0275fb545775cc5e4d30542899511d";
+  flake = false;
+};
+```
+
+The final `home/_homelab-package-fixes.nix` imports that input for x86_64-linux
+and uses `upstream.overrideAttrs` to change only:
+
+- `pnpmDeps`: `legacyPkgs.pnpm.fetchDeps`, with the upstream pname, version,
+  source, fetcherVersion, and unchanged expected hash.
+- The existing pnpm configure hook in `nativeBuildInputs`: replaced with
+  `legacyPkgs.pnpm.configHook`, matching the raw v10 store. Matching uses the
+  original hook's `drvPath` or its exact `pnpm-config-hook` name and asserts
+  that exactly one input matches. Every other native input, including the
+  upstream Node.js, is retained in order. Other derivation attributes are
+  inherited unchanged.
+
+The package substitution remains restricted to T2/T3 on x86_64-linux. It retains
+the upstream VCS package list and Copilot SDK support. There are no dynamic
+`builtins.getFlake` references or new source fetches inside the module. The
+parent owns the root input, lock update, CI, and deployment builds.
+
+The original dependency replay passing does not establish that the modified
+aicommit2 package's offline installation/build or the full Home Manager
+activation build passes. Those remain target build checks for the parent.
+
+## Second failure: lightpanda nightly hash
+
+With aicommit2 fixed, the same `--keep-going` build reported a second
+fixed-output mismatch in ai-nixCfg's `lightpanda` package:
+
+```text
+specified: sha256-s5GBxRTJEZZYxYxYB32IgsY4lSCOYVh+oKigW9iqZg8=
+got:       sha256-vLS7GugAmOm6fLR8pptG28j0ExdreYesUZWjkqbOvj8=
+```
+
+Its nvfetcher entries downloaded the `nightly` release asset, which upstream
+replaces in place. They now track stable release tags (1.0.4), in
+[ai-nixCfg#55](https://github.com/DivitMittal/ai-nixCfg/pull/55). That fix is
+based on the previously locked ai-nixCfg revision, and this flake locks the
+`ai-nixCfg` input to its commit `d9d730f5`, so no other ai-nixCfg changes
+come along with it.

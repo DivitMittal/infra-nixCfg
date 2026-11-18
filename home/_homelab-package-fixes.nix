@@ -10,19 +10,38 @@
     && pkgs.stdenvNoCC.hostPlatform.system == "x86_64-linux";
   vcsModule = "${inputs.ai-nixCfg}/config/home/cli/vcs.nix";
   upstream = inputs.ai-nixCfg.inputs.aicommit2.packages.x86_64-linux.default;
-  fixed = upstream.overrideAttrs (old: {
-    pnpmDeps = old.pnpmDeps.overrideAttrs (deps: {
-      # pnpm 11's 60-second AbortSignal deadline also covers large response
-      # bodies. Its TimeoutError has code 23; retries can leave optional
-      # Copilot packages absent and cause a later ENOENT during linking.
-      preInstall =
-        (deps.preInstall or "")
-        + ''
-          export pnpm_config_fetch_timeout=600000
-          export pnpm_config_network_concurrency=4
-        '';
-    });
-  });
+  legacyPkgs = import inputs.aicommit2-build-nixpkgs {
+    system = "x86_64-linux";
+  };
+  currentHook = upstream.pnpmDeps.pnpm.configHook;
+  isPnpmHook = input:
+    (input.drvPath or null)
+    == currentHook.drvPath
+    || (input.name or "") == "pnpm-config-hook";
+  fixed = upstream.overrideAttrs (
+    old:
+      assert lib.assertMsg
+      (builtins.length (builtins.filter isPnpmHook old.nativeBuildInputs) == 1)
+      "aicommit2: expected exactly one pnpm configure hook to replace"; {
+        # The upstream hash was verified with its locked pnpm 10.13.1 and
+        # raw-store fetcher. Root nixpkgs' pnpm 11 uses a different layout.
+        pnpmDeps = legacyPkgs.pnpm.fetchDeps {
+          inherit (old) pname version src;
+          inherit (old.pnpmDeps) fetcherVersion;
+          hash = old.pnpmDeps.outputHash;
+        };
+
+        # The offline install must consume the same store format as the
+        # fetcher. Keep Node.js and every other upstream native input.
+        nativeBuildInputs =
+          map
+          (input:
+            if isPnpmHook input
+            then legacyPkgs.pnpm.configHook
+            else input)
+          old.nativeBuildInputs;
+      }
+  );
   vcs = import vcsModule {
     inherit lib pkgs;
     inherit (inputs) ai-nixCfg;

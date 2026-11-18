@@ -41,6 +41,11 @@ in {
   age.secrets."users/div".file = inputs.infra-nixCfg-secrets + "/secrets/users/div.age";
   age.secrets."users/root".file = inputs.infra-nixCfg-secrets + "/secrets/users/root.age";
 
+  # These hosts are provisioned with locked accounts. With mutableUsers=true,
+  # NixOS preserves their existing shadow entries even after password files
+  # become available; enforce the decrypted hashes on every activation.
+  users.mutableUsers = false;
+
   users.users.root = {
     openssh.authorizedKeys.keys = [sshPubKey];
     hashedPasswordFile = config.age.secrets."users/root".path;

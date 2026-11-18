@@ -30,6 +30,7 @@ jobs:
       with:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         name: divitmittal
+        skipPush: true
     - name: SSH-agent with auth for private repos
       uses: webfactory/ssh-agent@master
       with:
@@ -39,7 +40,7 @@ jobs:
       run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
     - continue-on-error: true
       if: steps.attic.outputs.enabled == 'true'
-      name: Join the tailnet to reach attic on T1
+      name: Join the tailnet to reach attic on T3
       uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -49,11 +50,11 @@ jobs:
       env:
         ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
       if: steps.attic.outputs.enabled == 'true'
-      name: Use the attic cache on T1
+      name: Use the attic cache on T3
       run: |-
         nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
-        attic login t1 http://t1:8080 "$ATTIC_TOKEN"
-        attic use t1:infra
+        attic login homelab http://192.168.2.8:8080 "$ATTIC_TOKEN"
+        attic use homelab:infra
     - name: Point local-checkout inputs at GitHub
       run: |-
         overrides=$(jq -r '
@@ -70,11 +71,27 @@ jobs:
     - name: Evaluate
       run: nix eval --accept-flake-config --show-trace --raw .#.${{ matrix.target.attr
         }}.drvPath $LOCAL_OVERRIDES
+    - env:
+        ATTR: ${{ matrix.target.attr }}
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.attic.outputs.enabled
+        == 'true'
+      name: Build and cache
+      run: |-
+        out=$(nix eval --accept-flake-config --raw ".#.$ATTR.outPath" $LOCAL_OVERRIDES)
+        if nix path-info --store "http://192.168.2.8:8080/infra" "$out" >/dev/null 2>&1; then
+          echo "already cached: $out"
+          exit 0
+        fi
+        if [ "$RUNNER_OS" = Linux ]; then
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+        fi
+        nix build --accept-flake-config --no-link ".#.$ATTR" $LOCAL_OVERRIDES
+        attic push homelab:infra "$out"
     strategy:
       fail-fast: false
       matrix:
         target: ${{ fromJSON(needs.list-targets.outputs.targets) }}
-    timeout-minutes: 90
+    timeout-minutes: 300
   list-targets:
     environment:
       name: dev
@@ -100,6 +117,7 @@ jobs:
       with:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         name: divitmittal
+        skipPush: true
     - name: SSH-agent with auth for private repos
       uses: webfactory/ssh-agent@master
       with:
@@ -109,7 +127,7 @@ jobs:
       run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
     - continue-on-error: true
       if: steps.attic.outputs.enabled == 'true'
-      name: Join the tailnet to reach attic on T1
+      name: Join the tailnet to reach attic on T3
       uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -119,11 +137,11 @@ jobs:
       env:
         ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
       if: steps.attic.outputs.enabled == 'true'
-      name: Use the attic cache on T1
+      name: Use the attic cache on T3
       run: |-
         nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
-        attic login t1 http://t1:8080 "$ATTIC_TOKEN"
-        attic use t1:infra
+        attic login homelab http://192.168.2.8:8080 "$ATTIC_TOKEN"
+        attic use homelab:infra
     - name: Point local-checkout inputs at GitHub
       run: |-
         overrides=$(jq -r '

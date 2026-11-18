@@ -25,6 +25,7 @@ jobs:
       with:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         name: divitmittal
+        skipPush: true
     - name: SSH-agent with auth for private repos
       uses: webfactory/ssh-agent@master
       with:
@@ -34,7 +35,7 @@ jobs:
       run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
     - continue-on-error: true
       if: steps.attic.outputs.enabled == 'true'
-      name: Join the tailnet to reach attic on T1
+      name: Join the tailnet to reach attic on T3
       uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -44,11 +45,11 @@ jobs:
       env:
         ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
       if: steps.attic.outputs.enabled == 'true'
-      name: Use the attic cache on T1
+      name: Use the attic cache on T3
       run: |-
         nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
-        attic login t1 http://t1:8080 "$ATTIC_TOKEN"
-        attic use t1:infra
+        attic login homelab http://192.168.2.8:8080 "$ATTIC_TOKEN"
+        attic use homelab:infra
     - name: Point local-checkout inputs at GitHub
       run: |-
         overrides=$(jq -r '

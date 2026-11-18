@@ -2,13 +2,13 @@
 
 Last checked: 2026-11-18. Branch: `feat/adding-t640`, public PR #37.
 
-| Machine | Intended role                                  | Current verified state                                                                                                                               |
-| ------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1      | NixOS host and ImmortalWrt VM router           | Reachable at 192.168.2.3; router at 192.168.2.1; DHCP and outbound internet work                                                                     |
-| T2      | Sway desktop, API-backed agents and k3s worker | Installed at 192.168.2.171; 29 GiB usable RAM after upgrade; greetd running; console hashes set; full Home Manager profile still building            |
-| T3      | k3s server and services                        | Installed previously, with Redis persistence verified; currently unreachable at 192.168.2.106 and absent from DHCP leases; console restart requested |
-| MON1    | Prometheus, Grafana and network probes         | Installed NixOS at reserved 192.168.2.5; monitoring healthy; NetworkManager owns DHCP; console hashes set                                            |
-| S1      | TP-Link TL-SG105E managed LAN switch           | Management at 192.168.2.2; all five ports report link; earlier Terraform plan had no drift                                                           |
+| Machine | Intended role                               | Current verified state (2026-11-19)                                                                                                |
+| ------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| T1      | NixOS host and ImmortalWrt VM router        | Router VM up, DHCP/DNS/internet working; latest system with console passwords is the boot default                                  |
+| T2      | Sway desktop, API-backed agents, k3s worker | k3s node Ready; greetd, console passwords and persistent NetworkManager profile deployed; full Home Manager profile still building |
+| T3      | k3s server and services                     | Back online at 192.168.2.106 on generation 3: persistent profile, NIC watchdog, console passwords; k3s Ready, RSSHub/Redis healthy |
+| MON1    | Prometheus, Grafana and network probes      | Healthy at 192.168.2.5; scrapes all four node exporters (up=1)                                                                     |
+| S1      | TP-Link TL-SG105E managed LAN switch        | Management at 192.168.2.2; all five ports linked                                                                                   |
 
 L1 uses a static 192.168.2.4 address on Ethernet (`en23`) with no gateway.
 Its internet route stays on Wi-Fi, so router maintenance does not interrupt the
@@ -80,3 +80,11 @@ and service checks, then install the validated system as the boot default.
 
 The [k3s architecture](homelab-k3s.md) uses T3 as the only server and Redis
 storage node, with T2 as a worker. It is not HA. T1 and MON1 stay outside it.
+
+## 2026-11-19 T3 outage: loose cable
+
+T3's installed boots never got carrier (`Link is Down` only), and its firmware
+PXE sent nothing either. The rescue installer got a link once T3 was moved to
+another switch port, and T2 then lost its link on T3's old port. The cause was
+a loose cable on that port. After it was reseated, T3 was reinstalled from the
+rescue installer with its latest system (generation 3) and booted normally.

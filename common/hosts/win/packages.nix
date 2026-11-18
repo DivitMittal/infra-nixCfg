@@ -1,7 +1,11 @@
 ## Package lists shared across all Windows hosts.
-## Ported from playbooks-4-windows' common/packages.yml. MSYS2 packages are
-## NOT ported here — MSYS2 stays on Ansible (roles/msys2), invoked separately;
-## see playbooks-4-windows' feat/nix-win-migration branch.
+##
+## Windows vs WSL split: Windows gets what has to touch Windows itself (GUI
+## apps, games, hardware tools, terminal/shell integration, networking
+## agents) plus what scoop and nix-win need (git, 7zip, pwsh). Language
+## toolchains and Linux CLI/TUI tools live in the host's NixOS-WSL distro
+## instead (e.g. hosts/nixos/L2W), so each exists on one side only.
+## Undeclared scoop apps are left alone (win.scoop.cleanup stays "none").
 {
   win.scoop = {
     enable = true;
@@ -15,15 +19,13 @@
 
     packages = {
       # ── Development ──────────────────────────────────────────────────────
+      # Toolchains (node, python, …) are in WSL; vim is $EDITOR in pwsh.
       git.bucket = "main";
-      nodejs.bucket = "main";
-      python.bucket = "main";
       vim.bucket = "main";
       pwsh.bucket = "main";
 
       # ── CLI Utilities ────────────────────────────────────────────────────
       "7zip".bucket = "main";
-      ouch.bucket = "main";
       nircmd.bucket = "main";
       sudo.bucket = "main";
       innounp.bucket = "main";

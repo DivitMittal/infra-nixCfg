@@ -31,6 +31,11 @@
 
   wanMacvtap = "wan-mvtap";
   lanMacvtap = "lan-mvtap";
+  # systemd's device units for the physical NICs. The runtime-created
+  # macvtaps get no udev tag after a re-plug, so bind to their parents.
+  uplinkDevices =
+    map (name: "sys-subsystem-net-devices-${name}.device")
+    [wanPhysIface lanPhysIface];
 
   # The host's own foothold on the home LAN. Both physical NICs are handed to
   # the guest, so without this T1 would be unreachable (no SSH, no RSSHub).
@@ -210,9 +215,14 @@ in {
 
   systemd.services.openwrt-router-vm = {
     description = "OpenWrt/ImmortalWrt multi-PPPoE router VM (macvtap passthrough, hand-rolled qemu-kvm)";
-    after = ["network.target" "systemd-networkd.service"];
+    # Re-plugging the USB WAN adapter (or the t640's internal hub dropping it)
+    # re-creates the macvtaps. QEMU would keep the old, deleted tap fd and the
+    # guest's WAN would go silent (seen 2026-11-19), so stop with the NIC and
+    # start again when it reappears; Restart= covers the taps catching up.
+    after = ["network.target" "systemd-networkd.service"] ++ uplinkDevices;
+    bindsTo = uplinkDevices;
     wants = ["systemd-networkd.service"];
-    wantedBy = ["multi-user.target"];
+    wantedBy = ["multi-user.target"] ++ uplinkDevices;
 
     # Don't crash-loop forever on hardware without KVM (e.g. a nested-eval
     # sanity check off T1's real hardware).

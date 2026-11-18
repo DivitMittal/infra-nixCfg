@@ -529,6 +529,51 @@ forwards must be opened on the T640 only, since R0's DMZ forwards everything).
 PPPoE mode also needs the two `T640-wan{1,2}.age` credentials above. Deploying
 one mode over the other converts the router declaratively.
 
+### T1 Tailscale (subnet router)
+
+`hosts/nixos/T1/tailscale.nix` runs tailscaled on T1's host (not in the
+router VM) and advertises the home LAN, `192.168.2.0/24`. It does not offer an
+exit node and keeps T1's DNS on the router. Tailscale SNATs routed traffic, so
+LAN hosts need no route back to the tailnet.
+
+The auth key is optional at eval time. Without
+`secrets/homelab/T1-tailscale.age`, T1 still runs tailscaled with the route
+set, and can be joined by hand with `ssh T1 tailscale up`. With it, T1 joins by
+itself on activation. To set it up:
+
+1. In the [admin console](https://login.tailscale.com/admin/acls/file), give
+   the tag an owner and auto-approve the route, so a re-registered T1 doesn't
+   need manual approval:
+
+   ```jsonc
+   "tagOwners":     { "tag:homelab": ["autogroup:admin"] },
+   "autoApprovers": { "routes": { "192.168.2.0/24": ["tag:homelab"] } },
+   ```
+
+2. Under **Settings → Keys → Generate auth key**, create a key that is
+   **reusable: off**, **ephemeral: off**, **pre-approved: on**, tagged
+   `tag:homelab`. A tagged node's key never expires, so T1 doesn't drop off
+   the tailnet after 180 days.
+3. In `infra-nixCfg-secrets`, add `"homelab/T1-tailscale.age"` to
+   `secrets/manifest.nix`, then from its devshell paste the key into:
+
+   ```bash
+   ragenix -e secrets/homelab/T1-tailscale.age
+   ```
+
+   Commit, then relock here: `nix flake update infra-nixCfg-secrets`.
+
+4. Deploy T1. In **Machines → T1 → Edit route settings**, confirm
+   `192.168.2.0/24` is approved (automatic with step 1). If T1 was joined by
+   hand or without a tag, also choose **Disable key expiry** there.
+5. On Linux clients, accept the route: `tailscale set --accept-routes`.
+   macOS, iOS and Android accept subnet routes by default.
+
+The `tailscale0` interface is left unmanaged by both networkd and
+NetworkManager, so it doesn't touch the macvtap setup in `router-vm.nix`. The
+NixOS firewall is off on every host here (`common/hosts/nixos/networking.nix`),
+so filtering is up to tailnet ACLs; SSH stays key-only.
+
 ### Firmware/UEFI/BIOS updates (fwupd)
 
 `services.fwupd` is enabled for T1-T3 and L1N (real x86_64 UEFI hardware; see

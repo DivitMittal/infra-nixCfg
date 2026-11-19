@@ -1,90 +1,97 @@
 # Homelab rollout status
 
-Last checked: 2026-11-18. Branch: `feat/adding-t640`, public PR #37.
+Last checked: 2026-11-20. PR #37 and #87 are merged; profile/deployment follow-up is #85.
 
-| Machine | Intended role                               | Current verified state (2026-11-19)                                                                                                |
-| ------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| T1      | NixOS host and ImmortalWrt VM router        | Router VM up, DHCP/DNS/internet working; latest system with console passwords is the boot default                                  |
-| T2      | Sway desktop, API-backed agents, k3s worker | k3s node Ready; greetd, console passwords and persistent NetworkManager profile deployed; full Home Manager profile still building |
-| T3      | k3s server and services                     | Back online at 192.168.2.106 on generation 3: persistent profile, NIC watchdog, console passwords; k3s Ready, RSSHub/Redis healthy |
-| MON1    | Prometheus, Grafana and network probes      | Healthy at 192.168.2.5; scrapes all four node exporters (up=1)                                                                     |
-| S1      | TP-Link TL-SG105E managed LAN switch        | Management at 192.168.2.2; all five ports linked                                                                                   |
+| Machine | Intended role                          | Verified state                                                                                                             |
+| ------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| T1      | NixOS host and ImmortalWrt VM router   | Router reachable at 192.168.2.1; static WAN 192.168.1.254 is up behind the ISP router                                      |
+| T2      | Sway desktop, agent tools, k3s worker  | Reachable at 192.168.2.171; k3s Ready; greetd active; complete Home Manager profile activated                              |
+| T3      | k3s server, services and Attic cache   | Reachable at 192.168.2.8; k3s Ready; RSSHub, Redis and SSH portfolio pods Running; terminal Home Manager profile activated |
+| MON1    | Prometheus, Grafana and network probes | Reachable at 192.168.2.5; no failed systemd units on the latest check                                                      |
+| S1      | TP-Link TL-SG105E managed LAN switch   | Management address 192.168.2.2                                                                                             |
 
-L1 uses a static 192.168.2.4 address on Ethernet (`en23`) with no gateway.
-Its internet route stays on Wi-Fi, so router maintenance does not interrupt the
-management session. The Ethernet link currently negotiates gigabit.
+L1 uses static 192.168.2.4/24 on Ethernet with no gateway; Wi-Fi supplies its
+internet route. No L1 system or Home Manager activation is part of this rollout.
 
-## Deployment details
+## Completed profile repairs
 
-- T2 and MON1 have the system configuration from commit `6535267e` activated
-  and installed as their boot default. On MON1, replacing the imported DHCP
-  lease with its real NetworkManager profile removed the duplicate default route.
-- With mutable users, the pinned NixOS activation code preserves existing locked
-  shadow entries. Their declared hashes were applied from decrypted files to
-  enable console login. Commit `49825895` makes this declarative through
-  `users.mutableUsers = false`; its new systems still need building/deploying.
-- Commit `9516d724` provisions persistent wired NetworkManager profiles for T2,
-  T3 and MON1. It is awaiting CI and deployment. T1 uses its own networkd setup.
-- SSH remains key-only. Console credentials use the encrypted `users/div.age`
-  and `users/root.age` hashes, shared with the existing VPS configuration.
-- The complete T2 Home Manager build is blocked by an aicommit2 pnpm dependency
-  fetch failure; other packages are still building under `--keep-going`.
-  Do not report the graphical session or agent tools as complete until profile
-  activation and runtime checks pass.
-- T3's last successful service checks had both k3s nodes Ready and RSSHub/Redis
-  healthy. These checks are historical: the single-server cluster cannot be
-  considered healthy while T3 is unreachable. A local-subnet ARP scan did not
-  find its recorded NIC, although all switch ports currently have link.
+PR #85 repairs REAPER extraction and Linux libraries, LeetCode's bundled
+Oniguruma compiler mode, four legacy Raycast CLI downloads, stock-tracker's
+unused Electron download, and the Mullvad CLI/GUI collision. All selected
+applications and 23 launcher extensions are retained.
 
-## Resume commands
+Herdr is explicitly available during activation so its plugin hook cannot
+prematurely exit before user service reloads. Codex uses an explicit Bunx
+`@latest` tag to resolve correctly on fresh compute-node caches.
 
-SSH keys: NixOS hosts use `~/.ssh/agenix/id_ed25519`; the ImmortalWrt guest
-uses `~/.ssh/github/id_ed25519`. Verify any changed host key before accepting it.
+Both final Home Manager builds completed, and activation succeeded as `div`:
 
-Runtime build units on T2:
+- T2: `/nix/store/dz5js6xwx78xw8j8p3cig31vk6k2l190-home-manager-generation`
+- T3: `/nix/store/wca9bv0f92wciivc6pm6pi72mvca5hs8-home-manager-generation`
 
-- `hm-resume`: full `homeConfigurations.T2.activationPackage`; logs in
-  `/var/log/hm-resume.log`, output in `/var/log/hm-resume.out`.
-- `host-updates-build`: builds the committed system configurations sequentially;
-  logs and output in `/var/log/host-updates.log` and `.out`.
+Normal user login environments on both hosts ran Codex 0.170.0, Claude Code
+2.1.316 and Herdr 0.7.1 successfully. T2's Sway configuration passed validation
+in the previous session; physical display login remains unconfirmed. SSH stays
+key-only; console passwords come from encrypted user secrets, not this document.
 
-Inspect `ActiveState`, `SubState`, `Result` and the actual output file. An active
-unit with `RemainAfterExit=yes` may have completed; `Result=success` alone on a
-running or absent transient unit is not proof that a build succeeded.
+## Deployment follow-up
 
-The guarded activation helper used a separate systemd rollback timer so an SSH
-loss would not prevent rollback. Cancel the timer only after external network
-and service checks, then install the validated system as the boot default.
+PR #86 added the SSH portfolio. PR #87 fixes its writable host-key directory,
+updates its renderer and makes deploy-rs use GNU sed explicitly. The previous
+uutils sed error happened after switching and prevented a clean rollback.
+
+T3's running system and saved profile now both point to
+`/nix/store/4m0wk25x1hnavdxdvq6vb0nvfvq2ik2m-nixos-system-T3-26.11.20260705.c4013e5`.
+The integrated system was tested with an independent five-minute rollback timer.
+SSH, k3s readiness, workloads, RSSHub and Attic passed before saving it as the
+boot default and cancelling the timer. No reboot was performed.
+
+T2's DHCP reservation was applied from the pinned private inventory using a
+scoped UCI update and dnsmasq reload. A root-only-directory backup of the prior
+DHCP configuration is on the router; no WAN or firewall changes were applied.
+
+Obsolete failed build/test unit states on T2 were cleared after their replacement
+builds and complete profile activations succeeded. No failed systemd units
+remained on T1, T2, T3 or MON1 at the final check.
+
+MON1 returned `up=1` for all four node exporters and `probe_success=1` for all
+seven configured probes. RSSHub returned a valid feed with 13 items through
+T2's NodePort; T3's Attic cache-info endpoint responded successfully.
+
+## Operations and evidence
+
+NixOS SSH identity: `~/.ssh/agenix/id_ed25519`. Router identity:
+`~/.ssh/github/id_ed25519`. Verify host keys before accepting changes.
+
+Latest profile activation logs:
+
+- T2: `/var/log/t2-home-verified.log`
+- T3: `/var/log/t3-home-verified.log`
+
+Integrated T3 build on T2: `homelab-integrated-build-20261120.service`, logs
+`/var/log/homelab-integrated-build.log`, output `.out`. An active unit using
+`RemainAfterExit=yes` can be finished: check `SubState`, `ExecMainStatus` and
+output together. `Result=success` on a running or absent unit is insufficient.
+
+Heavy flake evaluation and flake checks run on GitHub Actions. Deployment builds
+run on T2; do not perform full configuration evaluation or deployment on L1.
 
 ## Remaining requested work
 
-1. Restore access to T3, diagnose its actual network state from the console or
-   previous-boot logs, and deploy a persistent wired profile. Avoid inferring
-   power state or firmware failure solely from missing ARP/SSH responses.
-2. Finish T2's complete Home Manager profile, activate it as `div`, and verify
-   Sway plus agent tools. Deploy T3's tty/agent profile when its network is back.
-3. Deploy the immutable-account and persistent-profile fixes to the fleet and
-   verify console login configuration, DHCP, cluster readiness, workloads and
-   MON1's real probe results (`probe_success`, not just scrape `up`).
-4. Review/merge PR #37 after runtime checks and CI; close absorbed #60 and #67.
-   Private secrets PRs #71, #72 and #73 are merged; the input tracks master.
-5. Integrate heavier observability from #36; assess external NAS/backup disks
-   with the owner before formatting any of them. No external disk erase is approved.
-6. Verify ISP DMZ forwarding to 192.168.1.254 and configure the USB Wi-Fi AP
-   if retained in the final network design.
-7. Continue vendor BIOS work using the verified limitations in
-   [the BIOS findings](hp-t640-bios.md). Firmware flashing and vendor-setting
-   tests require explicit approval; the standard boot-order module defaults to
-   checking only. A previous unexplained link loss is not proof of a BIOS hang.
-8. Decide the macOS build-offload approach. No macOS VM has been configured.
+1. Finish #85 review and CI after integrating current master; merge once green.
+2. Review dedicated WLED AP #83 and Tailscale #75 separately; do not assume
+   either is deployed merely because a branch exists.
+3. Integrate additional observability from #36 and design external NAS/backup
+   storage. No external-disk formatting is approved.
+4. Continue vendor BIOS investigation using [verified findings](hp-t640-bios.md).
+   Firmware flashes and vendor-setting experiments require explicit approval.
+   DASH is enabled in firmware but authenticated management remains unverified;
+   see [DASH status](homelab-dash.md).
+5. Decide macOS build offload. No macOS VM is configured; #64 is not evidence
+   that such a VM exists. Dependency refresh/L1 work in #84 is a separate task.
 
-The [k3s architecture](homelab-k3s.md) uses T3 as the only server and Redis
-storage node, with T2 as a worker. It is not HA. T1 and MON1 stay outside it.
+The [k3s architecture](homelab-k3s.md) uses T3 as its only server and Redis
+storage node, with T2 as a worker. It is not HA. T1 and MON1 remain outside it.
 
-## 2026-11-19 T3 outage: loose cable
-
-T3's installed boots never got carrier (`Link is Down` only), and its firmware
-PXE sent nothing either. The rescue installer got a link once T3 was moved to
-another switch port, and T2 then lost its link on T3's old port. The cause was
-a loose cable on that port. After it was reseated, T3 was reinstalled from the
-rescue installer with its latest system (generation 3) and booted normally.
+The earlier T3 outage was traced to a loose cable. Missing ARP or SSH alone
+must not be interpreted as power-off or a firmware failure.

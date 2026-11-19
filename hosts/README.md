@@ -270,7 +270,7 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 | ---- | -------------------------------- | ---------------------------------------------------- | ------------------------------- |
 | T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (DMZ; PPPoE optional)    | host `192.168.2.3`, router `.1` |
 | T2   | HP t640, highest spec            | Sway GUI + API-backed AI agents + k3s worker         | DHCP, `T2.lan`                  |
-| T3   | HP t640, medium spec             | k3s server + services (RSSHub `:31200`) + agents     | DHCP, `T3.lan`                  |
+| T3   | HP t640, medium spec             | k3s server + RSSHub `:31200`, SSH portfolio `:30022` | DHCP, `T3.lan`                  |
 | MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
 
 All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter

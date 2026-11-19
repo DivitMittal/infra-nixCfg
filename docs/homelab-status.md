@@ -1,6 +1,6 @@
 # Homelab rollout status
 
-Last checked: 2026-11-20. PR #37 and #87 are merged; profile/deployment follow-up is #85.
+Last checked: 2026-11-20. PR #37, #85 and #87 are merged. The base fleet rollout is complete.
 
 | Machine | Intended role                          | Verified state                                                                                                             |
 | ------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -58,6 +58,10 @@ MON1 returned `up=1` for all four node exporters and `probe_success=1` for all
 seven configured probes. RSSHub returned a valid feed with 13 items through
 T2's NodePort; T3's Attic cache-info endpoint responded successfully.
 
+PR #85 passed all 37 reported checks before merging. Final SSH checks confirmed
+all four hosts online with their intended services active, no failed system
+units, and matching running and saved NixOS profiles.
+
 ## Operations and evidence
 
 NixOS SSH identity: `~/.ssh/agenix/id_ed25519`. Router identity:
@@ -76,18 +80,17 @@ output together. `Result=success` on a running or absent unit is insufficient.
 Heavy flake evaluation and flake checks run on GitHub Actions. Deployment builds
 run on T2; do not perform full configuration evaluation or deployment on L1.
 
-## Remaining requested work
+## Separate follow-up projects
 
-1. Finish #85 review and CI after integrating current master; merge once green.
-2. Review dedicated WLED AP #83 and Tailscale #75 separately; do not assume
+1. Review dedicated WLED AP #83 and Tailscale #75 separately; do not assume
    either is deployed merely because a branch exists.
-3. Integrate additional observability from #36 and design external NAS/backup
+2. Integrate additional observability from #36 and design external NAS/backup
    storage. No external-disk formatting is approved.
-4. Continue vendor BIOS investigation using [verified findings](hp-t640-bios.md).
+3. Continue vendor BIOS investigation using [verified findings](hp-t640-bios.md).
    Firmware flashes and vendor-setting experiments require explicit approval.
    DASH is enabled in firmware but authenticated management remains unverified;
    see [DASH status](homelab-dash.md).
-5. Decide macOS build offload. No macOS VM is configured; #64 is not evidence
+4. Decide macOS build offload. No macOS VM is configured; #64 is not evidence
    that such a VM exists. Dependency refresh/L1 work in #84 is a separate task.
 
 The [k3s architecture](homelab-k3s.md) uses T3 as its only server and Redis

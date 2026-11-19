@@ -48,12 +48,18 @@
         inherit name src;
         # `ray build` otherwise pings its update-check/telemetry endpoints,
         # which just hang (retrying) since the build sandbox has no network.
-        env = {
-          CI = "true";
-          NO_UPDATE_NOTIFIER = "1";
-          RAYCAST_DISABLE_TELEMETRY = "1";
-          DO_NOT_TRACK = "1";
-        };
+        env =
+          {
+            CI = "true";
+            NO_UPDATE_NOTIFIER = "1";
+            RAYCAST_DISABLE_TELEMETRY = "1";
+            DO_NOT_TRACK = "1";
+          }
+          // lib.optionalAttrs (name == "stock-tracker") {
+            # react-devtools brings Electron for its standalone developer UI;
+            # stock commands and `ray build` only need Node and esbuild.
+            ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+          };
       }
       // lib.optionalAttrs (hostPlatform.isLinux && hostPlatform.isx86_64 && builtins.hasAttr apiVersion legacyLinuxCliHashes) {
         # The upstream Linux CLI is a static x86_64 Go executable. Replace the

@@ -1,4 +1,4 @@
-# Legacy Raycast CLI builds on T2
+# Raycast extension builds on T2
 
 `setup.nix` retains all 23 selected extensions and uses the pinned Vicinae
 `nix/mkRayCastExtension.nix` helper. That helper uses `buildNpmPackage` with
@@ -25,7 +25,7 @@ On x86_64 Linux, `preBuild` replaces the downloader with the fetched executable
 and verifies `ray version` against the extension lockfile before the npm build.
 Replacing the downloader also avoids API 1.39.0's stray `file /usr/local`
 command. Original build scripts, including `ray build -e dist`, remain intact.
-Other API versions and platforms receive no derivation override. The existing
+Other API versions and platforms receive no legacy CLI override. The existing
 telemetry/update environment settings remain in place. This patch does not
 add support for executing these legacy x86_64 binaries on Linux ARM.
 
@@ -63,3 +63,45 @@ that wrapper directly. The successful logs above supersede that attempt.
 The deployment owner should integrate these files, run the whole-configuration
 CI evaluation under `.apm/instructions/ci-eval.instructions.md`, and resume the
 T2 full Home Manager build alongside the independently handled REAPER fix.
+
+## Stock-tracker Electron download
+
+The subsequent full-profile build failed in stock-tracker's dependency rebuild:
+`electron/install.js` tried to download from GitHub inside the sandbox. The
+locked dependency chain is stock-tracker → `react-devtools` 6.1.1 (development
+dependency) → Electron 23.3.13. Electron's installer explicitly exits successfully
+when `ELECTRON_SKIP_BINARY_DOWNLOAD` is set.
+
+Stock-tracker's locked `@raycast/api` 1.104.15 uses the Node `bin/run.js` CLI with
+esbuild. Its build command does not import Electron; none of stock-tracker's
+command sources import Electron or react-devtools. The standalone React DevTools
+developer UI brings Electron, but the extension's production build does not need
+that executable. No alternate CLI or binary fetch is required.
+
+`setup.nix` sets `ELECTRON_SKIP_BINARY_DOWNLOAD=1` only for stock-tracker. All npm
+packages, the SDK, and both commands remain present; lifecycle scripts still run.
+The standalone Electron DevTools executable is not provisioned by this package.
+
+### Stock-tracker validation on T2
+
+On 2026-11-19, built only stock-tracker using the current deployment source's
+nixpkgs and pinned Vicinae helper, with `--max-jobs 1 --cores 2`. The direct SSH
+build exited 0; no service was created or changed. Complete log:
+`/var/log/raycast-check-stock.log`.
+
+The build passed dependency rebuild, the original `ray build -e dist`, compilation
+of both `src/index.tsx` and `src/menubar.tsx`, TypeScript checking, and installation.
+Successful output:
+`/nix/store/ikq4mncbp4iccb0pbn0rxsvjkqav9rjf-stock-tracker`.
+
+Installed manifest commands and SDK dependencies are identical to the pinned
+source. Both `index.js` (View Stocks) and `menubar.js` (Menu Bar Stocks) exist and
+contain no `require("electron")` or `require("react-devtools")` calls. GUI behavior
+and live Yahoo Finance data were not exercised.
+
+A narrow derivation comparison against the full-profile source
+`/nix/store/qgky2i9n53hmfhwsc5ilqpsp6c7p4pf1-source` confirmed that stock-tracker is
+the only changed extension derivation; the other 22 are identical, including the
+four previously fixed legacy builds. All 23 selections remain. The parent should
+integrate the stock-specific environment setting and resume its full-profile
+validation; no full-profile build or deployment was run for this change.

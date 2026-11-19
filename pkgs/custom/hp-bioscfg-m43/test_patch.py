@@ -27,7 +27,14 @@ shim = r'''
 #include <errno.h>
 typedef uint32_t u32;
 #define GFP_KERNEL 0
-#define kzalloc(n, f) calloc(1, n)
+static bool fail_allocation;
+static void *allocate(size_t n, bool zero) {
+    void *p = fail_allocation ? NULL : malloc(n);
+    if (p) memset(p, zero ? 0 : 0xa5, n);
+    return p;
+}
+#define kzalloc(n, f) allocate(n, true)
+#define kmalloc(n, f) allocate(n, false)
 #define kfree free
 #define max_t(t, a, b) ((t)(a) > (t)(b) ? (t)(a) : (t)(b))
 #define struct_size(p, field, n) (sizeof(*(p)) + (n))
@@ -67,6 +74,12 @@ checks = r'''
     free(args); return 0;
 }
 int main(void) {
+    char *failed = (char *)1; int failed_len = -1;
+    fail_allocation = true;
+    assert(hp_convert_hexstr_to_str("On", 2, &failed, &failed_len) == -ENOMEM);
+    assert(failed == NULL && failed_len == 0);
+    assert(query(0) == -ENOMEM);
+    fail_allocation = false;
     decode("After Power Loss", 16, "After Power Loss");
     decode("Virtualization Technology (VTx/VTd)", 35, "Virtualization Technology (VTx/VTd)");
     decode("BIOS Update", 11, "BIOS Update");

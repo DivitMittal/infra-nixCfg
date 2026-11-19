@@ -35,6 +35,7 @@ jobs:
       run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' && secrets.TS_OAUTH_CLIENT_ID
         != '' && secrets.TS_OAUTH_SECRET != '' }}" >> "$GITHUB_OUTPUT"
     - continue-on-error: true
+      id: tailnet
       if: steps.attic.outputs.enabled == 'true'
       name: Join the tailnet to reach attic on T3
       uses: tailscale/github-action@v3
@@ -45,11 +46,24 @@ jobs:
     - continue-on-error: true
       env:
         ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
-      if: steps.attic.outputs.enabled == 'true'
+      id: attic_setup
+      if: steps.tailnet.outcome == 'success'
       name: Use the attic cache on T3
       run: |-
         nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
-        attic login homelab http://192.168.2.8:8080 "$ATTIC_TOKEN"
+        if [ "$RUNNER_OS" = Linux ]; then
+          tailscale set --accept-routes=true --accept-dns=false
+        fi
+        # Keep the JWT out of process arguments and the Nix store.
+        install -d -m 700 "$HOME/.config/attic"
+        umask 077
+        python3 - <<'PYCONFIG'
+        import json, os
+        from pathlib import Path
+        config = Path.home() / ".config/attic/config.toml"
+        config.write_text('[servers.homelab]\nendpoint = "http://192.168.2.8:8080/"\ntoken = ' + json.dumps(os.environ["ATTIC_TOKEN"]) + '\n')
+        config.chmod(0o600)
+        PYCONFIG
         attic use homelab:infra
     - name: Point local-checkout inputs at GitHub
       run: |-

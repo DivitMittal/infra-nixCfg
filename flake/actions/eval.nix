@@ -5,6 +5,7 @@
   common-permissions,
   common-actions,
   environment,
+  attic,
   ...
 }: let
   # Each configuration is evaluated on a runner of its own system: darwin
@@ -95,6 +96,8 @@ in {
         runs-on = "\${{ matrix.target.runner }}";
         permissions = common-permissions;
         inherit environment;
+        # Builds on master can take a while on a cold cache.
+        timeout-minutes = 300;
         strategy = {
           fail-fast = false;
           matrix.target = "\${{ fromJSON(needs.list-targets.outputs.targets) }}";
@@ -107,6 +110,27 @@ in {
               # Leading `.` skips the packages.<system>/legacyPackages.<system>
               # prefix search, which would force every package's attr name.
               run = "nix eval --accept-flake-config --show-trace --raw .#.\${{ matrix.target.attr }}.drvPath $LOCAL_OVERRIDES";
+            }
+            {
+              # On master, build whatever the attic cache on T3 doesn't have
+              # yet and push it, so hosts download instead of compiling.
+              # Checking the output path first avoids downloading an
+              # already-cached closure. Off until the attic secrets exist.
+              name = "Build and cache";
+              "if" = "github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.attic.outputs.enabled == 'true'";
+              env.ATTR = "\${{ matrix.target.attr }}";
+              run = ''
+                out=$(nix eval --accept-flake-config --raw ".#.$ATTR.outPath" $LOCAL_OVERRIDES)
+                if nix path-info --store "${attic.store}" "$out" >/dev/null 2>&1; then
+                  echo "already cached: $out"
+                  exit 0
+                fi
+                if [ "$RUNNER_OS" = Linux ]; then
+                  sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+                fi
+                nix build --accept-flake-config --no-link ".#.$ATTR" $LOCAL_OVERRIDES
+                attic push ${attic.remote}:${attic.cache} "$out"
+              '';
             }
           ];
       };

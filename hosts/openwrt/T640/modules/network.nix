@@ -221,6 +221,13 @@ in {
             mac = homelab.macs.T3-eth;
             ip = "192.168.2.8";
           };
+          # Preserve the compute worker's current address across renewals.
+          T2 = {
+            _type = "host";
+            name = "T2";
+            mac = homelab.macs.T2;
+            ip = "192.168.2.171";
+          };
         };
       }
       // optionalAttrs isPppoe {

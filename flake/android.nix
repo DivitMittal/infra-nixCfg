@@ -17,6 +17,13 @@
     lockFile = ../android/E1/apps.lock.json;
   };
 
+  # Boox C69 HD, managed over USB from L1. Confirm its ABI before adding APKs.
+  flake.androidConfigurations.B1 = inputs.nix-android.lib.mkDevice {
+    system = "x86_64-darwin";
+    modules = [../android/B1/device.nix];
+    lockFile = ../android/B1/apps.lock.json;
+  };
+
   perSystem = {
     system,
     pkgs,

@@ -1,0 +1,8 @@
+{
+  "koreaderVersion": "v2026.07.1",
+  "koassistant": {
+    "version": "v0.24.1",
+    "url": "https://github.com/zeeyado/koassistant.koplugin/releases/download/v0.24.1/koassistant.koplugin.zip",
+    "sha256": "a2630b01c0f4b2642f1a9a7257f20b3ab3150580df6f29a9f115a99b3868d54e"
+  }
+}

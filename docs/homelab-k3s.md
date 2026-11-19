@@ -1,17 +1,16 @@
 # Homelab k3s
 
-T3 runs the sole k3s server with the default SQLite datastore and hosts Redis.
-Stateless RSSHub can run on T2 or T3, preferring T3. T2 joins as an agent alongside
-its GUI and API-backed AI agents. Kubernetes node names are `t3` and `t2`, with
-`homelab-role=services` and `homelab-role=work` labels respectively. T1 remains
-the router outside Kubernetes; MON1 remains an external monitoring host.
+T3 runs the sole k3s server with the default SQLite datastore. RSSHub can run
+on T2 or T3, preferring T3, and uses its own bounded in-memory cache. T2 is an
+agent alongside its desktop and API-backed tools. Both nodes are installed and
+have been verified Ready. Node names are `t3` and `t2`, labelled
+`homelab-role=services` and `homelab-role=work`. T1 and MON1 remain outside
+Kubernetes.
 
-This is **not HA**. Losing T3 loses the control plane and Redis even
-while T2 is healthy. An RSSHub pod on T2 still depends on Redis on T3; this
-placement flexibility does not provide service failover. T2 is not a second server and provides no datastore
-redundancy. T3 was installed and verified on 2026-11-18: its node is Ready,
-RSSHub and Redis are healthy, and Redis's local volume survives pod replacement.
-T2 still awaits installation and has not joined the cluster.
+This is **not HA**: T2 is not a second control-plane server and cannot replace
+T3's datastore. RSSHub no longer depends on a Redis service on T3, but losing
+T3 still loses the control plane. Cache contents are disposable and reset with
+each RSSHub pod; durable services need separately designed persistent storage.
 
 ## Bootstrap and configuration
 
@@ -48,42 +47,30 @@ capacity; they neither cap host processes nor guarantee desktop responsiveness
 under arbitrary load. Size additional pod requests/limits before scheduling
 work onto T2. Role labels are scheduling hints, not isolation or taints.
 
-## RSSHub and Redis
+## RSSHub and its cache
 
-`hosts/nixos/T3/rsshub.nix` supplies a single k3s auto-deploy manifest containing
-the `rsshub` namespace, two single-replica Deployments, two Services and a
-2 GiB Redis PVC. The native RSSHub module is disabled and no native Redis
-instance is configured. Redis requires node `t3` and the services label.
-RSSHub has soft preferred node affinity for `homelab-role=services`, with no
-required node selector: the scheduler can place it on either T640 compute node
-according to available resources. Existing pods are not automatically moved
-back to T3 when capacity changes.
-Redis uses the default `local-path` storage class, ReadWriteOnce and Recreate
-rollouts, with AOF persistence under `/data`. Its cache uses a 192 MiB
-allkeys-LRU bound; its container is limited to 384 MiB/500 millicores. RSSHub
-requests 256 MiB/100 millicores and is limited to 768 MiB/1 CPU. Both have
-readiness/liveness probes; RSSHub also has a startup probe.
+`hosts/nixos/T3/rsshub.nix` declares a single RSSHub deployment and NodePort
+service at `http://T3.lan:31200` (also reachable through T2). The image is pinned
+to upstream commit `b4990a809138010275532fbab0efe8d55e2dc779`.
 
-The endpoint is **http://T3.lan:31200**, replacing native port 1200. MON1's
-blackbox target and the topology annotation use this URL. NodePort uses
-`externalTrafficPolicy: Cluster`, so T3 forwards to RSSHub even when its pod
-runs on T2. Both nodes expose NodePort 31200; T3 remains the advertised endpoint.
-Redis remains cluster-internal. The small RSSHub image omits Chromium, so routes
-requiring a browser need a separately planned browser service or image change.
-Per-route credentials must be provided through runtime Kubernetes Secrets and
-`secretKeyRef`/`envFrom`, never plaintext manifest values.
+RSSHub uses `CACHE_TYPE=memory`, `MEMORY_MAX=256`, a 300-second route TTL and
+3600-second content TTL. These are supported by the
+[pinned upstream configuration](https://github.com/DIYgod/RSSHub/blob/b4990a809138010275532fbab0efe8d55e2dc779/lib/config.ts).
+Redis was previously only a cache for RSSHub; no user datastore depended on it.
+The deployment no longer declares a Redis service, pod or persistent volume.
+Cache entries reset when RSSHub restarts and are not shared between replicas.
+Keep one replica unless independent per-pod caches are acceptable.
 
-The RSSHub image is pinned to upstream commit
-`b4990a809138010275532fbab0efe8d55e2dc779`; Redis uses the explicit version
-`7.4.12-alpine3.22`. These are versioned tags, not digest locks: future updates
-should verify upstream provenance, test the release, and preferably pin an
-OCI manifest digest. No mutable `latest` tag is used.
+Migration: apply the new RSSHub manifest, wait for the rollout, and verify a
+real RSS feed before removing the old Redis Deployment and Service. Removing
+manifest entries alone does not reliably remove already-created resources.
+Preserve the old `rsshub/redis-data` PVC and PV: deleting those may erase data.
+They can be inspected and retired separately after the owner approves cleanup.
+Do not delete the namespace, which also owns the running RSSHub resources.
 
-A local-path PVC is tied to T3's disk; it does not replicate to T2. Losing the
-node/disk loses the Redis cache unless backed up. The requested 2 GiB is not a
-filesystem quota for local-path, so monitor free space and AOF growth. Cache
-can be recreated if losing cached feeds is acceptable. There is no existing
-native cache migration because these hosts are uninstalled.
+The small RSSHub image omits Chromium. Browser-dependent routes require a
+separately planned browser service or image change. Supply route credentials
+through runtime Kubernetes Secrets, never plaintext manifests.
 
 ## SSH portfolio
 
@@ -123,7 +110,6 @@ On T3, use root's local kubeconfig (`sudo k3s kubectl ...`):
 ```sh
 sudo k3s kubectl get nodes -L homelab-role
 sudo k3s kubectl -n rsshub get deployments,pods,services,pvc
-sudo k3s kubectl -n rsshub rollout status deployment/redis
 sudo k3s kubectl -n rsshub rollout status deployment/rsshub
 sudo k3s kubectl -n rsshub logs deployment/rsshub
 sudo k3s kubectl -n rsshub get events --sort-by=.lastTimestamp
@@ -131,16 +117,14 @@ curl --fail http://T3.lan:31200/
 sudo journalctl -u k3s
 ```
 
-Verify both nodes are Ready, Redis's PVC is Bound on T3, both deployments are
-Available, and MON1's RSSHub probe succeeds. Restart the Redis pod and check
-cache persistence. Check T2's allocatable resources and GUI responsiveness
-before adding agent workloads. Kubeconfigs contain credentials: keep them
-root-only and never commit them.
+Verify both nodes are Ready, RSSHub is Available, a real feed responds and
+MON1's RSSHub probe succeeds. Check T2's allocatable resources and desktop
+responsiveness before adding workloads. Kubeconfigs contain credentials: keep
+them root-only and never commit them.
 
 Back up T3's `/var/lib/rancher/k3s/server/db` SQLite state with k3s stopped,
 along with the server token in `/var/lib/rancher/k3s/server/token`, protecting
-the token as a secret. Back up the Redis volume separately with Redis stopped
-if cache restoration matters. Keep the bootstrap age identity recoverable.
+the token as a secret. RSSHub cache does not need backing up. Keep the bootstrap age identity recoverable.
 Test restoration onto T3 before treating backups as usable. A second agent
 cannot recover the server database.
 
@@ -158,10 +142,10 @@ belongs in `.github/workflows/eval.yml` on native GitHub runners. The parent
 integrator must evaluate T2, T3 and MON1 after staging these new modules and
 updating the private secret input. Local validation is limited to formatting,
 Nix parsing, standalone manifest evaluation and Kubernetes schema checks.
-The focused whole-host CI evaluation passed for T1/T2/T3/MON1. T3 was then
-installed and booted from NVMe. Live checks confirmed a real RSS feed, healthy
-system pods, a Bound Redis PVC, and a temporary Redis test value surviving pod
-replacement. T2 scheduling remains untested until the worker joins.
+The previous fleet rollout verified both nodes Ready, cross-node service access,
+a real RSS feed and healthy system pods. Validate the Redis removal against a
+new feed request and the resulting deployment environment; historical Redis
+persistence checks do not prove this migration succeeded.
 
 - [Pinned nixpkgs k3s module](https://github.com/NixOS/nixpkgs/blob/6201e203d09599479a3b3450ed24fa81537ebc4e/nixos/modules/services/cluster/rancher/k3s.nix)
   and [shared Rancher options](https://github.com/NixOS/nixpkgs/blob/6201e203d09599479a3b3450ed24fa81537ebc4e/nixos/modules/services/cluster/rancher/default.nix)
@@ -172,4 +156,4 @@ replacement. T2 scheduling remains untested until the worker joins.
   [SQLite backup/restore](https://docs.k3s.io/datastore/backup-restore)
   and [local-path storage](https://docs.k3s.io/storage).
 - [RSSHub upstream release and published image tags](https://github.com/DIYgod/RSSHub/releases/tag/v2026.11.16-8658.b4990a8)
-  and [official Redis image tags](https://hub.docker.com/_/redis/tags?name=7).
+  .

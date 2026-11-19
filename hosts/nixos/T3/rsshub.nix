@@ -28,8 +28,7 @@ _: let
     metadata = metadata name;
     spec = {
       replicas = 1;
-      # Redis's ReadWriteOnce volume must never have two writers on rollout.
-      strategy.type = "Recreate";
+      strategy.type = "RollingUpdate";
       selector.matchLabels = labels name;
       template = {
         metadata.labels = labels name;
@@ -42,50 +41,6 @@ _: let
       };
     };
   };
-  redis =
-    deployment "redis" {
-      name = "redis";
-      image = "docker.io/library/redis:7.4.12-alpine3.22";
-      args = ["redis-server" "--appendonly" "yes" "--maxmemory" "192mb" "--maxmemory-policy" "allkeys-lru"];
-      ports = [{containerPort = 6379;}];
-      resources = {
-        requests = {
-          cpu = "50m";
-          memory = "128Mi";
-        };
-        limits = {
-          cpu = "500m";
-          memory = "384Mi";
-        };
-      };
-      volumeMounts = [
-        {
-          name = "data";
-          mountPath = "/data";
-        }
-      ];
-      readinessProbe = {
-        exec.command = ["redis-cli" "ping"];
-        periodSeconds = 10;
-      };
-      livenessProbe = {
-        exec.command = ["redis-cli" "ping"];
-        initialDelaySeconds = 30;
-        periodSeconds = 10;
-      };
-    } {
-      # local-path data belongs to T3; Redis cannot fail over to T2.
-      nodeSelector = {
-        "kubernetes.io/hostname" = "t3";
-        "homelab-role" = "services";
-      };
-      volumes = [
-        {
-          name = "data";
-          persistentVolumeClaim.claimName = "redis-data";
-        }
-      ];
-    };
   rsshub =
     deployment "rsshub" {
       name = "rsshub";
@@ -104,14 +59,15 @@ _: let
             NODE_ENV = "production";
             PORT = "1200";
             LISTEN_INADDR_ANY = "true";
-            CACHE_TYPE = "redis";
-            REDIS_URL = "redis://redis:6379/";
+            # One RSSHub replica needs no separate cache service or persistent disk.
+            CACHE_TYPE = "memory";
+            MEMORY_MAX = "256";
             CACHE_EXPIRE = "300";
             CACHE_CONTENT_EXPIRE = "3600";
           }.${
             name
           };
-      }) ["NODE_ENV" "PORT" "LISTEN_INADDR_ANY" "CACHE_TYPE" "REDIS_URL" "CACHE_EXPIRE" "CACHE_CONTENT_EXPIRE"];
+      }) ["NODE_ENV" "PORT" "LISTEN_INADDR_ANY" "CACHE_TYPE" "MEMORY_MAX" "CACHE_EXPIRE" "CACHE_CONTENT_EXPIRE"];
       resources = {
         requests = {
           cpu = "100m";
@@ -168,18 +124,6 @@ in {
       kind = "Namespace";
       metadata.name = namespace;
     }
-    {
-      apiVersion = "v1";
-      kind = "PersistentVolumeClaim";
-      metadata = metadata "redis-data";
-      spec = {
-        accessModes = ["ReadWriteOnce"];
-        storageClassName = "local-path";
-        resources.requests.storage = "2Gi";
-      };
-    }
-    redis
-    (service "redis" 6379 {})
     rsshub
     (service "rsshub" 1200 {
       type = "NodePort";

@@ -282,6 +282,22 @@
     };
 
     ### Infra
+    ## ssh divit@qezta.com terminal portfolio, run on T3's k3s as an OCI image
+    qezta-ssh = {
+      url = "github:Qezta/ssh";
+      #url = "git+file:///Users/div/Projects/qezta/ssh";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
+        flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
+        import-tree.follows = "import-tree";
+        devshell.follows = "devshell";
+        treefmt-nix.follows = "treefmt-nix";
+        git-hooks.follows = "git-hooks";
+        actions-nix.follows = "actions-nix";
+      };
+    };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs = {

@@ -47,6 +47,11 @@
     inherit (inputs) ai-nixCfg;
   };
 in {
+  # The plugin activation hook exits the whole activation if Herdr is absent
+  # from PATH. Declare the hook's binary dependency instead of relying on a
+  # login shell environment, so later steps (including user services) run.
+  home.extraActivationPath = lib.optionals (enabled && config.programs.herdr.enable) [config.programs.herdr.package];
+
   # ai-nixCfg selects its flake package directly, bypassing pkgs overlays.
   # Reuse its package list so geminicommit and future additions survive.
   disabledModules = [vcsModule];

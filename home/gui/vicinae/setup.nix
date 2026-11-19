@@ -10,6 +10,15 @@
   # which throws on x86_64-darwin. Same derivation, our pkgs.
   mkRayCastExtension = pkgs.callPackage "${inputs.vicinae}/nix/mkRayCastExtension.nix" {};
 
+  # Older API tarballs contain only a downloader in bin/ray. Pin the matching
+  # Linux CLI as a fixed-output fetch, before the sandboxed npm build runs.
+  legacyLinuxCliHashes = {
+    "1.39.0" = "sha256-7TUjuicfSRvPpcHwgyCQ2lO2eRX7VSpxF+oS8ZEPF3I=";
+    "1.46.0" = "sha256-gBhzA5gN7gRbOzWYGZM1eU829W7oQUk6PIHKFB3g7ho=";
+    "1.47.3" = "sha256-oJwgzYXpfr6Zr1fYdbbO4aVimUR+sqpIJG/ZMpZNPGg=";
+    "1.80.0" = "sha256-lVkAElCQH1RSsZN+yLPyEjjOGILhrem+IL1KW6kyC7s=";
+  };
+
   # Always fetch the source ourselves (rather than letting mkRayCastExtension's
   # default fetchFromGitHub run) since `name` (the extension's package.json
   # name, which vicinae loads it under) doesn't always match its
@@ -18,27 +27,42 @@
     name,
     folder ? name,
     hash,
-  }:
-    mkRayCastExtension {
-      inherit name;
-      src =
-        pkgs.fetchFromGitHub {
-          owner = "raycast";
-          repo = "extensions";
-          inherit (raycastExtensions) rev;
-          sparseCheckout = ["/extensions/${folder}"];
-          inherit hash;
-        }
-        + "/extensions/${folder}";
-      # `ray build` otherwise pings its update-check/telemetry endpoints,
-      # which just hang (retrying) since the build sandbox has no network.
-      env = {
-        CI = "true";
-        NO_UPDATE_NOTIFIER = "1";
-        RAYCAST_DISABLE_TELEMETRY = "1";
-        DO_NOT_TRACK = "1";
-      };
+  }: let
+    src =
+      pkgs.fetchFromGitHub {
+        owner = "raycast";
+        repo = "extensions";
+        inherit (raycastExtensions) rev;
+        sparseCheckout = ["/extensions/${folder}"];
+        inherit hash;
+      }
+      + "/extensions/${folder}";
+    lock = builtins.fromJSON (builtins.readFile (src + "/package-lock.json"));
+    apiVersion = lock.packages."node_modules/@raycast/api".version;
+    legacyLinuxCli = pkgs.fetchurl {
+      url = "https://cli.raycast.com/${apiVersion}/linux/ray";
+      hash = legacyLinuxCliHashes.${apiVersion};
     };
+  in
+    mkRayCastExtension ({
+        inherit name src;
+        # `ray build` otherwise pings its update-check/telemetry endpoints,
+        # which just hang (retrying) since the build sandbox has no network.
+        env = {
+          CI = "true";
+          NO_UPDATE_NOTIFIER = "1";
+          RAYCAST_DISABLE_TELEMETRY = "1";
+          DO_NOT_TRACK = "1";
+        };
+      }
+      // lib.optionalAttrs (hostPlatform.isLinux && hostPlatform.isx86_64 && builtins.hasAttr apiVersion legacyLinuxCliHashes) {
+        # The upstream Linux CLI is a static x86_64 Go executable. Replace the
+        # downloader directly: API 1.39.0's wrapper also runs `file /usr/local`.
+        preBuild = ''
+          install -m755 ${legacyLinuxCli} node_modules/@raycast/api/bin/ray
+          test "$(node_modules/.bin/ray version)" = ${lib.escapeShellArg apiVersion}
+        '';
+      });
 in {
   imports = [inputs.vicinae.homeManagerModules.default];
 

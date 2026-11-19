@@ -14,6 +14,11 @@
       remote = atticRemote;
       cache = atticCache;
       store = "${atticEndpoint}/${atticCache}";
+      endpoint = atticEndpoint;
+      # Private (no anonymous pull) cache for Darwin closures; only the
+      # manual darwin-offload workflow pushes here, with ATTIC_DARWIN_TOKEN.
+      darwinCache = "darwin";
+      darwinStore = "${atticEndpoint}/darwin";
     };
     common-on = rec {
       push = {

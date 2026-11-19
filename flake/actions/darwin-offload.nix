@@ -6,14 +6,14 @@
 }: {
   flake.actions-nix.workflows.".github/workflows/darwin-offload.yml" = {
     on.workflow_dispatch.inputs.target = {
-      description = "Intel Darwin target (build only)";
+      description = "Native Darwin target (build only)";
       type = "choice";
       options = ["L1" "ASL1"];
       default = "L1";
       required = true;
     };
     jobs.build = {
-      runs-on = "macos-15-intel";
+      runs-on = "\${{ inputs.target == 'ASL1' && 'macos-15' || 'macos-15-intel' }}";
       timeout-minutes = 360;
       permissions.contents = "read";
       inherit environment;
@@ -39,13 +39,16 @@
         common-actions
         ++ [
           {
-            name = "Build on native Intel Darwin";
+            name = "Build on native Darwin";
             env.TARGET = "\${{ inputs.target }}";
             shell = "bash";
             run = ''
               set -euo pipefail
-              case "$TARGET" in L1|ASL1) ;; *) echo "Unsupported target" >&2; exit 1 ;; esac
-              test "$(uname -m)" = x86_64
+              case "$TARGET" in
+                L1) test "$(uname -m)" = x86_64 ;;
+                ASL1) test "$(uname -m)" = arm64 ;;
+                *) echo "Unsupported target" >&2; exit 1 ;;
+              esac
               read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
               nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 \
                 ".#.darwinConfigurations.$TARGET.system" --out-link result-system "''${local_overrides[@]}"

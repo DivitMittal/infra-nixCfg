@@ -11,7 +11,7 @@ No deployment, activation, build on T2, or modification of another worktree.
   and the current system's narinfo return HTTP 200. Treat infra as readable
   on the LAN; this does not prove Internet exposure or permission to upload
   private Darwin closures. No cache settings or tokens were changed.
-- L1: current Home Manager wrapper invokes the unregistered GUI bundle;
+- L1: current Home Manager wrapper invokes the GUI bundle;
   status does not return promptly. A standalone system CLI is absent.
   Enrollment and online state are unverified. PR84 changes the CLI to the
   standalone package; it is not merged here.
@@ -39,8 +39,9 @@ pushes and automatic eval-job Darwin builds/pushes are disabled: infra's
 anonymous LAN reads are unsuitable for unreviewed private Darwin closures.
 
 The separate darwin-offload workflow is manual, builds L1 or ASL1 Darwin
-and Home Manager closures on macos-15-intel, and never activates them.
-The target is allowlisted, both builds use max-jobs=2/cores=2, and timeout
+and Home Manager closures on native runners (macos-15-intel for L1,
+macos-15 Apple Silicon for ASL1), and never activates them.
+The target is allowlisted and host architecture checked; both builds use max-jobs=2/cores=2, and timeout
 is six hours. This job excludes Magic Nix Cache uploads and Attic setup;
 Cachix remains pull-only. Both closures are exported together, compressed,
 and age-encrypted before artifact upload. Only public recipient, output
@@ -143,3 +144,7 @@ No whole-configuration local checks or deployment builds were run.
 Parent reports PR91 observed L1's default route through T1's router; this
 is routing evidence, not proof of Tailscale login. Parent owns credential
 UI/secure capture and is building T3/MON1; no competing heavy build here.
+
+A harmless store-export probe passed an export → zstd → age → decrypt →
+decompress byte-for-byte roundtrip with a temporary local identity. No
+private closure or credential was used; temporary identity files were deleted.

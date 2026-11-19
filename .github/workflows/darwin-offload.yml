@@ -9,7 +9,7 @@ jobs:
       name: dev
     permissions:
       contents: read
-    runs-on: macos-15-intel
+    runs-on: ${{ inputs.target == 'ASL1' && 'macos-15' || 'macos-15-intel' }}
     steps:
     - env:
         ARTIFACT_RECIPIENT: ${{ vars.CACHE_ARTIFACT_RECIPIENT }}
@@ -49,11 +49,14 @@ jobs:
         echo "overrides: $overrides"
     - env:
         TARGET: ${{ inputs.target }}
-      name: Build on native Intel Darwin
+      name: Build on native Darwin
       run: |-
         set -euo pipefail
-        case "$TARGET" in L1|ASL1) ;; *) echo "Unsupported target" >&2; exit 1 ;; esac
-        test "$(uname -m)" = x86_64
+        case "$TARGET" in
+          L1) test "$(uname -m)" = x86_64 ;;
+          ASL1) test "$(uname -m)" = arm64 ;;
+          *) echo "Unsupported target" >&2; exit 1 ;;
+        esac
         read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
         nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 \
           ".#.darwinConfigurations.$TARGET.system" --out-link result-system "${local_overrides[@]}"
@@ -94,7 +97,7 @@ jobs:
     inputs:
       target:
         default: L1
-        description: Intel Darwin target (build only)
+        description: Native Darwin target (build only)
         options:
         - L1
         - ASL1

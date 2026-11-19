@@ -7,6 +7,7 @@ jobs:
   evaluate:
     environment:
       name: dev
+    if: needs.list-targets.outputs.targets != '[]'
     name: ${{ matrix.target.attr }}
     needs:
     - list-targets
@@ -158,14 +159,29 @@ jobs:
         echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
         echo "overrides: $overrides"
     - env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        EVENT_NAME: ${{ github.event_name }}
         FILTER_INPUT: ${{ inputs.filter }}
       id: targets
       name: List configurations to evaluate
       run: |-
         filter=${FILTER_INPUT:-$(git log -1 --format='%(trailers:key=Eval-Filter,valueonly,separator=|)')}
+        source=manual
+        if [ -z "$filter" ] && [ "$EVENT_NAME" = pull_request ]; then
+          git fetch --quiet --depth=1 origin "$BASE_SHA"
+          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          echo "changed files:"; sed 's/^/  /' <<<"$changed"
+          selected=$(bash flake/actions/select-targets.sh <<<"$changed")
+          if [ -z "$selected" ]; then
+            echo "No evaluated configuration depends on these changes."
+            echo "targets=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [ "$selected" = ALL ] || { filter=$selected; source=changes; }
+        fi
         all=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
         targets=$(jq -c --arg f "$filter" 'map(select(.attr | test($f)))' <<<"$all")
-        echo "filter: ${filter:-<none>}"
+        echo "filter ($source): ${filter:-<none>}"
         jq -r '.[].attr' <<<"$targets"
         if [ "$(jq length <<<"$targets")" -eq 0 ]; then
           echo "::error::Eval filter '$filter' matched no targets"

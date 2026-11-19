@@ -393,6 +393,10 @@
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-darwin-2605 = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+      inputs.nixpkgs.follows = "nixpkgs-2605";
+    };
     ## Hammerspoon
     hammerspoon-nix = {
       url = "github:DivitMittal/hammerspoon-nix";

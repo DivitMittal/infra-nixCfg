@@ -19,7 +19,10 @@
     withSystem system (ctx: let
       configGenerator = rec {
         nixos = lib.nixosSystem;
-        darwin = inputs.nix-darwin.lib.darwinSystem;
+        darwin =
+          if system == "x86_64-darwin"
+          then inputs.nix-darwin-2605.lib.darwinSystem
+          else inputs.nix-darwin.lib.darwinSystem;
         droid = nixOnDroidSource.lib.nixOnDroidConfiguration;
         home = inputs.home-manager.lib.homeManagerConfiguration;
         iso = nixos;

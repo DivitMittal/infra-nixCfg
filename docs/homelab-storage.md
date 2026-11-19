@@ -25,8 +25,10 @@ from this document and the inventory tool's output.
 The user confirms a 512 GiB USB HDD is connected to T3 and a 128 GiB USB
 HDD is connected to T2 (now or previously). The block-device inventory is a
 **detection failure**, not evidence that these physical disks are absent.
-`smartctl` and `lsusb` are unavailable on T2/T3; enumeration was inspected via
-sysfs, udev and kernel journals instead. SMART status remains unknown.
+`smartctl` and `lsusb` are not on the default PATH on T2/T3. No cached
+`lsusb` executable was found; enumeration was inspected via sysfs, udev and
+kernel journals instead. T3 has a cached `smartctl` binary, but no USB block
+device to query. SMART status remains unknown.
 
 Read-only diagnostic follow-up found:
 

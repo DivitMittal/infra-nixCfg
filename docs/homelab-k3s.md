@@ -85,6 +85,37 @@ filesystem quota for local-path, so monitor free space and AOF growth. Cache
 can be recreated if losing cached feeds is acceptable. There is no existing
 native cache migration because these hosts are uninstalled.
 
+## SSH portfolio
+
+`hosts/nixos/T3/ssh-portfolio.nix` runs the
+[Qezta/ssh](https://github.com/Qezta/ssh) terminal portfolio
+(`ssh divit@qezta.com`) in the `qezta-ssh` namespace. The `qezta-ssh` flake
+input builds a static OCI image, and `services.k3s.images` preloads it into
+T3's containerd, so no registry or image pull is involved
+(`imagePullPolicy: Never`). The image tag is its content hash: bumping the
+input changes the Deployment, and the image change restarts `k3s.service` so
+the new tarball is imported. Pods keep running across that restart.
+
+The pod requires node `t3`. Its 16 MiB local-path PVC holds the server host
+key, which the server generates on first start. Clients pin that key, so
+treat the PVC like a secret: back it up, and never delete it casually.
+The pod runs as UID 65532 with a read-only root filesystem, no capabilities and
+no service-account token; it is limited to 128 MiB/500 millicores. Sessions
+time out after 15 minutes idle or 2 hours total.
+
+The Service is NodePort **30022** with `externalTrafficPolicy: Local`, which
+keeps real client addresses in the connection log. LAN test:
+`ssh -p 30022 divit@T3.lan`. Unlike the other NodePorts, this one is meant to be
+public: the remaining step is a router forward from WAN TCP 22 to
+`T3.lan:30022`, plus a DNS A record for `qezta.com` (or `ssh.qezta.com`) that
+points at the WAN address and is not proxied. The server never grants a shell
+and accepts any credentials by design (see Qezta/ssh `SECURITY.md`).
+
+```sh
+sudo k3s kubectl -n qezta-ssh get deployment,pods,service,pvc
+sudo k3s kubectl -n qezta-ssh logs deployment/ssh-portfolio
+```
+
 ## Operations after installation
 
 On T3, use root's local kubeconfig (`sudo k3s kubectl ...`):

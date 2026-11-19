@@ -194,6 +194,7 @@
           "actions-nix"
         ],
         "aicommit2": "aicommit2",
+        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs",
         "devshell": [
           "devshell"
         ],
@@ -227,11 +228,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795031946,
-        "narHash": "sha256-dWw0CL5DkT1oC2Aynk7Cq9zTwxBWK0G6S6SqYWMYUEQ=",
+        "lastModified": 1795051559,
+        "narHash": "sha256-a9Ny95lSQPi6AoAErWQVggvBqjdPgT2RUdd1mIoGdUg=",
         "owner": "DivitMittal",
         "repo": "ai-nixCfg",
-        "rev": "45aea6908c8be90ef6dc4a8db568beff593d9059",
+        "rev": "903e4eca4a42e906f53b1b235a073719a129447c",
         "type": "github"
       },
       "original": {
@@ -248,7 +249,7 @@
         ],
         "nixpkgs": [
           "ai-nixCfg",
-          "nixpkgs"
+          "aicommit2-build-nixpkgs"
         ]
       },
       "locked": {
@@ -266,6 +267,22 @@
       }
     },
     "aicommit2-build-nixpkgs": {
+      "locked": {
+        "lastModified": 1753429684,
+        "narHash": "sha256-9h7+4/53cSfQ/uA3pSvCaBepmZaz/dLlLVJnbQ+SJjk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fd36ee82c0275fb545775cc5e4d30542899511d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fd36ee82c0275fb545775cc5e4d30542899511d",
+        "type": "github"
+      }
+    },
+    "aicommit2-build-nixpkgs_2": {
       "flake": false,
       "locked": {
         "lastModified": 1753429684,
@@ -3408,7 +3425,7 @@
         "actions-nix": "actions-nix",
         "agenix": "agenix",
         "ai-nixCfg": "ai-nixCfg",
-        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs",
+        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs_2",
         "android-kvm": "android-kvm",
         "areofyl-fetch": "areofyl-fetch",
         "brew-api": "brew-api",

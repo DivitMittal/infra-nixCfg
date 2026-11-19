@@ -2,7 +2,7 @@
 # Read-only inventory; stable identifiers and SMART details stay out of stdout.
 set -euo pipefail
 if [[ $(uname -s) == Darwin ]]; then
-  exec diskutil list
+  exec /usr/sbin/diskutil list
 fi
 if [[ $EUID != 0 ]]; then
   echo 'Run as root to inspect filesystem signatures without mounting.' >&2

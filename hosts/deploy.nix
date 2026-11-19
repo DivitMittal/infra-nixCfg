@@ -9,6 +9,7 @@
 # authoritative single source of truth for all deploy-rs nodes.
 {
   inputs,
+  lib,
   self,
   ...
 }: let
@@ -22,6 +23,32 @@
   activateHome = system: configuration:
     inputs.deploy-rs.lib.${system}.activate.home-manager configuration;
 
+  # deploy-rs's activate.nixos, except that its systemd-boot cleanup uses GNU
+  # sed by absolute path. Upstream runs `sed` from the target's PATH, where
+  # uutils-sed 0.1.1 (common/hosts/all/misc.nix) rejects the address
+  # `/^default /` (trailing space). That step runs after the switch, so the
+  # failure triggers a rollback that cannot re-activate and leaves the host on
+  # the new system with its profile pointing at the old one.
+  activateNixos = system: configuration: let
+    inherit (configuration.config.boot.loader) systemd-boot efi;
+  in
+    (inputs.deploy-rs.lib.${system}.activate.custom
+      // {
+        dryActivate = "$PROFILE/bin/switch-to-configuration dry-activate";
+        boot = "$PROFILE/bin/switch-to-configuration boot";
+      })
+    configuration.config.system.build.toplevel
+    ''
+      # work around https://github.com/NixOS/nixpkgs/issues/73404
+      cd /tmp
+
+      $PROFILE/bin/switch-to-configuration switch
+
+      # https://github.com/serokell/deploy-rs/issues/31
+      ${lib.optionalString systemd-boot.enable
+        "${configuration.pkgs.gnused}/bin/sed -i '/^default /d' ${efi.efiSysMountPoint}/loader/loader.conf"}
+    '';
+
   # All home-lab boxes are x86_64-linux and built on the target, since the
   # workstation may be macOS.
   mkHomelabNode = hostname: configuration: {
@@ -30,7 +57,7 @@
       sshUser = "root";
       user = "root";
       remoteBuild = true;
-      path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos configuration;
+      path = activateNixos "x86_64-linux" configuration;
       sshOpts = ["-i" "/Users/div/.ssh/agenix/id_ed25519" "-o" "StrictHostKeyChecking=accept-new"];
     };
   };

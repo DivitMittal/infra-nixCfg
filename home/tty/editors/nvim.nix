@@ -8,7 +8,7 @@
   inherit (lib) mkIf mkOption;
   cfg = config.programs.nvchad;
 in {
-  imports = [inputs.nvchad4nix.homeManagerModule];
+  imports = [inputs.nvchad4nix.homeManagerModules.default];
 
   options.programs.nvchad = {
     # nvchad4nix bundles its own neovim + NvChad config; programs.neovim

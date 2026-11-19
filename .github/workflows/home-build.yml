@@ -67,30 +67,68 @@ jobs:
         echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
         echo "overrides: $overrides"
     - name: Builds a home-manager configuration
-      run: nix build --accept-flake-config .#homeConfigurations.L1.activationPackage
-        --show-trace $LOCAL_OVERRIDES
+      run: |-
+        set -euo pipefail
+        nix build --accept-flake-config --print-out-paths .#.homeConfigurations.L1.activationPackage --show-trace $LOCAL_OVERRIDES | tee build-result.txt
+        test -s build-result.txt
+        test -e ./result
+        echo "Built $(cat build-result.txt) from $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      shell: bash
     - continue-on-error: true
+      id: attic_push
       if: steps.attic.outputs.enabled == 'true'
       name: Push the result to the attic cache on T3
       run: attic push homelab:infra ./result
-    - name: Generate home-manager dependency graph
+    - name: Record the deployment store path
+      uses: actions/upload-artifact@v4
+      with:
+        name: home-manager-L1
+        path: build-result.txt
+        retention-days: 7
+    - env:
+        ARTIFACT_RECIPIENT: ${{ vars.CACHE_ARTIFACT_RECIPIENT }}
+      if: steps.attic_push.outcome != 'success' && vars.CACHE_ARTIFACT_RECIPIENT !=
+        ''
+      name: Encrypt the build closure for LAN cache import
+      run: |-
+        rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
+        nix shell "github:NixOS/nixpkgs/$rev#age" "github:NixOS/nixpkgs/$rev#zstd" --command bash -euo pipefail -c '
+          nix-store --query --requisites ./result \
+            | nix-store --export --stdin \
+            | zstd -T0 -3 \
+            | age -r "$ARTIFACT_RECIPIENT" -o result.nar.zst.age
+        '
+    - if: steps.attic_push.outcome != 'success' && vars.CACHE_ARTIFACT_RECIPIENT !=
+        ''
+      name: Upload the encrypted deployment closure
+      uses: actions/upload-artifact@v4
+      with:
+        compression-level: 0
+        name: home-manager-L1-closure
+        path: result.nar.zst.age
+        retention-days: 3
+    - if: github.event_name == 'push'
+      name: Generate home-manager dependency graph
       run: nix -vL run github:craigmbooth/nix-visualize -- --verbose --output ./assets/home_graph.png
         ./result
-    - name: Invert graph colors
+    - if: github.event_name == 'push'
+      name: Invert graph colors
       run: nix run nixpkgs#imagemagick -- convert ./assets/home_graph.png -channel
         RGB -negate +channel ./assets/home_graph.png
     - env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.event_name == 'push'
       name: Push to repo
       run: |-
         git config --global user.name "GitHub Actions Bot"
         git config --global user.email bot@github.com
-        git add .
+        git add assets/home_graph.png
         git commit -m "chore: update home-manager dependency graph" || echo "No changes to commit"
         git pull --rebase origin master
         git push origin master
-    timeout-minutes: 150
+    timeout-minutes: 360
 'on':
   push:
     tags:
     - home*
+  workflow_dispatch: {}

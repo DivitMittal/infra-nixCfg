@@ -126,6 +126,7 @@
     ];
     ## Push a build's ./result to attic; pairs with the steps above
     attic-push = {
+      id = "attic_push";
       name = "Push the result to the attic cache on T3";
       "if" = "steps.attic.outputs.enabled == 'true'";
       run = "attic push ${atticRemote}:${atticCache} ./result";

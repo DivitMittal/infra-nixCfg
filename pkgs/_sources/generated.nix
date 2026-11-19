@@ -5,10 +5,10 @@
 }: {
   BattOpt = {
     pname = "BattOpt";
-    version = "1.2.9";
+    version = "1.2.12";
     src = fetchurl {
-      url = "https://github.com/js4jiang5/BattOpt/releases/download/v1.2.9/BattOpt_v1.2.9.dmg";
-      sha256 = "sha256-IvE7dk1zlovtzJ5kplENyzL5GdlWbTUL1Yb2QtbrWDE=";
+      url = "https://github.com/js4jiang5/BattOpt/releases/download/v1.2.12/BattOpt_v1.2.12.dmg";
+      sha256 = "sha256-HXBuXH0lMo5k0xw83auvYdHekVzIDGhTWKfUb3cM3e4=";
     };
   };
   Iris = {
@@ -57,10 +57,10 @@
   };
   Spaceman = {
     pname = "Spaceman";
-    version = "1.27.0";
+    version = "1.30.0";
     src = fetchurl {
-      url = "https://github.com/ruittenb/Spaceman/releases/download/v1.27.0/Spaceman-1.27.0.dmg";
-      sha256 = "sha256-1TLBWzkjtwcLfwk26Zjm90A1TgZkuVv5codf/YL+fnE=";
+      url = "https://github.com/ruittenb/Spaceman/releases/download/v1.30.0/Spaceman-1.30.0.dmg";
+      sha256 = "sha256-UPHp4CcZvcVBp8Z+kP8SGSUMGzgf0IuJsQvkx3opwxQ=";
     };
   };
   VoltageShift = {
@@ -111,12 +111,12 @@
   };
   get-apple-firmware = {
     pname = "get-apple-firmware";
-    version = "92f29800f935fb30905c5cae953f6d52421c1f2b";
+    version = "69d3982a6254e1f0f35c71e41f40f3234fcfa54a";
     src = fetchurl {
-      url = "https://raw.githubusercontent.com/t2linux/wiki/92f29800f935fb30905c5cae953f6d52421c1f2b/docs/tools/firmware.sh";
+      url = "https://raw.githubusercontent.com/t2linux/wiki/69d3982a6254e1f0f35c71e41f40f3234fcfa54a/docs/tools/firmware.sh";
       sha256 = "sha256-wcHYqiW7XwieRszQ2XOPwTv714T0maqSRGbGkPBZlh4=";
     };
-    date = "2026-10-20";
+    date = "2026-11-17";
   };
   hyperhdr-aarch64 = {
     pname = "hyperhdr-aarch64";
@@ -160,23 +160,23 @@
   };
   menubar-dock = {
     pname = "menubar-dock";
-    version = "v4.8.1";
+    version = "v4.8.10";
     src = fetchurl {
-      url = "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/v4.8.1/Menu-Bar-Dock-v4.8.1.zip";
-      sha256 = "sha256-YScF3eTizDL9zQyv8Ef1M8Bp9gTwnUdO8kpefj8WGso=";
+      url = "https://github.com/EthanSK/Menu-Bar-Dock/releases/download/v4.8.10/Menu-Bar-Dock-v4.8.10.zip";
+      sha256 = "sha256-5n7A9rRTjSvq3uJLAb82v7vQbf8klL8tCV8brg3SmOU=";
     };
   };
   mutt = {
     pname = "mutt";
-    version = "844fcfe7861631359ee789e4231d322144a1bd3b";
+    version = "dc57f1bc553ab2448a0c66b87b7d7505f7f59393";
     src = fetchFromGitHub {
       owner = "muttmua";
       repo = "mutt";
-      rev = "844fcfe7861631359ee789e4231d322144a1bd3b";
+      rev = "dc57f1bc553ab2448a0c66b87b7d7505f7f59393";
       fetchSubmodules = false;
-      sha256 = "sha256-zHjyUdJCO3TYqYTrMwb9lXu5SvDT0mGPUGgv6RUxi6w=";
+      sha256 = "sha256-yl2/zl65Apop+4dwKlbX0H6IG955IZWCUj1zp4V7A9E=";
     };
-    date = "2026-10-10";
+    date = "2026-11-15";
   };
   option-analysis = {
     pname = "option-analysis";
@@ -252,13 +252,13 @@
   };
   spotify-player = {
     pname = "spotify-player";
-    version = "v0.25.1";
+    version = "v0.25.2";
     src = fetchFromGitHub {
       owner = "aome510";
       repo = "spotify-player";
-      rev = "v0.25.1";
+      rev = "v0.25.2";
       fetchSubmodules = false;
-      sha256 = "sha256-lJOHhrJ6ser1vs2m0pUnDpbnSgTtdTX/yXhCjvzCrTM=";
+      sha256 = "sha256-Zbwrdhy+bHnAlxWvLiKFpO7ZLW4csRd2N0pKDe29hOc=";
     };
   };
   tccutil = {
@@ -274,34 +274,34 @@
   };
   uniclipboard-cli-aarch64-darwin = {
     pname = "uniclipboard-cli-aarch64-darwin";
-    version = "1.4.0";
+    version = "1.6.2";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-aarch64-apple-darwin.tar.gz";
-      sha256 = "sha256-IVyJvZE2wZ4yZcB+PuhkAKN8QjSmozwHSG+nDH30UT4=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.6.2/uniclipboard-cli-1.6.2-aarch64-apple-darwin.tar.gz";
+      sha256 = "sha256-OoSbqpMqi0hkCCom4uxZGBLBJ5zXPgER+RVArutSxQs=";
     };
   };
   uniclipboard-cli-aarch64-linux = {
     pname = "uniclipboard-cli-aarch64-linux";
-    version = "1.4.0";
+    version = "1.6.2";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-aarch64-unknown-linux-musl.tar.gz";
-      sha256 = "sha256-hVT2/e/+LzHt066dY4vXO8uYF3MGt9Y7JOQd0kzUqwE=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.6.2/uniclipboard-cli-1.6.2-aarch64-unknown-linux-musl.tar.gz";
+      sha256 = "sha256-SIm67ryW7DrPp3H6X3e4VJe8vZlQTYNfnQ8TgY+FyH0=";
     };
   };
   uniclipboard-cli-x86_64-darwin = {
     pname = "uniclipboard-cli-x86_64-darwin";
-    version = "1.4.0";
+    version = "1.6.2";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-apple-darwin.tar.gz";
-      sha256 = "sha256-ubb7CETB7ZLYM1A0dy/dcIGxK/9jelDkBCSAsrkZ9XM=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.6.2/uniclipboard-cli-1.6.2-x86_64-apple-darwin.tar.gz";
+      sha256 = "sha256-FyYkb5kQAWECwcjpLnxXn7knuop0jgZnYFPU8Cwel9M=";
     };
   };
   uniclipboard-cli-x86_64-linux = {
     pname = "uniclipboard-cli-x86_64-linux";
-    version = "1.4.0";
+    version = "1.6.2";
     src = fetchurl {
-      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-unknown-linux-musl.tar.gz";
-      sha256 = "sha256-JV7uj2ROKED3j14MzquVzbiHLinEpsnC+AXaMQ2xjhw=";
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.6.2/uniclipboard-cli-1.6.2-x86_64-unknown-linux-musl.tar.gz";
+      sha256 = "sha256-EfWh18aPN27Ynjpqa77IjhC3innN+V7rGssLWJw7cN4=";
     };
   };
   warpd = {

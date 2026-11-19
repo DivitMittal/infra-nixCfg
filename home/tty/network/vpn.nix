@@ -13,12 +13,6 @@
   mullvadCliWrapper = pkgs.writeShellScriptBin "mullvad" ''
     exec "${pkgs.brewCasks.mullvad-vpn}/Applications/Mullvad VPN.app/Contents/Resources/mullvad" "$@"
   '';
-
-  # Same pattern for Tailscale: the tailscale-app cask ships the `tailscale` CLI
-  # at Tailscale.app/Contents/MacOS/Tailscale.
-  tailscaleCliWrapper = pkgs.writeShellScriptBin "tailscale" ''
-    exec "${pkgs.brewCasks.tailscale-app}/Applications/Tailscale.app/Contents/MacOS/Tailscale" "$@"
-  '';
 in {
   options.programs.vpn = {
     enable = lib.mkOption {
@@ -33,7 +27,10 @@ in {
 
   config = lib.mkIf cfg.enable {
     home.packages =
-      lib.lists.optionals hostPlatform.isLinux [pkgs.mullvad pkgs.tailscale]
-      ++ lib.lists.optionals hostPlatform.isDarwin [mullvadCliWrapper tailscaleCliWrapper];
+      # The standalone CLI works without launching the GUI app, which can
+      # hang when invoked from an unregistered Nix-store app bundle on macOS.
+      [pkgs.tailscale]
+      ++ lib.lists.optionals hostPlatform.isLinux [pkgs.mullvad]
+      ++ lib.lists.optionals hostPlatform.isDarwin [mullvadCliWrapper];
   };
 }

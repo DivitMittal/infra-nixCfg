@@ -114,7 +114,21 @@
     exec ${pkgs.python3}/bin/python3 ${report}
   '';
 in {
-  options.hardware.hpBiosInventory.enable = lib.mkEnableOption "read-only HP BIOS and UEFI inventory";
+  options.hardware.hpBiosInventory = {
+    enable = lib.mkEnableOption "read-only HP BIOS and UEFI inventory";
+    candidateDriver = lib.mkOption {
+      type = lib.types.package;
+      readOnly = true;
+      default = pkgs.callPackage ../../../pkgs/custom/hp-bioscfg-m43/package.nix {
+        inherit (config.boot.kernelPackages) kernel;
+      };
+      description = ''
+        Experimental M43 driver built for this host's configured kernel.
+        This exposes a build target only; it neither installs nor loads the module.
+        Building and live testing require coordination described in docs/hp-t640-bios.md.
+      '';
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     boot.kernelModules = ["hp-bioscfg"];

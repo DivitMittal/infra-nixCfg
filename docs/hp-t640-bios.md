@@ -356,6 +356,70 @@ ACPI packages from older HP BIOS", `b0e2af3ec94e`, `05c808362e80`,
   `/dev/mem` is `STRICT_DEVMEM`. The static DSDT gives names and possible
   values only, never the current value.
 
+## Reproducible driver candidate (2026-11-20)
+
+`pkgs/custom/hp-bioscfg-m43/` now contains an experimental external-module
+package and a reviewable GPL kernel patch. It builds against the selected
+host kernel's source and development output, so its vermagic follows that
+kernel. The patch was applied without fuzz to Linux v6.18.38 source and
+fixture-tested locally; **the complete kernel module has not been built or
+loaded**. A different kernel source may reject the patch; do not force it.
+
+The decoder accepts bounded plain ASCII and strictly formed `0xNN` tokens,
+preserves escaping for backslash and whitespace, and rejects malformed tokens,
+embedded NULs and non-ASCII bytes. A terminal encoded NUL remains supported.
+Its zeroed allocation also avoids the short-token allocation problem in the
+6.18 decoder. The WMAA change allocates a 16-byte header plus at least 128
+zeroed payload bytes, retaining the real `datasize` and copying only that many
+input bytes. It does not change the set-setting method. String/ordered-list
+AML defects and duplicate WMI GUIDs remain outside this patch.
+
+Current upstream was rechecked at
+[`8dac6df92a2e66e2098bbc69061964cfe7e8375b`](https://github.com/torvalds/linux/tree/8dac6df92a2e66e2098bbc69061964cfe7e8375b/drivers/platform/x86/hp/hp-bioscfg):
+the decoder still assumes hex tokens and WMAA still allocates only `insize`
+payload bytes. The earlier conclusions about those defects still apply.
+
+`hardware.hpBiosInventory.candidateDriver` is a build target only. It does
+not add an external module to the boot environment, install a service, or
+change the existing inventory or standard UEFI boot-order module. For an
+approved build on T2 (maximum two jobs and two cores), or on a native GitHub
+runner with the usual private-input overrides:
+
+```sh
+nix build --no-link --max-jobs 2 --cores 2 \
+  .#nixosConfigurations.T3.config.hardware.hpBiosInventory.candidateDriver
+```
+
+The package runs `test_patch.py` during `postPatch`. That script extracts the
+**patched C decoder and query-buffer setup**, compiles them with a small
+userspace allocation shim, then checks plain names (including `After Power
+Loss`), bounded non-NUL-terminated input, tokenised names, escaping, malformed
+input, and every payload length from 0 through 256. It checks the actual
+allocated length, header, original `datasize`, copied bytes and zero padding.
+It accesses no firmware. These fixtures pass on macOS with `cc`; they do not
+prove ACPI/SMM compatibility or a successful kernel-module build.
+
+```sh
+# Offline, after applying m43.patch to a scratch Linux source tree:
+python3 pkgs/custom/hp-bioscfg-m43/test_patch.py /path/to/patched/linux
+```
+
+Safe live evidence collected on T3 on 2026-11-20: kernel 6.18.38, M43 v01.11,
+the same four malformed directory names plus `Sure_Start`/`pending_reboot`,
+and existing boot-log WQBD/WQBE/HWMC/WMAA errors. Only cached identity files,
+directory listings and existing logs were inspected. No vendor attribute was
+read and no module was inserted. The later cable diagnosis explains network
+outages but does not establish that future SMM queries cannot hang.
+
+**Next parent coordination:** first request the package-only build above;
+this does not authorize installation. After successful build and module
+metadata review, request a separate T3 console-supervised replacement of the
+stock module and one enumeration-only `current_value` read for `After Power
+Loss`. Loading the driver executes firmware queries during probe, even before
+that read. A hang may require a separately authorized power cycle. Keep
+`Sure_Start` reads, writes, reboots, EFI boot and T1 out of that test. No
+firmware-setting policy is activated by this implementation.
+
 ## HP and IGEL vendor tools
 
 ### `hptc-bios-cfg` (HP ThinPro): analysed from the official image

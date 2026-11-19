@@ -159,7 +159,6 @@ in {
         github-copilot-cli
         gh-screensaver
         gh-markdown-preview
-        gh-actions-cache
         ;
     };
 

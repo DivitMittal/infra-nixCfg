@@ -21,8 +21,12 @@
         ++ [
           {
             name = "Builds a nix-darwin configuration";
+            shell = "bash";
             run = ''
+              set -euo pipefail
               nix build --accept-flake-config --print-out-paths .#.darwinConfigurations.L1.system --show-trace $LOCAL_OVERRIDES | tee build-result.txt
+              test -s build-result.txt
+              test -e ./result
               echo "Built $(cat build-result.txt) from $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
             '';
           }

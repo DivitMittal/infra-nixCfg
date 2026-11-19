@@ -68,8 +68,12 @@ jobs:
         echo "overrides: $overrides"
     - name: Builds a nix-darwin configuration
       run: |-
+        set -euo pipefail
         nix build --accept-flake-config --print-out-paths .#.darwinConfigurations.L1.system --show-trace $LOCAL_OVERRIDES | tee build-result.txt
+        test -s build-result.txt
+        test -e ./result
         echo "Built $(cat build-result.txt) from $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      shell: bash
     - continue-on-error: true
       id: attic_push
       if: steps.attic.outputs.enabled == 'true'

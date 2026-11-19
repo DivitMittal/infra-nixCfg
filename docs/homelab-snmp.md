@@ -39,17 +39,27 @@ decrypted in process memory; only read pages were fetched after login.
   no bad packet counters increased during these samples. Background traffic
   makes good-packet deltas insufficient to certify each physical port mapping.
 
-The repository's old port mapping (T3 on 1, MON1 on 3) does not agree with
-these link observations if those hosts are still directly attached. Treat
-it as unverified rather than rewriting topology based on inference.
+User subsequently confirmed the physical path L1 → S1 → T1 → USB adapter →
+R0. L1 is directly attached to S1, not S2, and its current route through T1 is
+intended. Only S1 port 1 currently reports 100 Mb/s, making it the candidate
+L1 port, but the physical socket number still needs explicit confirmation.
+MON1's physical switch path has not been confirmed. The repository's old
+mapping (T3 on 1, MON1 on 3) is unverified; do not rewrite topology from
+traffic deltas or assume MON1 is directly attached.
 
 **Physical cause is not yet established.** The adapter and USB bus support
 1 Gb/s operation. A damaged/missing cable pair, a 100-only peer port, or a
 PHY/driver negotiation problem remains possible. A gigabit uplink on an
 intermediate switch does not prove that L1's access port is gigabit.
-Next obtain the physical L1 → peer → S1 cable/port trace and peer model.
-Then, during a user-coordinated interruption of L1's active internet, test a
-known-good four-pair Cat5e/6 cable and known-good gigabit peer port separately.
+Next confirm the numbered S1 socket holding L1's cable without unplugging
+anything. During a user-coordinated brief interruption of L1's active internet,
+replace only that cable with a known-good four-pair Cat5e/6 cable in the same
+socket. Recheck en23 media and S1 actual speed. If it becomes 1000Full, the
+original cable/connector path is implicated. If it remains 100Full, next test
+that known-good cable on a confirmed unused S1 port, with parent coordination;
+do not move any T1 or other active host cable. A port-dependent result
+implicates the original switch port; 100 Mb/s on both leaves the adapter/PHY/
+driver to isolate with a known-good adapter later.
 Do not force 1000, change routes, reset counters, or disturb T1 to test this.
 
 ## R0 credential and capability gate
@@ -120,10 +130,11 @@ verification requires the credential gate and parent-coordinated deployment.
 
 ## Exact parent questions
 
-Cable trace: “Without unplugging anything, what is en23's Ethernet cable
-plugged into at its other end? Please give that device's model and port
-number, then trace its uplink(s) to S1 with port numbers. Is there a wall
-jack, coupler, dock, or another switch anywhere along that path?”
+Cable/port confirmation: “Which numbered S1 socket holds L1's cable? Please
+check without unplugging it. Once confirmed, can we schedule a brief
+interruption of L1's internet to replace only that cable with a known-good
+four-pair Cat5e/6 cable in the same port? We will compare L1 and S1 link
+speeds before considering a confirmed unused switch port.”
 
 R0 secure action: “Please open R0's admin UI locally and provide its model,
 firmware version, and SNMP page with all communities/passwords redacted.

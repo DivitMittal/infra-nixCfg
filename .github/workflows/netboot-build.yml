@@ -54,7 +54,7 @@ jobs:
       run: |-
         nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
         if [ "$RUNNER_OS" = Linux ]; then
-          tailscale set --accept-routes=true --accept-dns=false
+          sudo tailscale set --accept-routes=true --accept-dns=false
         fi
         # Keep the JWT out of process arguments and the Nix store.
         install -d -m 700 "$HOME/.config/attic"

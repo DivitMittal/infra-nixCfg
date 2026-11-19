@@ -57,14 +57,15 @@ RSSHub uses `CACHE_TYPE=memory`, `MEMORY_MAX=256`, a 300-second route TTL and
 3600-second content TTL. These are supported by the
 [pinned upstream configuration](https://github.com/DIYgod/RSSHub/blob/b4990a809138010275532fbab0efe8d55e2dc779/lib/config.ts).
 Redis was previously only a cache for RSSHub; no user datastore depended on it.
-The deployment no longer declares a Redis service, pod or persistent volume.
+The deployment no longer declares a Redis service or pod. Its retired PVC stays
+declared solely to prevent k3s from pruning its existing data.
 Cache entries reset when RSSHub restarts and are not shared between replicas.
 Keep one replica unless independent per-pod caches are acceptable.
 
 Migration: apply the new RSSHub manifest, wait for the rollout, and verify a
-real RSS feed before removing the old Redis Deployment and Service. Removing
-manifest entries alone does not reliably remove already-created resources.
-Preserve the old `rsshub/redis-data` PVC and PV: deleting those may erase data.
+real RSS feed. The k3s AddOn controller can prune Deployment and Service objects
+removed from the manifest. Preserve the old `rsshub/redis-data` PVC declaration
+and its PV: pruning that claim may erase data.
 They can be inspected and retired separately after the owner approves cleanup.
 Do not delete the namespace, which also owns the running RSSHub resources.
 
@@ -128,10 +129,10 @@ the token as a secret. RSSHub cache does not need backing up. Keep the bootstrap
 Test restoration onto T3 before treating backups as usable. A second agent
 cannot recover the server database.
 
-NixOS rebuilds update the auto-deploy manifest. Removing entries or the file
-does **not** garbage-collect Kubernetes resources. Plan explicit `kubectl`
-cleanup after removing declarative ownership; deleting a PVC may reclaim its
-local data. Do not delete the namespace/PVC casually. T3 rebuilds, Recreate
+NixOS rebuilds update the auto-deploy manifest. The pinned k3s AddOn controller
+[prunes previously owned objects removed from a changed manifest](https://github.com/k3s-io/k3s/blob/v1.35.6%2Bk3s1/pkg/deploy/controller.go#L229).
+Removing the manifest file is a different operation and must not be relied on
+for cleanup. Deleting or pruning a PVC may reclaim its local data. Do not delete the namespace/PVC casually. T3 rebuilds, Recreate
 rollouts and reboots can interrupt service. Upgrade server first, then agent,
 and keep their k3s versions compatible.
 
@@ -155,5 +156,4 @@ persistence checks do not prove this migration succeeded.
   [packaged components and manifest lifecycle](https://docs.k3s.io/installation/packaged-components),
   [SQLite backup/restore](https://docs.k3s.io/datastore/backup-restore)
   and [local-path storage](https://docs.k3s.io/storage).
-- [RSSHub upstream release and published image tags](https://github.com/DIYgod/RSSHub/releases/tag/v2026.11.16-8658.b4990a8)
-  .
+- [RSSHub upstream release and published image tags](https://github.com/DIYgod/RSSHub/releases/tag/v2026.11.16-8658.b4990a8).

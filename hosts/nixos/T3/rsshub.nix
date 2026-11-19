@@ -124,6 +124,18 @@ in {
       kind = "Namespace";
       metadata.name = namespace;
     }
+    # k3s prunes objects removed from an AddOn. Keep the retired claim owned
+    # until its data is explicitly approved for deletion; no pod mounts it.
+    {
+      apiVersion = "v1";
+      kind = "PersistentVolumeClaim";
+      metadata = metadata "redis-data";
+      spec = {
+        accessModes = ["ReadWriteOnce"];
+        storageClassName = "local-path";
+        resources.requests.storage = "2Gi";
+      };
+    }
     rsshub
     (service "rsshub" 1200 {
       type = "NodePort";

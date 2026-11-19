@@ -1,4 +1,4 @@
-{...}: {
+_: {
   _module.args.export-result = name: [
     {
       name = "Encrypt the build closure for LAN cache import";

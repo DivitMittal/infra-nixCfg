@@ -1,5 +1,6 @@
 {
   attic-push,
+  export-result,
   common-permissions,
   common-actions-cred,
   environment,
@@ -35,6 +36,9 @@
               retention-days = 7;
             };
           }
+        ]
+        ++ export-result "home-manager-L1"
+        ++ [
           {
             name = "Generate home-manager dependency graph";
             "if" = "github.event_name == 'push'";

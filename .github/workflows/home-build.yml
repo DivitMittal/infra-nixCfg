@@ -71,6 +71,7 @@ jobs:
         nix build --accept-flake-config --print-out-paths .#.homeConfigurations.L1.activationPackage --show-trace $LOCAL_OVERRIDES | tee build-result.txt
         echo "Built $(cat build-result.txt) from $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
     - continue-on-error: true
+      id: attic_push
       if: steps.attic.outputs.enabled == 'true'
       name: Push the result to the attic cache on T3
       run: attic push homelab:infra ./result
@@ -80,6 +81,28 @@ jobs:
         name: home-manager-L1
         path: build-result.txt
         retention-days: 7
+    - env:
+        ARTIFACT_RECIPIENT: ${{ vars.CACHE_ARTIFACT_RECIPIENT }}
+      if: steps.attic_push.outcome != 'success' && vars.CACHE_ARTIFACT_RECIPIENT !=
+        ''
+      name: Encrypt the build closure for LAN cache import
+      run: |-
+        rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
+        nix shell "github:NixOS/nixpkgs/$rev#age" "github:NixOS/nixpkgs/$rev#zstd" --command bash -euo pipefail -c '
+          nix-store --query --requisites ./result \
+            | nix-store --export --stdin \
+            | zstd -T0 -3 \
+            | age -r "$ARTIFACT_RECIPIENT" -o result.nar.zst.age
+        '
+    - if: steps.attic_push.outcome != 'success' && vars.CACHE_ARTIFACT_RECIPIENT !=
+        ''
+      name: Upload the encrypted deployment closure
+      uses: actions/upload-artifact@v4
+      with:
+        compression-level: 0
+        name: home-manager-L1-closure
+        path: result.nar.zst.age
+        retention-days: 3
     - if: github.event_name == 'push'
       name: Generate home-manager dependency graph
       run: nix -vL run github:craigmbooth/nix-visualize -- --verbose --output ./assets/home_graph.png

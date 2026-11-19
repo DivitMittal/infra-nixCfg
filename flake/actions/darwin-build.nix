@@ -1,5 +1,6 @@
 {
   attic-push,
+  export-result,
   common-permissions,
   common-actions,
   environment,
@@ -35,7 +36,8 @@
               retention-days = 7;
             };
           }
-        ];
+        ]
+        ++ export-result "nix-darwin-L1";
     };
   };
 }

@@ -70,6 +70,7 @@ jobs:
       run: nix -vL build --accept-flake-config .#nixosConfigurations.WSL.config.system.build.toplevel
         --show-trace $LOCAL_OVERRIDES
     - continue-on-error: true
+      id: attic_push
       if: steps.attic.outputs.enabled == 'true'
       name: Push the result to the attic cache on T3
       run: attic push homelab:infra ./result

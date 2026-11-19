@@ -9,6 +9,9 @@
   alsa-lib,
   libpulseaudio,
   pipewire,
+  fontconfig,
+  libglvnd,
+  xorg,
   ...
 }: let
   version = "7.66";
@@ -68,6 +71,10 @@ in
       alsa-lib
       libpulseaudio
       pipewire
+      fontconfig
+      libglvnd
+      xorg.libX11
+      xorg.libXi
       # libstdc++; stdenvNoCC has no compiler, so its .cc is null.
       stdenv.cc.cc.lib
     ];

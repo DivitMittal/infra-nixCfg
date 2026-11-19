@@ -3,6 +3,7 @@
   inputs,
   lib,
   pkgs,
+  customLib,
   ...
 }: let
   enabled =
@@ -46,7 +47,24 @@
     inherit lib pkgs;
     inherit (inputs) ai-nixCfg;
   };
+  codexSetup = import "${inputs.ai-nixCfg}/config/home/coding/codex/setup.nix" {
+    inherit config lib pkgs;
+    customLib =
+      customLib
+      // {
+        # Bare Bunx resolution exited silently on fresh compute-node caches;
+        # the explicit tag resolved the package correctly on T3. Keep the
+        # upstream latest-version policy, wrapper metadata and CODEX_HOME.
+        mkBunxBin = cliPkgs: name: package:
+          customLib.mkBunxBin cliPkgs name (
+            if package == "@openai/codex"
+            then "@openai/codex@latest"
+            else package
+          );
+      };
+  };
 in {
+  programs.codex.package = lib.mkIf enabled (lib.mkForce codexSetup.programs.codex.package);
   # The plugin activation hook exits the whole activation if Herdr is absent
   # from PATH. Declare the hook's binary dependency instead of relying on a
   # login shell environment, so later steps (including user services) run.

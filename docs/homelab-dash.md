@@ -85,16 +85,23 @@ homelab-dash-probe 192.168.2.8 --port 623
 homelab-dash-probe 192.168.2.8 --port 664
 ```
 
-The client has not been run against a live controller. A private/self-signed
-certificate will fail validation; there is no insecure-TLS switch. A known
+The parent executed the packaged client's unauthenticated Identify probes on
+2026-11-20 against `192.168.2.8`, once each on TCP 623 and 664. Both returned
+`ConnectionRefusedError`; both left `provisioning` as `unknown`. No
+credentials, authenticated operation, live WMI call or power operation was
+used. This verifies failure to connect at T3's OS address at that time; it
+does not identify the controller address or prove that it is unprovisioned.
+
+A private/self-signed certificate will fail validation; there is no
+insecure-TLS switch. A known
 management CA can be provided through the standard `SSL_CERT_FILE` mechanism.
 An unsuccessful probe of `.8` would still leave alternate controller addressing
 and provisioning unresolved. No password guesses, subnet scans, DHCP changes,
 NIC firmware operations, power tests or reboots were performed.
 
-**Next parent coordination:** approve those two bounded unauthenticated
-Identify requests to T3's OS address, then correlate any result with existing
-router DHCP/neighbor evidence without committing identifiers. If a separate
+**Next parent coordination:** correlate the refused connections with existing
+router DHCP/neighbor evidence without committing identifiers. Do not repeat
+the completed probes merely to seek a different result. If a separate
 controller address cannot be established that way, obtain the controller
 network/provisioning screen through an explicitly approved console session.
 Use an authenticated inventory request only after the actual account and

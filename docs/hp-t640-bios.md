@@ -137,8 +137,10 @@ changes under "Feasibility". On T3: `modprobe -r hp_bioscfg; insmod ./hp-bioscfg
 then `cat '/sys/class/firmware-attributes/hp-bioscfg/attributes/After Power Loss/'{current_value,possible_values}`.
 Write only after the read works: `echo On > …/current_value`, check
 `pending_reboot` = 1, reboot, read back, then do the plug test. Risk: the
-earlier T3 hang followed live WMI reads into SMM (cause unknown), so expect
-that a hang is possible. Recovery: power-cycle, blacklist the module, then F10.
+earlier T3 network outage was experimentally traced to a loose cable; it is
+not evidence of a firmware hang. New WMI/SMM calls still carry a general risk
+of blocking or hanging the machine; that failure has not been proven on T3.
+Any recovery power-cycle needs separate approval.
 
 **Option C: ThinPro live USB + `hptc-bios-cfg -G`.** This runs HP's
 supported stack on HP's own kernel. It is not recommended: it boots a
@@ -390,6 +392,46 @@ nix build --no-link --max-jobs 2 --cores 2 \
   .#nixosConfigurations.T3.config.hardware.hpBiosInventory.candidateDriver
 ```
 
+### Standalone package evaluation and parent build handoff
+
+Avoid full host evaluation by importing only the locked Linux nixpkgs and this
+package. The following immutable paths were used for standalone drvPath
+evaluation on the shared Mac (paths must be transferred before direct reuse
+on another machine):
+
+- nixpkgs source: `/nix/store/vvm2mhg5vjn8wg61ai0jhwvl85wrmk60-source`
+- nixpkgs revision: `c4013e501c048ae7c4a8940c92837636042bf6c3`
+- nixpkgs locked NAR hash: `sha256-9b2xGt5CAd6WriPJOZs/EYXq9fGVCeoisYo1P3nhL2Y=`
+- candidate package source: `/nix/store/p23c2mj4p9dklypxscm7bzvln46sai3h-hp-bioscfg-m43`
+- current standalone derivation: `/nix/store/ncg6v0l74yr0g3ln6a8qf9pwhn7xxsf4-hp-bioscfg-m43-6.18.38-candidate1.drv`
+- kernel source referenced by the derivation: `/nix/store/jmz03vdamnniqivlckgm2snglgjximh7-linux-6.18.38.tar.xz`
+
+The earlier `qyilm4y976i0gkd2ibqa1dpn40vzqcjv` candidate drv predates the
+allocation-failure fixture update; use the current derivation above.
+
+A transport archive containing only `package.nix`, `m43.patch` and
+`test_patch.py` is available on the Mac as
+`/tmp/hp-bioscfg-m43-candidate1.tar.gz`, SHA-256
+`547e7684ee3bd2ba25575627f587c7e938909bd6044eb4d50f289bb24145da99`.
+After transferring and extracting that archive so the directory is
+`/tmp/hp-bioscfg-m43` on T2, the parent can run this package-only build after
+its build slot is available:
+
+```sh
+nix build --impure --no-link --max-jobs 2 --cores 2 --expr '
+  let
+    pkgs = import (builtins.getFlake
+      "github:nixos/nixpkgs/c4013e501c048ae7c4a8940c92837636042bf6c3").outPath {
+      system = "x86_64-linux";
+    };
+  in pkgs.callPackage /tmp/hp-bioscfg-m43/package.nix {}
+'
+```
+
+This expression evaluates no repository flake, host configuration, L1 output
+or private input. Only drvPath evaluation has been performed by this worker;
+full compilation remains for the parent on T2. No `insmod` approval exists.
+
 The package runs `test_patch.py` during `postPatch`. That script extracts the
 **patched C decoder and query-buffer setup**, compiles them with a small
 userspace allocation shim, then checks plain names (including `After Power
@@ -421,8 +463,7 @@ its vermagic against T3's `uname -r`. This scope authorizes no `modprobe`,
 `insmod`, module removal, sysfs attribute reads, service activation, reboot or
 firmware writes. No package build has been started on T2.
 
-**Subsequent parent coordination:**
-this does not authorize installation. After successful build and module
+**Subsequent parent coordination:** after successful build and module
 metadata review, request a separate T3 console-supervised replacement of the
 stock module and one enumeration-only `current_value` read for `After Power
 Loss`. Loading the driver executes firmware queries during probe, even before
@@ -626,12 +667,14 @@ ACPI Error: Aborting method \_SB.WMID.WMAA due to previous error (AE_AML_BUFFER_
 hp_bioscfg: Returned error 0x300a, "Generic/Other error"
 ```
 
-**Incident note:** T3 stopped responding at some point after that read-only
-session, and the cause is undiagnosed. The only firmware-executing calls were
-the `Sure_Start` audit-log reads (live WMI queries into SMM, which returned
-EIO) and UEFI runtime `GetVariable` reads via efivarfs. Until the cause is
-known, treat even read-only WMI attribute reads on M43 as non-trivial. The
-inventory command deliberately reads only `pending_reboot` and directory names.
+**Incident correction (2026-11-20):** the earlier loss of T3 network access was
+experimentally traced to a loose cable. It must not be described as a verified
+firmware hang or as an undiagnosed outage following WMI reads. That session's
+`Sure_Start` queries returned EIO and efivarfs reads executed UEFI runtime
+calls, but neither establishes a hang. New WMI/SMM calls still carry a general
+blocking/hang risk and require the agreed supervision; no such failure has
+been proven on T3. The inventory command deliberately reads only
+`pending_reboot` and directory names for the HP attributes.
 
 ### Earlier findings (2026-11-17)
 

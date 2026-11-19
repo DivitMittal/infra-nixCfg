@@ -11,6 +11,8 @@ from the NixOS SSH service.
 - T3 is reachable again at its OS address `192.168.2.8`. Existing boot logs
   report DASH enabled. Cached PCI identity is `10ec:8168`, revision `0e`,
   with the stock `r8169` driver; this does not identify the controller IP.
+- The parent reports all three t640s online for 10 hours without outages on
+  2026-11-20. No new firmware-query safety claim follows from that uptime.
 - No management account has been provisioned by this repository, no DASH
   credentials have been stored, and no authenticated inventory or power
   operation has succeeded. The system is not yet remotely manageable via DASH.

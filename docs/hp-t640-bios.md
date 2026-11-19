@@ -396,7 +396,9 @@ userspace allocation shim, then checks plain names (including `After Power
 Loss`), bounded non-NUL-terminated input, tokenised names, escaping, malformed
 input, and every payload length from 0 through 256. It checks the actual
 allocated length, header, original `datasize`, copied bytes and zero padding.
-It accesses no firmware. These fixtures pass on macOS with `cc`; they do not
+Allocation-failure fixtures also check `-ENOMEM`; a negative control that
+replaces the padded query allocation with poisoned `kmalloc` memory fails the
+zero-padding assertion. It accesses no firmware. These fixtures pass on macOS with `cc`; they do not
 prove ACPI/SMM compatibility or a successful kernel-module build.
 
 ```sh
@@ -409,9 +411,17 @@ the same four malformed directory names plus `Sure_Start`/`pending_reboot`,
 and existing boot-log WQBD/WQBE/HWMC/WMAA errors. Only cached identity files,
 directory listings and existing logs were inspected. No vendor attribute was
 read and no module was inserted. The later cable diagnosis explains network
-outages but does not establish that future SMM queries cannot hang.
+outages. The parent reports all three t640s online for 10 hours without outages
+on 2026-11-20; this is availability evidence, not validation of new SMM calls.
 
-**Next parent coordination:** first request the package-only build above;
+**Reviewable proposal for parent approval:** run only the package-only build
+above on T2 from this branch, keeping the output path for inspection. Then
+run `modinfo` on the built `lib/modules/6.18.38/extra/hp-bioscfg.ko` and verify
+its vermagic against T3's `uname -r`. This scope authorizes no `modprobe`,
+`insmod`, module removal, sysfs attribute reads, service activation, reboot or
+firmware writes. No package build has been started on T2.
+
+**Subsequent parent coordination:**
 this does not authorize installation. After successful build and module
 metadata review, request a separate T3 console-supervised replacement of the
 stock module and one enumeration-only `current_value` read for `After Power

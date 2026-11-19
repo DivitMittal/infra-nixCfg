@@ -67,14 +67,22 @@ jobs:
         echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
         echo "overrides: $overrides"
     - name: Builds a nix-darwin configuration
-      run: nix -vL build --accept-flake-config .#darwinConfigurations.L1.config.system.build.toplevel
-        --show-trace $LOCAL_OVERRIDES
+      run: |-
+        nix build --accept-flake-config --print-out-paths .#.darwinConfigurations.L1.system --show-trace $LOCAL_OVERRIDES | tee build-result.txt
+        echo "Built $(cat build-result.txt) from $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
     - continue-on-error: true
       if: steps.attic.outputs.enabled == 'true'
       name: Push the result to the attic cache on T3
       run: attic push homelab:infra ./result
-    timeout-minutes: 90
+    - name: Record the deployment store path
+      uses: actions/upload-artifact@v4
+      with:
+        name: nix-darwin-L1
+        path: build-result.txt
+        retention-days: 7
+    timeout-minutes: 360
 'on':
   push:
     tags:
     - host*
+  workflow_dispatch: {}

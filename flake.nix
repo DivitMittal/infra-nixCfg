@@ -24,33 +24,38 @@
         # The memoized version would not include our overlays and config settings.
         #
         # Trade-off: Slightly longer evaluation time vs. ability to customize pkgs
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          config = let
-            inherit (lib) mkDefault;
-          in {
-            allowUnfree = mkDefault true;
-            allowBroken = mkDefault false;
-            allowUnsupportedSystem = mkDefault false;
-            checkMeta = mkDefault false;
-            # warnUndeclaredOptions is intentionally left at its nixpkgs default
-            # (false). Turning it on produces permanent false-positive noise:
-            # `permittedInsecurePackages` is read by check-meta.nix but never
-            # declared in nixpkgs' schema, and `_undeclared` itself gets
-            # re-emitted by the freeformType merge on every evaluation where
-            # any undeclared option exists.
-            #
-            # libolm (used by gomuks Matrix TUI client) is deprecated upstream
-            #
-            # openclaw is marked insecure as a whole (LLM-driven, full system
-            # access by default); used deliberately via ai-nixCfg on ASL1.
-            # Pinned to the exact version so a new one needs re-approval.
-            permittedInsecurePackages = mkDefault ["olm-3.2.16" "openclaw-2026.6.5"];
+        _module.args.pkgs =
+          import (
+            if system == "x86_64-darwin"
+            then inputs."nixpkgs-2605"
+            else inputs.nixpkgs
+          ) {
+            inherit system;
+            config = let
+              inherit (lib) mkDefault;
+            in {
+              allowUnfree = mkDefault true;
+              allowBroken = mkDefault false;
+              allowUnsupportedSystem = mkDefault false;
+              checkMeta = mkDefault false;
+              # warnUndeclaredOptions is intentionally left at its nixpkgs default
+              # (false). Turning it on produces permanent false-positive noise:
+              # `permittedInsecurePackages` is read by check-meta.nix but never
+              # declared in nixpkgs' schema, and `_undeclared` itself gets
+              # re-emitted by the freeformType merge on every evaluation where
+              # any undeclared option exists.
+              #
+              # libolm (used by gomuks Matrix TUI client) is deprecated upstream
+              #
+              # openclaw is marked insecure as a whole (LLM-driven, full system
+              # access by default); used deliberately via ai-nixCfg on ASL1.
+              # Pinned to the exact version so a new one needs re-approval.
+              permittedInsecurePackages = mkDefault ["olm-3.2.16" "openclaw-2026.6.5"];
+            };
+            overlays = lib.attrsets.attrValues {
+              inherit (self.outputs.overlays) default;
+            };
           };
-          overlays = lib.attrsets.attrValues {
-            inherit (self.outputs.overlays) default;
-          };
-        };
       };
       imports = [
         (inputs.import-tree ./flake)

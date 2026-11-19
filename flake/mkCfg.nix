@@ -48,13 +48,15 @@
       );
       # Re-extend lib with pkgs now available, partially applying it into the helpers
       # so call sites don't need to pass pkgs explicitly.
-      lib' = lib.extend (_: prev: {
+      # Use the platform's nixpkgs library: unstable no longer recognises
+      # Intel macOS, including in Home Manager's platform assertions.
+      lib' = pkgs.lib.extend (_: _: {
         custom =
-          prev.custom
+          lib.custom
           // {
-            mkZbxBin = prev.custom.mkZbxBin pkgs;
-            mkUvxBin = prev.custom.mkUvxBin pkgs;
-            mkPnpmDlxBin = prev.custom.mkPnpmDlxBin pkgs;
+            mkZbxBin = lib.custom.mkZbxBin pkgs;
+            mkUvxBin = lib.custom.mkUvxBin pkgs;
+            mkPnpmDlxBin = lib.custom.mkPnpmDlxBin pkgs;
           };
       });
       palette = import (self + "/lib/palette.nix") {inherit pkgs;};

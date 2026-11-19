@@ -83,6 +83,14 @@ in {
                     name = "SSH_PORT";
                     value = toString containerPort;
                   }
+                  {
+                    # One level below the mount: the server chmods the key's
+                    # directory to 0700, which only its owner may do. The
+                    # local-path volume root belongs to root, but the server
+                    # creates (and so owns) this subdirectory itself.
+                    name = "SSH_HOST_KEY_PATH";
+                    value = "/data/keys/ssh_host_ed25519_key";
+                  }
                 ];
                 ports = [
                   {

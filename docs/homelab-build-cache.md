@@ -84,28 +84,13 @@ requires the corresponding outputs to evaluate on this pinned revision.
 
 ## Credential and policy handoff
 
-Use https://login.tailscale.com/admin/settings/oauth for a CI OAuth client.
-Select Auth Keys: Write (auth_keys), restricted to tag:ci; do not grant
-policy, DNS, route, or general device administration. Put Client ID and
-Client secret directly into dev environment secrets TS_OAUTH_CLIENT_ID
-and TS_OAUTH_SECRET at:
-https://github.com/DivitMittal/infra-nixCfg/settings/environments
-(select dev). Do not paste credentials into chat or files in this repo.
-Existing v3 action accepts these OAuth fields; migration to v4/OIDC is
-separate work, not required to unblock this configuration.
-
-At https://login.tailscale.com/admin/acls define tag:ci and a T1-only
-subnet-router tag with admin ownership. Grant tag:ci only TCP
-192.168.2.8:8080, rather than the entire LAN. Approve 192.168.2.0/24
-on T1 at https://login.tailscale.com/admin/machines (or use autoApprovers
-restricted to the T1 tag). A grant to port 8080 does not grant LAN SSH.
-For T1 automatic enrollment, create a non-ephemeral, pre-approved,
-non-reusable key tagged for the router at
-https://login.tailscale.com/admin/settings/keys and encrypt directly with
-ragenix into the private secrets input at secrets/homelab/T1-tailscale.age.
-No plaintext auth key belongs in this repository or the Nix store.
-When the key is absent, coordinate `tailscale up` enrollment with parent;
-the module still enables the daemon and applies route settings.
+The personal tailnet policy, router auto-approval and dedicated CI OAuth
+client are now declared through the Tailscale provider. Follow
+[tailscale.md](tailscale.md) for policy adoption, encrypted state,
+credential export and the forge-tofu handoff. Manual console creation is
+only needed to bootstrap the operator identity; do not maintain a second
+policy alongside the provider. CI receives only the auth-key identity for
+`tag:ci`, with access to TCP 192.168.2.8:8080.
 
 ATTIC_TOKEN already exists and stays scoped to infra. If replacing it, the
 server operator should issue a token with pull and push only for infra; no

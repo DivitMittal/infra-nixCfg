@@ -529,6 +529,20 @@ forwards must be opened on the T640 only, since R0's DMZ forwards everything).
 PPPoE mode also needs the two `T640-wan{1,2}.age` credentials above. Deploying
 one mode over the other converts the router declaratively.
 
+### T1 Tailscale (subnet router)
+
+T1 runs tailscaled on the NixOS host and advertises `192.168.2.0/24`, with
+subnet SNAT enabled, local DNS preserved and no exit node. The daemon stays
+outside the router VM, and both networkd and NetworkManager leave its
+interface unmanaged. Its optional enrollment key is
+`secrets/homelab/T1-tailscale.age` in the private secrets input.
+
+The personal tailnet policy, router tag, route auto-approval and CI identity
+are declared through Terranix/OpenTofu. Follow [the tailnet setup guide](../docs/tailscale.md)
+for existing-policy adoption, encrypted state, enrollment and verification.
+Linux remote clients must enable subnet-route acceptance. CI is granted only
+TCP access to the T3 cache, not LAN management access.
+
 ### Firmware/UEFI/BIOS updates (fwupd)
 
 `services.fwupd` is enabled for T1-T3 and L1N (real x86_64 UEFI hardware; see

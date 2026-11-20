@@ -112,9 +112,9 @@ in {
               esac
               read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
               nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#.darwinConfigurations.$TARGET.system" --out-link result-system "''${local_overrides[@]}"
+                ".#darwinConfigurations.$TARGET.system" --out-link result-system "''${local_overrides[@]}"
               nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#.homeConfigurations.$TARGET.activationPackage" --out-link result-home "''${local_overrides[@]}"
+                ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "''${local_overrides[@]}"
             '';
           }
           {

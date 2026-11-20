@@ -1,7 +1,7 @@
 # Tailscale subnet router: puts the whole home LAN (192.168.2.0/24) on the
 # tailnet through T1's host, so remote access survives router-image rebuilds
 # and doesn't depend on anything inside the OpenWrt VM. Setup steps (auth
-# key, route approval, key expiry): docs/homelab-build-cache.md.
+# key, route approval, key expiry): docs/tailscale.md.
 {
   config,
   inputs,

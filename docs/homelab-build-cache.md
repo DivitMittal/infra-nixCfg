@@ -1,6 +1,6 @@
 # Homelab Tailscale and Darwin build transport
 
-## Observed state (2026-11-20)
+## Earlier observed state (2026-11-20, before provider integration)
 
 Based on origin/master 10687584; review of PR75 and PR84 is read-only.
 No deployment, activation, build on T2, or modification of another worktree.
@@ -22,6 +22,17 @@ No deployment, activation, build on T2, or modification of another worktree.
   Only names/presence were inspected, never credential values.
 - CI-to-Attic push/pull cannot be verified without tailnet enrollment and
   credentials. Active LAN watcher alone is not proof of CI cache transport.
+
+## Provider integration follow-up
+
+During PR96 verification, the `dev` environment contains both TS_OAUTH
+secret names and the runner tailnet join succeeds. This supersedes the
+missing-secret observation above; secret values were not read. Optional
+cache setup was slow, so shared join/setup steps now have time limits and
+probe HTTP connectivity before installing the cache client. Neither a join
+nor an optional setup attempt proves authenticated cache push/pull.
+The private secrets input also contains a T1 enrollment file: generating
+and exporting a new one is opt-in and separate from CI credential export.
 
 ## Implemented behavior
 

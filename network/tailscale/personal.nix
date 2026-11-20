@@ -40,6 +40,11 @@ _: {
         error_message = "base_policy must be a JSON object exported from the existing tailnet.";
       };
     };
+    enable_t1_enrollment = {
+      type = "bool";
+      default = false;
+      description = "Create a fresh single-use key only when enrolling or re-enrolling T1.";
+    };
     enable_lan_dns = {
       type = "bool";
       default = false;
@@ -99,6 +104,7 @@ _: {
       depends_on = ["tailscale_acl.personal"];
     };
     tailscale_tailnet_key.t1 = {
+      count = "\${var.enable_t1_enrollment ? 1 : 0}";
       description = "T1 subnet router";
       reusable = false;
       ephemeral = false;
@@ -124,7 +130,7 @@ _: {
       sensitive = true;
     };
     t1_auth_key = {
-      value = "\${tailscale_tailnet_key.t1.key}";
+      value = "\${try(tailscale_tailnet_key.t1[0].key, null)}";
       sensitive = true;
     };
   };

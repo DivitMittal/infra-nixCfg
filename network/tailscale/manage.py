@@ -58,7 +58,7 @@ def snapshot(directory, tailnet):
     print(f"Saved existing policy to {target}. Review before planning.")
 
 
-def export_secrets(directory):
+def export_secrets(directory, router_only=False):
     recipient = os.environ.get("TAILSCALE_AGE_RECIPIENT", "")
     destination = os.environ.get("TAILSCALE_SECRETS_DIR", "")
     if not recipient or not destination:
@@ -67,11 +67,13 @@ def export_secrets(directory):
     if result.returncode:
         raise RuntimeError("Cannot read encrypted state outputs; command output withheld")
     outputs = json.loads(result.stdout)
-    files = {
-        "ci_client_id": "ci/infra-nixCfg/ts_oauth_client_id.age",
-        "ci_client_secret": "ci/infra-nixCfg/ts_oauth_secret.age",
-        "t1_auth_key": Path("homelab") / "T1-tailscale.age",
-    }
+    if router_only:
+        files = {"t1_auth_key": Path("homelab") / "T1-tailscale.age"}
+    else:
+        files = {
+            "ci_client_id": "ci/infra-nixCfg/ts_oauth_client_id.age",
+            "ci_client_secret": "ci/infra-nixCfg/ts_oauth_secret.age",
+        }
     # Check every destination first; exporting must never replace existing keys.
     for name, relative in files.items():
         if (Path(destination) / relative).exists():
@@ -96,9 +98,9 @@ def export_secrets(directory):
 def main():
     os.umask(0o077)
     mode = sys.argv[1] if len(sys.argv) > 1 else "plan"
-    allowed = {"snapshot", "init", "validate", "plan", "rotate-t1", "import-lan-dns", "apply", "show", "export-secrets"}
+    allowed = {"snapshot", "init", "validate", "plan", "rotate-t1", "import-lan-dns", "apply", "show", "export-secrets", "export-t1"}
     if mode not in allowed or len(sys.argv) > 2:
-        raise RuntimeError("Usage: tailscale-personal [snapshot|init|validate|plan|rotate-t1|import-lan-dns|apply|show|export-secrets]")
+        raise RuntimeError("Usage: tailscale-personal [snapshot|init|validate|plan|rotate-t1|import-lan-dns|apply|show|export-secrets|export-t1]")
     tailnet = os.environ.get("TAILSCALE_TAILNET", "").strip()
     if not tailnet:
         raise RuntimeError("Set TAILSCALE_TAILNET explicitly to the personal tailnet ID")
@@ -124,8 +126,8 @@ def main():
     if not baseline.is_file():
         raise RuntimeError("Run snapshot, then review policy-baseline.json before planning")
     os.environ["TF_VAR_base_policy"] = baseline.read_text()
-    if mode == "export-secrets":
-        export_secrets(directory)
+    if mode in {"export-secrets", "export-t1"}:
+        export_secrets(directory, router_only=mode == "export-t1")
         return
     if mode == "import-lan-dns":
         if os.environ.get("TF_VAR_enable_lan_dns") != "true":
@@ -138,7 +140,9 @@ def main():
         plan.unlink(missing_ok=True)
         args = ["plan", "-out=" + str(plan)]
         if mode == "rotate-t1":
-            args.append("-replace=tailscale_tailnet_key.t1")
+            if os.environ.get("TF_VAR_enable_t1_enrollment") != "true":
+                raise RuntimeError("Set TF_VAR_enable_t1_enrollment=true before planning T1 enrollment")
+            args.append("-replace=tailscale_tailnet_key.t1[0]")
     elif mode == "apply":
         if not plan.is_file():
             raise RuntimeError("Run plan and review the saved plan before apply")

@@ -109,9 +109,35 @@ class TailnetOperations(unittest.TestCase):
             manage.export_secrets(self.root)
         self.assertNotIn("sensitive-", output.getvalue())
         self.assertTrue(all("sensitive-" not in str(args) for args, _ in calls))
-        self.assertEqual(len(list((self.root / "secrets").rglob("*.age"))), 3)
+        self.assertEqual(len(list((self.root / "secrets").rglob("*.age"))), 2)
         self.assertTrue(all(p.read_bytes() == b"age-encrypted-fixture" for p in (self.root / "secrets").rglob("*.age")))
         self.assertTrue(all(p.stat().st_mode & 0o777 == 0o600 for p in (self.root / "secrets").rglob("*.age")))
+
+
+    def test_existing_router_key_does_not_block_ci_export(self):
+        os.environ["TAILSCALE_AGE_RECIPIENT"] = "test-recipient"
+        os.environ["TAILSCALE_SECRETS_DIR"] = str(self.root / "secrets")
+        router = self.root / "secrets/homelab/T1-tailscale.age"
+        router.parent.mkdir(parents=True)
+        router.write_text("preserve enrolled router")
+        values = {name: {"value": "test-value"} for name in ("ci_client_id", "ci_client_secret")}
+        results = [subprocess.CompletedProcess([], 0, json.dumps(values).encode())]
+        results.extend(subprocess.CompletedProcess([], 0, b"encrypted") for _ in range(2))
+        with patch.object(manage.subprocess, "run", side_effect=results), contextlib.redirect_stdout(io.StringIO()):
+            manage.export_secrets(self.root)
+        self.assertEqual(router.read_text(), "preserve enrolled router")
+
+    def test_router_export_never_replaces_existing_enrollment(self):
+        os.environ["TAILSCALE_AGE_RECIPIENT"] = "test-recipient"
+        os.environ["TAILSCALE_SECRETS_DIR"] = str(self.root / "secrets")
+        router = self.root / "secrets/homelab/T1-tailscale.age"
+        router.parent.mkdir(parents=True)
+        router.write_text("preserve enrolled router")
+        result = subprocess.CompletedProcess([], 0, b"{}")
+        with patch.object(manage.subprocess, "run", return_value=result):
+            with self.assertRaisesRegex(RuntimeError, "already exists"):
+                manage.export_secrets(self.root, router_only=True)
+        self.assertEqual(router.read_text(), "preserve enrolled router")
 
 
 if __name__ == "__main__":

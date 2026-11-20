@@ -72,12 +72,14 @@ users also need grants permitting access to the resolver; CI does not.
 
 ## Credential handoff
 
-The provider creates an `auth_keys` OAuth client limited to `tag:ci` and a
-single-use, preauthorized, non-ephemeral T1 auth key tagged
-`tag:homelab-router`. T1's enrollment key expires after one hour and is not
-recreated when consumed. Apply when ready to enroll T1; if enrollment is
-missed, run `nix run .#tailscale-personal -- rotate-t1`, review the saved replacement
-plan, then apply it. Enrollment-key expiry is
+The provider creates an `auth_keys` OAuth client limited to `tag:ci`.
+T1 enrollment-key creation is opt-in (`TF_VAR_enable_t1_enrollment=true`),
+so adopting the policy does not replace the existing encrypted T1 key or
+re-enroll an existing device. When enabled, its new key is single-use,
+preauthorized, non-ephemeral and tagged `tag:homelab-router`. It expires after
+one hour and is not recreated when consumed. Apply when ready to enroll T1;
+if enrollment is missed, run `nix run .#tailscale-personal -- rotate-t1`,
+review the saved replacement plan, then apply it. Enrollment-key expiry is
 separate from an enrolled device's node-key expiry.
 
 Set `TAILSCALE_AGE_RECIPIENT` to the existing private secrets repository's
@@ -93,8 +95,10 @@ stdin, and writes only encrypted files:
 
 - `ci/infra-nixCfg/ts_oauth_client_id.age`
 - `ci/infra-nixCfg/ts_oauth_secret.age`
-- `homelab/T1-tailscale.age`
 
+Export a newly created T1 enrollment separately with
+`nix run .#tailscale-personal -- export-t1`; it writes
+`homelab/T1-tailscale.age`. An existing router key cannot block CI export.
 Existing files are never overwritten. Register the recipients in the private
 secrets manifest, commit those encrypted files, and update the secrets input
 before deploying T1. Importing an existing OAuth client cannot recover its
@@ -120,6 +124,11 @@ management ports. Prove cache transport with a harmless authenticated push
 and independent signed pull. Successful evaluation, tailnet login, or a
 skipped optional cache step is not that proof. The upstream v3 GitHub action
 already accepts subnet routes; the explicit CI setting reinforces it.
+
+Optional common CI cache steps are bounded: join and setup have five-minute
+limits, and an HTTP probe with a five-second connection timeout and
+15-second overall timeout runs before installing the cache client. A failed
+optional cache setup lets the ordinary CI checks continue.
 
 The separate private Darwin cache and encrypted artifact fallback are
 documented in [homelab-build-cache.md](homelab-build-cache.md).

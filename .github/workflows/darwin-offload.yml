@@ -59,8 +59,8 @@ jobs:
       id: darwin_tailnet
       if: steps.darwin_credentials.outputs.enabled == 'true'
       name: Join the tailnet for the private Darwin cache
-      timeout-minutes: 5
-      uses: tailscale/github-action@v3
+      timeout-minutes: 10
+      uses: tailscale/github-action@v4
       with:
         args: --accept-routes --accept-dns=false
         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}

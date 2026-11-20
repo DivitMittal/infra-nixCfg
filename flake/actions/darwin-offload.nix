@@ -74,9 +74,9 @@ in {
           {
             name = "Join the tailnet for the private Darwin cache";
             id = "darwin_tailnet";
-            timeout-minutes = 5;
+            timeout-minutes = 10;
             "if" = "steps.darwin_credentials.outputs.enabled == 'true'";
-            uses = "tailscale/github-action@v3";
+            uses = "tailscale/github-action@v4";
             "with" = {
               oauth-client-id = "\${{ secrets.TS_OAUTH_CLIENT_ID }}";
               oauth-secret = "\${{ secrets.TS_OAUTH_SECRET }}";

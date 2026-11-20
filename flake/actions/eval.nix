@@ -142,7 +142,7 @@ in {
               # Checking the output path first avoids downloading an
               # already-cached closure. Off until the attic secrets exist.
               name = "Build and cache";
-              "if" = "github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.attic.outputs.enabled == 'true'";
+              "if" = "github.event_name == 'push' && github.ref == 'refs/heads/master' && runner.os != 'macOS' && steps.attic_setup.outcome == 'success'";
               env.ATTR = "\${{ matrix.target.attr }}";
               run = ''
                 out=$(nix eval --accept-flake-config --raw ".#.$ATTR.outPath" $LOCAL_OVERRIDES)

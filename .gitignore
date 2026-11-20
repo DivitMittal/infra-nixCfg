@@ -37,3 +37,14 @@ CLAUDE.md
 **/CLAUDE.md
 GEMINI.md
 **/GEMINI.md
+
+## OpenTofu credentials and local state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+*.tfvars.json
+.env
+.env.*
+__pycache__/

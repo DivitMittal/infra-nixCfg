@@ -14,6 +14,11 @@
       remote = atticRemote;
       cache = atticCache;
       store = "${atticEndpoint}/${atticCache}";
+      endpoint = atticEndpoint;
+      # Private (no anonymous pull) cache for Darwin closures; only the
+      # manual darwin-offload workflow pushes here, with ATTIC_DARWIN_TOKEN.
+      darwinCache = "darwin";
+      darwinStore = "${atticEndpoint}/darwin";
     };
     common-on = rec {
       push = {
@@ -84,6 +89,8 @@
       }
       {
         name = "Join the tailnet to reach attic on T3";
+        id = "tailnet";
+        timeout-minutes = 5;
         "if" = "steps.attic.outputs.enabled == 'true'";
         uses = "tailscale/github-action@v3";
         "with" = {
@@ -95,12 +102,29 @@
       }
       {
         name = "Use the attic cache on T3";
-        "if" = "steps.attic.outputs.enabled == 'true'";
+        id = "attic_setup";
+        timeout-minutes = 5;
+        "if" = "steps.tailnet.outcome == 'success'";
         env.ATTIC_TOKEN = "\${{ secrets.ATTIC_TOKEN }}";
         # nixpkgs-2605: nixpkgs-unstable no longer evaluates on x86_64-darwin runners
         run = ''
+          if [ "$RUNNER_OS" = Linux ]; then
+            sudo tailscale set --accept-routes=true --accept-dns=false
+          fi
+          # An offline optional home cache must not hold up unrelated CI.
+          curl --fail --silent --show-error --connect-timeout 5 --max-time 15 \
+            ${atticEndpoint}/${atticCache}/nix-cache-info > /dev/null
           nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
-          attic login ${atticRemote} ${atticEndpoint} "$ATTIC_TOKEN"
+          # Keep the JWT out of process arguments and the Nix store.
+          install -d -m 700 "$HOME/.config/attic"
+          umask 077
+          python3 - <<'PYCONFIG'
+          import json, os
+          from pathlib import Path
+          config = Path.home() / ".config/attic/config.toml"
+          config.write_text('[servers.${atticRemote}]\nendpoint = "${atticEndpoint}/"\ntoken = ' + json.dumps(os.environ["ATTIC_TOKEN"]) + '\n')
+          config.chmod(0o600)
+          PYCONFIG
           attic use ${atticRemote}:${atticCache}
         '';
         continue-on-error = true;
@@ -127,7 +151,10 @@
     ## Push a build's ./result to attic; pairs with the steps above
     attic-push = {
       name = "Push the result to the attic cache on T3";
-      "if" = "steps.attic.outputs.enabled == 'true'";
+      id = "attic_push";
+      timeout-minutes = 5;
+      # infra permits anonymous LAN reads; Darwin closures require privacy review.
+      "if" = "runner.os != 'macOS' && steps.attic_setup.outcome == 'success'";
       run = "attic push ${atticRemote}:${atticCache} ./result";
       continue-on-error = true;
     };

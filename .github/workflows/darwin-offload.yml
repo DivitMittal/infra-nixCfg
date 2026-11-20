@@ -56,16 +56,16 @@ jobs:
         != '' && secrets.TS_OAUTH_SECRET != '' && vars.DARWIN_CACHE_PUBLIC_KEY !=
         '' }}" >> "$GITHUB_OUTPUT"
     - continue-on-error: true
+      env:
+        TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
       id: darwin_tailnet
       if: steps.darwin_credentials.outputs.enabled == 'true'
       name: Join the tailnet for the private Darwin cache
+      run: |-
+        rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
+        nix profile install "github:NixOS/nixpkgs/$rev#tailscale" "github:NixOS/nixpkgs/$rev#attic-client"
+        python3 flake/actions/darwin-tailnet.py
       timeout-minutes: 10
-      uses: tailscale/github-action@v4
-      with:
-        args: --accept-routes --accept-dns=false
-        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-        tags: tag:ci
     - continue-on-error: true
       env:
         ATTIC_DARWIN_CACHE: darwin
@@ -77,8 +77,6 @@ jobs:
       if: steps.darwin_tailnet.outcome == 'success'
       name: Use only the private pinned Darwin cache
       run: |-
-        rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
-        nix profile install "github:NixOS/nixpkgs/$rev#attic-client"
         python3 flake/actions/darwin-cache.py
         attic use homelab:darwin
     - continue-on-error: true
@@ -163,6 +161,13 @@ jobs:
             | age -r "$ARTIFACT_RECIPIENT" -o deployment.nar.zst.age
         '
       shell: bash
+    - continue-on-error: true
+      if: always() && steps.darwin_credentials.outputs.enabled == 'true'
+      name: Disconnect the ephemeral Darwin runner
+      run: |-
+        if command -v tailscale >/dev/null; then
+          sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock" logout
+        fi
     - if: steps.darwin_push.outcome != 'success'
       name: Upload encrypted closures and provenance
       uses: actions/upload-artifact@v4

@@ -76,13 +76,12 @@ in {
             id = "darwin_tailnet";
             timeout-minutes = 10;
             "if" = "steps.darwin_credentials.outputs.enabled == 'true'";
-            uses = "tailscale/github-action@v4";
-            "with" = {
-              oauth-client-id = "\${{ secrets.TS_OAUTH_CLIENT_ID }}";
-              oauth-secret = "\${{ secrets.TS_OAUTH_SECRET }}";
-              tags = "tag:ci";
-              args = "--accept-routes --accept-dns=false";
-            };
+            env.TS_OAUTH_SECRET = "\${{ secrets.TS_OAUTH_SECRET }}";
+            run = ''
+              rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
+              nix profile install "github:NixOS/nixpkgs/$rev#tailscale" "github:NixOS/nixpkgs/$rev#attic-client"
+              python3 flake/actions/darwin-tailnet.py
+            '';
             continue-on-error = true;
           }
           {
@@ -91,8 +90,6 @@ in {
             "if" = "steps.darwin_tailnet.outcome == 'success'";
             env = privateCacheEnv;
             run = ''
-              rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
-              nix profile install "github:NixOS/nixpkgs/$rev#attic-client"
               python3 flake/actions/darwin-cache.py
               attic use ${atticTarget}
             '';
@@ -180,6 +177,16 @@ in {
                   | age -r "$ARTIFACT_RECIPIENT" -o deployment.nar.zst.age
               '
             '';
+          }
+          {
+            name = "Disconnect the ephemeral Darwin runner";
+            "if" = "always() && steps.darwin_credentials.outputs.enabled == 'true'";
+            run = ''
+              if command -v tailscale >/dev/null; then
+                sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock" logout
+              fi
+            '';
+            continue-on-error = true;
           }
           {
             name = "Upload encrypted closures and provenance";

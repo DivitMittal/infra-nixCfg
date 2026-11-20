@@ -104,9 +104,10 @@ fi
 stage="/mnt/c/Users/$win_user/AppData/Local/nix-win/deploy"
 stage_win="C:\\Users\\$win_user\\AppData\\Local\\nix-win\\deploy"
 remote "wsl -d $distro -u $wsl_user -- /bin/sh -c \"PATH=/run/current-system/sw/bin; mkdir -p $stage && rm -f $stage/done $stage/log.txt && cp -f $cli/nix-win.ps1 $stage/nix-win.ps1 && cat > $stage/run.ps1\"" <<EOF
-\$ErrorActionPreference = 'Continue'
+\$ErrorActionPreference = 'Stop'
 Start-Transcript -Path '$stage_win\\log.txt' | Out-Null
 try {
+  \$global:LASTEXITCODE = 0
   & '$stage_win\\nix-win.ps1' $command -FlakeUri 'path:$src' -FlakeAttr 'winConfigurations.$win_attr' -WslDistro '$distro' -WslUser '$wsl_user'
   \$code = if (\$LASTEXITCODE) { \$LASTEXITCODE } else { 0 }
 } catch {

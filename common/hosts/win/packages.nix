@@ -29,7 +29,7 @@
       nircmd.bucket = "main";
       sudo.bucket = "main";
       innounp.bucket = "main";
-      psshutdown.bucket = "extras";
+      sysinternals.bucket = "extras"; # includes PsShutdown; no standalone manifest
 
       # ── Dev Environment ──────────────────────────────────────────────────
       msys2.bucket = "main";
@@ -41,7 +41,7 @@
       firefox.bucket = "extras";
       starship.bucket = "main";
       fastfetch.bucket = "main";
-      dark.bucket = "extras";
+      dark.bucket = "main";
       onlyoffice-desktopeditors.bucket = "extras";
       localsend.bucket = "extras";
 

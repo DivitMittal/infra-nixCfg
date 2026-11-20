@@ -7,7 +7,7 @@
 ## existed despite the Ansible task having no feature gate — a pre-existing
 ## gap, not something this migration introduced). Add files under ./files/
 ## and wire them into win.files here once vanee's dotfiles exist.
-_: {
+{inputs, ...}: {
   win.user.name = "vanee";
 
   # vanee's Windows-side apps, from what was installed on 2026-11-19. CLI
@@ -50,12 +50,10 @@ _: {
   };
 
   windot = {
-    gitFullName = "vanee";
-    # vanee's address lived in the retired Ansible vault; until it's added
-    # here, git on L2 runs without a user.email (commits will prompt for it).
-    gitEmail = null;
+    gitFullName = inputs.infra-nixCfg-secrets.user.userFullName;
+    gitEmail = inputs.infra-nixCfg-secrets.user.email.dev;
     gitSigningKey = null;
 
-    isLaptop = false;
+    isLaptop = true;
   };
 }

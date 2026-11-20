@@ -129,6 +129,17 @@ flowchart LR
 
 `mkCfg` is class-driven; each class picks a different system builder and a different slice of modules. See [`flake/README.md`](./flake/README.md) for the dispatch flowchart and [`common/README.md`](./common/README.md) for the override hierarchy.
 
+Windows hosts use `flake/mkWinCfg.nix` and expose `winConfigurations.l1` and
+`winConfigurations.l2`. On L2, `nixosConfigurations.L2W` manages the `NixOS`
+WSL distro and its Linux tools; nix-win manages Windows apps, PowerShell, Git,
+and Starship. The separate `homeConfigurations.WSL` dotfile sync applies only
+to the older `WSL` host, so it does not overwrite L2's nix-win files.
+
+From a configured Nix workstation, run `win-deploy L2` in `nix develop` to
+deploy both sides, or use `--wsl-only`, `--win-only`, or `--build`. The Windows
+user must be logged on for nix-win activation. `--build` builds the Windows
+configuration without activating it. Only committed source is deployed.
+
 ---
 
 ## Project Structure

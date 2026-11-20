@@ -271,7 +271,7 @@ in {
         $nix_shell\
         $direnv\
         ${lib.optionalString cfg.featureMsys2 "$shell\\"}
-
+        $line_break\
         [╰─](bold blue)$character"""
 
         right_format = """
@@ -350,7 +350,7 @@ in {
         symbol = " "
 
         [python]
-        format = "[$symbol$pyenv_prefix($version )(\($virtualenv\) )]($style)"
+        format = '[$symbol$pyenv_prefix($version )(\($virtualenv\) )]($style)'
         symbol = " "
 
         [rust]

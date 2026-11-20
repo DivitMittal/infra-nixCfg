@@ -15,6 +15,20 @@
   };
 in {
   flake.actions-nix.workflows.".github/workflows/darwin-offload.yml" = {
+    on.push = {
+      branches = ["master"];
+      paths = [
+        "flake.nix"
+        "flake.lock"
+        "flake/**"
+        "common/**"
+        "home/**"
+        "hosts/darwin/**"
+        "modules/**"
+        "overlays/**"
+        "pkgs/**"
+      ];
+    };
     on.workflow_dispatch.inputs.target = {
       description = "Native Darwin target (build only)";
       type = "choice";
@@ -23,6 +37,10 @@ in {
       required = true;
     };
     jobs.build = {
+      concurrency = {
+        group = "darwin-offload-\${{ inputs.target || 'L1' }}";
+        cancel-in-progress = true;
+      };
       runs-on = "\${{ inputs.target == 'ASL1' && 'macos-15' || 'macos-15-intel' }}";
       timeout-minutes = 360;
       permissions.contents = "read";
@@ -56,6 +74,7 @@ in {
           {
             name = "Join the tailnet for the private Darwin cache";
             id = "darwin_tailnet";
+            timeout-minutes = 5;
             "if" = "steps.darwin_credentials.outputs.enabled == 'true'";
             uses = "tailscale/github-action@v3";
             "with" = {
@@ -101,7 +120,7 @@ in {
           }
           {
             name = "Build on native Darwin";
-            env.TARGET = "\${{ inputs.target }}";
+            env.TARGET = "\${{ inputs.target || 'L1' }}";
             shell = "bash";
             run = ''
               set -euo pipefail
@@ -115,6 +134,9 @@ in {
                 ".#darwinConfigurations.$TARGET.system" --out-link result-system "''${local_overrides[@]}"
               nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
                 ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "''${local_overrides[@]}"
+              readlink -f result-system > deployment-paths.txt
+              readlink -f result-home >> deployment-paths.txt
+              printf '%s\n' "$GITHUB_SHA" > source-revision.txt
             '';
           }
           {
@@ -132,6 +154,17 @@ in {
             continue-on-error = true;
           }
           {
+            name = "Upload cached deployment paths and provenance";
+            "if" = "steps.darwin_push.outcome == 'success'";
+            uses = "actions/upload-artifact@v4";
+            "with" = {
+              name = "darwin-\${{ inputs.target || 'L1' }}-\${{ github.sha }}";
+              path = "deployment-paths.txt\nsource-revision.txt";
+              if-no-files-found = "error";
+              retention-days = 30;
+            };
+          }
+          {
             name = "Encrypt both deployment closures";
             "if" = "steps.darwin_push.outcome != 'success'";
             env.ARTIFACT_RECIPIENT = "\${{ vars.CACHE_ARTIFACT_RECIPIENT }}";
@@ -146,9 +179,6 @@ in {
                   | sort -u | nix-store --export --stdin | zstd -T2 -3 \
                   | age -r "$ARTIFACT_RECIPIENT" -o deployment.nar.zst.age
               '
-              readlink -f result-system > deployment-paths.txt
-              readlink -f result-home >> deployment-paths.txt
-              printf '%s\n' "$GITHUB_SHA" > source-revision.txt
             '';
           }
           {
@@ -156,7 +186,7 @@ in {
             "if" = "steps.darwin_push.outcome != 'success'";
             uses = "actions/upload-artifact@v4";
             "with" = {
-              name = "darwin-\${{ inputs.target }}-\${{ github.sha }}";
+              name = "darwin-\${{ inputs.target || 'L1' }}-\${{ github.sha }}";
               path = "deployment.nar.zst.age\ndeployment-paths.txt\nsource-revision.txt";
               if-no-files-found = "error";
               compression-level = 0;

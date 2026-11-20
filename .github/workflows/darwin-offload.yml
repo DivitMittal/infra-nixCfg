@@ -5,6 +5,9 @@
 # Or commit to trigger the pre-commit hook if enabled.
 jobs:
   build:
+    concurrency:
+      cancel-in-progress: true
+      group: darwin-offload-${{ inputs.target || 'L1' }}
     environment:
       name: dev
     permissions:
@@ -56,6 +59,7 @@ jobs:
       id: darwin_tailnet
       if: steps.darwin_credentials.outputs.enabled == 'true'
       name: Join the tailnet for the private Darwin cache
+      timeout-minutes: 5
       uses: tailscale/github-action@v3
       with:
         args: --accept-routes --accept-dns=false
@@ -100,7 +104,7 @@ jobs:
         echo "Private Darwin cache: authenticated push, anonymous narinfo denied, signed independent pull passed" >> "$GITHUB_STEP_SUMMARY"
       shell: bash
     - env:
-        TARGET: ${{ inputs.target }}
+        TARGET: ${{ inputs.target || 'L1' }}
       name: Build on native Darwin
       run: |-
         set -euo pipefail
@@ -114,6 +118,9 @@ jobs:
           ".#darwinConfigurations.$TARGET.system" --out-link result-system "${local_overrides[@]}"
         nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
           ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "${local_overrides[@]}"
+        readlink -f result-system > deployment-paths.txt
+        readlink -f result-home >> deployment-paths.txt
+        printf '%s\n' "$GITHUB_SHA" > source-revision.txt
       shell: bash
     - continue-on-error: true
       env:
@@ -131,6 +138,16 @@ jobs:
         nix path-info --store http://192.168.2.8:8080/darwin \
           "$(readlink -f ./result-system)" "$(readlink -f ./result-home)"
         echo "Both Darwin closures are present in the private signed cache" >> "$GITHUB_STEP_SUMMARY"
+    - if: steps.darwin_push.outcome == 'success'
+      name: Upload cached deployment paths and provenance
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: darwin-${{ inputs.target || 'L1' }}-${{ github.sha }}
+        path: |-
+          deployment-paths.txt
+          source-revision.txt
+        retention-days: 30
     - env:
         ARTIFACT_RECIPIENT: ${{ vars.CACHE_ARTIFACT_RECIPIENT }}
       if: steps.darwin_push.outcome != 'success'
@@ -145,9 +162,6 @@ jobs:
             | sort -u | nix-store --export --stdin | zstd -T2 -3 \
             | age -r "$ARTIFACT_RECIPIENT" -o deployment.nar.zst.age
         '
-        readlink -f result-system > deployment-paths.txt
-        readlink -f result-home >> deployment-paths.txt
-        printf '%s\n' "$GITHUB_SHA" > source-revision.txt
       shell: bash
     - if: steps.darwin_push.outcome != 'success'
       name: Upload encrypted closures and provenance
@@ -155,7 +169,7 @@ jobs:
       with:
         compression-level: 0
         if-no-files-found: error
-        name: darwin-${{ inputs.target }}-${{ github.sha }}
+        name: darwin-${{ inputs.target || 'L1' }}-${{ github.sha }}
         path: |-
           deployment.nar.zst.age
           deployment-paths.txt
@@ -163,6 +177,19 @@ jobs:
         retention-days: 3
     timeout-minutes: 360
 'on':
+  push:
+    branches:
+    - master
+    paths:
+    - flake.nix
+    - flake.lock
+    - flake/**
+    - common/**
+    - home/**
+    - hosts/darwin/**
+    - modules/**
+    - overlays/**
+    - pkgs/**
   workflow_dispatch:
     inputs:
       target:

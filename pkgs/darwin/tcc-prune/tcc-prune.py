@@ -33,10 +33,22 @@ KEEP_BACKUPS = 5
 
 
 def target_user():
-    """The human user, even when run via sudo or from root activation."""
+    """The human user, even when run via sudo, osascript or root activation.
+
+    Root launched without sudo (osascript "with administrator privileges")
+    has no SUDO_USER; fall back to whoever owns the console. Guessing wrong
+    here hides ~/Applications and the home-manager closure, so callers must
+    not run user-dependent categories without a user.
+    """
     name = os.environ.get("TCC_PRUNE_USER") or os.environ.get("SUDO_USER")
     if not name and os.geteuid() != 0:
         name = pwd.getpwuid(os.getuid()).pw_name
+    if not name:
+        try:
+            uid = os.stat("/dev/console").st_uid
+            name = pwd.getpwuid(uid).pw_name if uid != 0 else None
+        except (OSError, KeyError):
+            name = None
     if not name:
         return None
     return pwd.getpwnam(name)
@@ -247,6 +259,10 @@ def main():
         p.error(f"unknown categories: {', '.join(sorted(unknown))}")
 
     user = target_user()
+    needs_user = args.only & {"app-missing", "target-missing", "nix-stale"}
+    if needs_user and not user:
+        p.error(f"cannot determine the user, needed for {', '.join(sorted(needs_user))};"
+                " set TCC_PRUNE_USER")
     dbs = list(args.db_path or [])
     if not dbs and args.db in ("user", "both"):
         if not user:

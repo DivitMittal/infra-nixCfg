@@ -65,6 +65,7 @@
       inherit
         (pkgs.customDarwin)
         tccutil # macOS TCC/privacy permissions cli
+        tcc-prune # drop stale TCC grants (old store paths, removed apps)
         ;
     }
     ++ [(pkgs.perl.withPackages (ps: [ps.Tk ps.Appcpanminus]))]; # perl with Tk support + cpanm

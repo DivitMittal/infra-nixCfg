@@ -46,10 +46,15 @@ def pull(run, target):
             not re.fullmatch(r"/nix/store/[a-z0-9]{32}-[^/\s]+", path) for path in paths
         ):
             raise RuntimeError("Expected exactly two deployment store paths")
+        # Attic filters dependencies already available from upstream caches.
+        # Use normal substitution so those dependencies can come from nixos.org;
+        # disallow both local and remote builds to keep this a download operation.
         subprocess.run([
-            "nix", "copy", "--from", CACHE,
+            "nix-store", "--realise", "--max-jobs", "0",
+            "--option", "builders", "",
+            "--option", "extra-substituters", CACHE,
             "--option", "require-sigs", "true",
-            "--option", "trusted-public-keys", PUBLIC_KEY,
+            "--option", "extra-trusted-public-keys", PUBLIC_KEY,
             "--option", "netrc-file", str(Path.home() / ".config/nix/darwin-cache.netrc"),
             *paths,
         ], check=True)

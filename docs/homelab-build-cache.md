@@ -70,6 +70,8 @@ macos-15 Apple Silicon for ASL1), and never activates them.
 The target is allowlisted and host architecture checked; both builds use max-jobs=2/cores=2, and timeout
 is six hours. This job excludes Magic Nix Cache uploads and the shared infra
 Attic setup; Cachix remains pull-only.
+Tailscale and Attic binaries come from the pinned nixpkgs cache, avoiding the
+Tailscale action's Go source build on macOS.
 
 When ATTIC_DARWIN_TOKEN, TS_OAUTH_CLIENT_ID, TS_OAUTH_SECRET and the
 DARWIN_CACHE_PUBLIC_KEY variable are all present, the job joins the tailnet
@@ -81,6 +83,8 @@ an independent store with `require-sigs` and only the pinned key trusted,
 and only then pushes both closures with `attic push homelab:darwin` and
 confirms them with `nix path-info`. Every private-cache step is
 `continue-on-error`.
+Once that probe passes, `attic watch-store` feeds completed dependencies to the
+private cache during the build, so interrupted builds can reuse their work.
 
 Successful cache uploads also publish `deployment-paths.txt` and
 `source-revision.txt` as a 30-day artifact. Fetch the exact outputs on the Mac

@@ -156,6 +156,16 @@
                   }
                 ];
               };
+              port4 = {
+                network = "home";
+                type = "ethernet";
+                physicalConnections = [
+                  {
+                    node = "L2-windows";
+                    interface = "eth0";
+                  }
+                ];
+              };
             };
           };
 
@@ -249,7 +259,12 @@
           nodes.L2-windows = {
             name = "Windows (L2)";
             deviceType = "device";
-            hardware.info = "Windows 11 (Ansible IaC) - dual-boot with L2 NixOS on x86_64 hardware — user: vanee";
+            hardware.info = "Windows 11 (nix-win, evaluated in L2W) - dual-boot with L2 NixOS on x86_64 hardware — user: vanee";
+            # Wired into S2 (edge declared from S2); 192.168.2.6 reserved.
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
+            };
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";
@@ -259,6 +274,11 @@
                   interface = "wlan";
                 }
               ];
+            };
+            interfaces.wsl0 = {
+              network = "wsl";
+              type = "virtual";
+              virtual = true;
             };
           };
 

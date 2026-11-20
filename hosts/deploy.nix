@@ -20,6 +20,9 @@
     configuration.activationPackage
     "${configuration.activationPackage}/activate";
 
+  ## Windows hosts (winConfigurations.*) are not deploy-rs nodes: the SSH
+  ## target is Windows, which has no Nix to receive a closure. They deploy
+  ## with `win-deploy <host>` (utils/win_deploy.sh) from the devshell.
   activateHome = system: configuration:
     inputs.deploy-rs.lib.${system}.activate.home-manager configuration;
 

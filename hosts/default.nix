@@ -7,6 +7,7 @@ _: {
     ./netboot/enum.nix
     ./openwrt/enum.nix
     ./switch/enum.nix
+    ./win/enum.nix
     ./deploy.nix
   ];
 }

@@ -40,6 +40,7 @@ jobs:
       id: tailnet
       if: steps.attic.outputs.enabled == 'true'
       name: Join the tailnet to reach attic on T3
+      timeout-minutes: 5
       uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -52,10 +53,13 @@ jobs:
       if: steps.tailnet.outcome == 'success'
       name: Use the attic cache on T3
       run: |-
-        nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
         if [ "$RUNNER_OS" = Linux ]; then
           sudo tailscale set --accept-routes=true --accept-dns=false
         fi
+        # An offline optional home cache must not hold up unrelated CI.
+        curl --fail --silent --show-error --connect-timeout 5 --max-time 15 \
+          http://192.168.2.8:8080/infra/nix-cache-info > /dev/null
+        nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
         # Keep the JWT out of process arguments and the Nix store.
         install -d -m 700 "$HOME/.config/attic"
         umask 077
@@ -67,6 +71,7 @@ jobs:
         config.chmod(0o600)
         PYCONFIG
         attic use homelab:infra
+      timeout-minutes: 5
     - name: Point local-checkout inputs at GitHub
       run: |-
         overrides=$(jq -r '

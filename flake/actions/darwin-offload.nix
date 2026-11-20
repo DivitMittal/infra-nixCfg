@@ -117,20 +117,34 @@ in {
           }
           {
             name = "Build on native Darwin";
-            env.TARGET = "\${{ inputs.target || 'L1' }}";
+            env = {
+              TARGET = "\${{ inputs.target || 'L1' }}";
+              CACHE_VERIFIED = "\${{ steps.darwin_probe.outcome == 'success' }}";
+            };
             shell = "bash";
             run = ''
               set -euo pipefail
+              # Preserve completed dependencies across cancelled or failed runs.
+              # This is enabled only after the private signed-cache probe passes.
+              if [ "$CACHE_VERIFIED" = true ]; then
+                attic watch-store -j 2 ${atticTarget} > "$RUNNER_TEMP/darwin-attic-watch.log" 2>&1 &
+                echo "$!" > "$RUNNER_TEMP/darwin-attic-watch.pid"
+              fi
               case "$TARGET" in
                 L1) test "$(uname -m)" = x86_64 ;;
                 ASL1) test "$(uname -m)" = arm64 ;;
                 *) echo "Unsupported target" >&2; exit 1 ;;
               esac
-              read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
+              # macOS's Bash 3.2 treats an empty array as unset under nounset.
+              set --
+              if [ -n "$LOCAL_OVERRIDES" ]; then
+                read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
+                set -- "''${local_overrides[@]}"
+              fi
               nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#darwinConfigurations.$TARGET.system" --out-link result-system "''${local_overrides[@]}"
+                ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@"
               nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "''${local_overrides[@]}"
+                ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@"
               readlink -f result-system > deployment-paths.txt
               readlink -f result-home >> deployment-paths.txt
               printf '%s\n' "$GITHUB_SHA" > source-revision.txt
@@ -182,6 +196,14 @@ in {
             name = "Disconnect the ephemeral Darwin runner";
             "if" = "always() && steps.darwin_credentials.outputs.enabled == 'true'";
             run = ''
+              if [ -f "$RUNNER_TEMP/darwin-attic-watch.pid" ]; then
+                pid=$(cat "$RUNNER_TEMP/darwin-attic-watch.pid")
+                if kill -0 "$pid" 2>/dev/null; then
+                  kill "$pid"
+                else
+                  echo "::warning::The incremental cache uploader stopped before job cleanup"
+                fi
+              fi
               if command -v tailscale >/dev/null; then
                 sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock" logout
               fi

@@ -16,8 +16,8 @@
     <a href="https://github.com/DivitMittal/infra-nixCfg/">
         <img src="https://img.shields.io/github/repo-size/DivitMittal/infra-nixCfg?&style=for-the-badge&logo=github&logoColor=white&color=purple" alt="size" />
     </a>
-    <a href="https://github.com/DivitMittal/infra-nixCfg/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/DivitMittal/infra-nixCfg?&style=for-the-badge&logo=unlicense&logoColor=white&color=purple" alt="license"/>
+    <a href="https://github.com/DivitMittal/infra-nixCfg/blob/master/LICENSE">
+        <img src="https://img.shields.io/badge/license-HONCL--1.0-purple?&style=for-the-badge&logo=unlicense&logoColor=white&color=purple" alt="license"/>
     </a>
     <a href="https://github.com/nixos/nixpkgs">
         <img src="https://img.shields.io/badge/Nixpkgs-unstable-blue.svg?style=for-the-badge&logo=NixOS&logoColor=white&color=purple" alt="nixpkgs"/>

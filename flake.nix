@@ -298,6 +298,11 @@
         actions-nix.follows = "actions-nix";
       };
     };
+    # Marketing site. No package output; T3 builds adapter-static itself.
+    qezta-site = {
+      url = "github:Qezta/site";
+      flake = false;
+    };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs = {

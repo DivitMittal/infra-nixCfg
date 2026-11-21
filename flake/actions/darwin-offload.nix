@@ -141,10 +141,25 @@ in {
                 read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
                 set -- "''${local_overrides[@]}"
               fi
-              nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@"
-              nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@"
+              # Upstream fetches (e.g. GitHub commit .patch URLs) intermittently
+              # return 503. --keep-going lets unrelated paths finish (and reach
+              # the incremental uploader); retries only redo what is missing.
+              build() {
+                local attempt
+                for attempt in 1 2 3; do
+                  if nix build --accept-flake-config --no-write-lock-file --keep-going \
+                    --max-jobs 2 --cores 2 --option fallback true "$@"; then
+                    return 0
+                  fi
+                  if [ "$attempt" -lt 3 ]; then
+                    echo "::warning::nix build attempt $attempt failed; retrying in $((attempt * 60))s"
+                    sleep $((attempt * 60))
+                  fi
+                done
+                return 1
+              }
+              build ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@"
+              build ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@"
               readlink -f result-system > deployment-paths.txt
               readlink -f result-home >> deployment-paths.txt
               printf '%s\n' "$GITHUB_SHA" > source-revision.txt
@@ -202,6 +217,12 @@ in {
                   kill "$pid"
                 else
                   echo "::warning::The incremental cache uploader stopped before job cleanup"
+                fi
+                # Its output is otherwise invisible; show what reached the cache.
+                log="$RUNNER_TEMP/darwin-attic-watch.log"
+                if [ -f "$log" ]; then
+                  echo "Incremental uploader pushed $(grep -c '✅' "$log" || true) paths" >> "$GITHUB_STEP_SUMMARY"
+                  tail -n 40 "$log"
                 fi
               fi
               if command -v tailscale >/dev/null; then

@@ -124,10 +124,25 @@ jobs:
           read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
           set -- "${local_overrides[@]}"
         fi
-        nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-          ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@"
-        nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-          ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@"
+        # Upstream fetches (e.g. GitHub commit .patch URLs) intermittently
+        # return 503. --keep-going lets unrelated paths finish (and reach
+        # the incremental uploader); retries only redo what is missing.
+        build() {
+          local attempt
+          for attempt in 1 2 3; do
+            if nix build --accept-flake-config --no-write-lock-file --keep-going \
+              --max-jobs 2 --cores 2 --option fallback true "$@"; then
+              return 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::nix build attempt $attempt failed; retrying in $((attempt * 60))s"
+              sleep $((attempt * 60))
+            fi
+          done
+          return 1
+        }
+        build ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@"
+        build ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@"
         readlink -f result-system > deployment-paths.txt
         readlink -f result-home >> deployment-paths.txt
         printf '%s\n' "$GITHUB_SHA" > source-revision.txt
@@ -176,18 +191,15 @@ jobs:
     - continue-on-error: true
       if: always() && steps.darwin_credentials.outputs.enabled == 'true'
       name: Disconnect the ephemeral Darwin runner
-      run: |-
-        if [ -f "$RUNNER_TEMP/darwin-attic-watch.pid" ]; then
-          pid=$(cat "$RUNNER_TEMP/darwin-attic-watch.pid")
-          if kill -0 "$pid" 2>/dev/null; then
-            kill "$pid"
-          else
-            echo "::warning::The incremental cache uploader stopped before job cleanup"
-          fi
-        fi
-        if command -v tailscale >/dev/null; then
-          sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock" logout
-        fi
+      run: "if [ -f \"$RUNNER_TEMP/darwin-attic-watch.pid\" ]; then\n  pid=$(cat \"\
+        $RUNNER_TEMP/darwin-attic-watch.pid\")\n  if kill -0 \"$pid\" 2>/dev/null;\
+        \ then\n    kill \"$pid\"\n  else\n    echo \"::warning::The incremental cache\
+        \ uploader stopped before job cleanup\"\n  fi\n  # Its output is otherwise\
+        \ invisible; show what reached the cache.\n  log=\"$RUNNER_TEMP/darwin-attic-watch.log\"\
+        \n  if [ -f \"$log\" ]; then\n    echo \"Incremental uploader pushed $(grep\
+        \ -c '\u2705' \"$log\" || true) paths\" >> \"$GITHUB_STEP_SUMMARY\"\n    tail\
+        \ -n 40 \"$log\"\n  fi\nfi\nif command -v tailscale >/dev/null; then\n  sudo\
+        \ -n tailscale --socket=\"$RUNNER_TEMP/darwin-tailscaled.sock\" logout\nfi"
     - if: steps.darwin_push.outcome != 'success'
       name: Upload encrypted closures and provenance
       uses: actions/upload-artifact@v4

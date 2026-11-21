@@ -71,7 +71,9 @@
   # ── PPPoE mode ─────────────────────────────────────────────────────────
   # kmod-macvlan MAC-VLAN devices on top of the WAN device, one pppoe
   # interface per line, load-balanced via mwan3. See hosts/README.md.
-  pppoeLines = 2;
+  # One ISP account today; raise this (and add secrets/network/T640-wanN.age)
+  # if a second line is added.
+  pppoeLines = 1;
   lineNums = range 1 pppoeLines;
 
   # Locally-administered unicast MACs, distinct per line so the ISP's PPPoE

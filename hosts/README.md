@@ -656,15 +656,18 @@ keyboard, then Sway starts the normal Lan Mouse service. The password is not
 stored or passed as a process argument. This requires L1's agenix SSH key and
 does not enable automatic login or change the password.
 
-For L2, build `nix build .#lan-mouse-windows`, copy `result/L2.json` and
-`result/Apply.ps1` together to Windows, then run `./Apply.ps1` in PowerShell as
-`vanee`. The generated JSON is the desired state; the apply script consumes it
-to render the config and register the login task, without maintaining a second
-copy of the peer settings. Inspect it with `nix eval --json .#lanMouse.windows.L2`.
-The script backs up changed configuration and registers the `Lan Mouse` task
-to start in the interactive desktop session at login. The installed executable
-must be at `%USERPROFILE%\.local\bin\lan-mouse.exe`. Windows must allow inbound
-UDP 4242 on the active network profile. Its daemon log is
+L2's Windows boot gets its part through nix-win (`win-deploy L2`), from
+`hosts/win/L2/lan-mouse.nix`. That module writes
+`%LOCALAPPDATA%\lan-mouse\config.toml` from `lib/lan-mouse.nix` and registers
+the `Lan Mouse` task to start in vanee's interactive desktop session at login,
+then restarts it. The task launches the daemon through `conhost.exe --headless`,
+so no console window opens; Windows Terminal ignores
+`powershell -WindowStyle Hidden`. Inspect the settings with
+`nix eval --json .#lanMouse.windows.L2`. The installed executable must be at
+`%USERPROFILE%\.local\bin\lan-mouse.exe`; without it, activation warns and skips
+the task. Windows must allow inbound UDP 4242 on the active network profile.
+The login task only runs at logon, so a daemon that exhausts its restarts stays
+down until the next login or `Start-ScheduledTask 'Lan Mouse'`. Its daemon log is
 `%LOCALAPPDATA%\lan-mouse\daemon.log`; L1 logs to `~/.cache/lan-mouse.err.log`.
 T2 logs are available through `journalctl --user -u lan-mouse`.
 

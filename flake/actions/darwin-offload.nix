@@ -119,7 +119,7 @@ in {
             name = "Build on native Darwin";
             id = "darwin_build";
             # Leave time inside the job limit to cache partial progress.
-            timeout-minutes = 300;
+            timeout-minutes = 285;
             env.TARGET = "\${{ inputs.target || 'L1' }}";
             shell = "bash";
             run = ''
@@ -169,7 +169,7 @@ in {
           {
             name = "Push newly built paths to the private Darwin cache";
             "if" = "always() && steps.darwin_probe.outcome == 'success'";
-            timeout-minutes = 40;
+            timeout-minutes = 55;
             env = privateCacheEnv;
             shell = "bash";
             run = ''
@@ -181,8 +181,14 @@ in {
               echo "New store paths after build: $count" >> "$GITHUB_STEP_SUMMARY"
               [ "$count" -gt 0 ] || exit 0
               python3 flake/actions/darwin-cache.py
-              # Attic skips paths already signed by upstream caches.
-              xargs attic push -j 2 ${atticTarget} < "$RUNNER_TEMP/store-new.txt"
+              # Uploads have run at KiB/s; record whether the path to T3 is
+              # direct or DERP-relayed so throughput can be diagnosed.
+              ts=(sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock")
+              "''${ts[@]}" status || true
+              "''${ts[@]}" netcheck || true
+              # Attic skips paths already signed by upstream caches. Parallel
+              # uploads help when per-connection throughput is the limit.
+              xargs attic push -j 8 ${atticTarget} < "$RUNNER_TEMP/store-new.txt"
               echo "Pushed $count new paths to the private Darwin cache" >> "$GITHUB_STEP_SUMMARY"
             '';
             continue-on-error = true;

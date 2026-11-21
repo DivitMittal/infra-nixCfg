@@ -148,7 +148,7 @@ jobs:
         readlink -f result-home >> deployment-paths.txt
         printf '%s\n' "$GITHUB_SHA" > source-revision.txt
       shell: bash
-      timeout-minutes: 300
+      timeout-minutes: 285
     - continue-on-error: true
       env:
         ATTIC_DARWIN_CACHE: darwin
@@ -167,11 +167,17 @@ jobs:
         echo "New store paths after build: $count" >> "$GITHUB_STEP_SUMMARY"
         [ "$count" -gt 0 ] || exit 0
         python3 flake/actions/darwin-cache.py
-        # Attic skips paths already signed by upstream caches.
-        xargs attic push -j 2 homelab:darwin < "$RUNNER_TEMP/store-new.txt"
+        # Uploads have run at KiB/s; record whether the path to T3 is
+        # direct or DERP-relayed so throughput can be diagnosed.
+        ts=(sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock")
+        "${ts[@]}" status || true
+        "${ts[@]}" netcheck || true
+        # Attic skips paths already signed by upstream caches. Parallel
+        # uploads help when per-connection throughput is the limit.
+        xargs attic push -j 8 homelab:darwin < "$RUNNER_TEMP/store-new.txt"
         echo "Pushed $count new paths to the private Darwin cache" >> "$GITHUB_STEP_SUMMARY"
       shell: bash
-      timeout-minutes: 40
+      timeout-minutes: 55
     - continue-on-error: true
       env:
         ATTIC_DARWIN_CACHE: darwin

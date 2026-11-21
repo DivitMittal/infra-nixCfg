@@ -11,6 +11,7 @@
     ++ [
       ./comms.nix
       ./docs.nix
+      ./electronics.nix
       ./lan.nix
       ./notes.nix
       ./office.nix

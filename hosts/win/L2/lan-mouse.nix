@@ -9,10 +9,11 @@
   spec = desk.windows.L2;
   configFile = (pkgs.formats.toml {}).generate "lan-mouse-config.toml" spec.config;
 in {
-  win.files."lan-mouse/config.toml" = {
-    source = configFile;
-    targetRoot = "appdata-local";
-  };
+  # Under "home", not "appdata-local": nix-win copies the files tree into the
+  # toplevel before win.packages, read-only, and that second copy then fails
+  # silently on any root both trees share (./uniclipboard.nix uses
+  # appdata-local). nix-win's own Windows Terminal module does the same.
+  win.files."AppData/Local/lan-mouse/config.toml".source = configFile;
 
   # The task is registered here rather than through win.dsc.scheduledTasks:
   # that resource runs as SYSTEM unless given a stored password, and Lan Mouse

@@ -687,8 +687,9 @@ while its Sway session runs. On L1 it also retires the LaunchAgent that
 `hosts/win/L2/uniclipboard.nix` ships the Windows CLI through nix-win to
 `%LOCALAPPDATA%\uniclipboard\bin` and registers the `UniClipboard` login task,
 launched like Lan Mouse through a headless conhost. Its log is
-`%LOCALAPPDATA%\uniclipboard\daemon.log`. Because Windows locks running
-executables, stop the task before a `win-deploy L2` that upgrades the CLI.
+`%LOCALAPPDATA%\uniclipboard\daemon.log`. Keep other `win.files` for L2 off
+the `appdata-local` root (use `home` with an `AppData/Local/...` path):
+nix-win silently drops `win.packages` on a root that `win.files` also uses.
 
 Membership lives in each device's profile, not in Nix. L1 sponsors the space;
 its passphrase is in L1's login Keychain under `uniclipboard-space`. To add a

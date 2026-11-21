@@ -554,6 +554,21 @@
     },
     "version": "1.4.0"
   },
+  "uniclipboard-cli-x86_64-windows": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "uniclipboard-cli-x86_64-windows",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-siuIzVGlAcschiWyfNIjR0AITmLZeWAcHPwHNscOWL4=",
+      "type": "url",
+      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-pc-windows-msvc.zip"
+    },
+    "version": "1.4.0"
+  },
   "warpd": {
     "cargoLock": null,
     "date": null,

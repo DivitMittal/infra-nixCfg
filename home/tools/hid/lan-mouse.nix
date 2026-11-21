@@ -30,10 +30,6 @@
 in {
   imports = [inputs.lan-mouse.homeManagerModules.default];
 
-  home.packages = [
-    pkgs.custom.uniclipboard-cli-bin
-  ];
-
   programs.lan-mouse = {
     enable = true;
     package = inputs.lan-mouse.packages.${hostPlatform.system}.default.overrideAttrs (_: {

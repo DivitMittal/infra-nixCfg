@@ -185,6 +185,12 @@ src.github = "UniClipboard/UniClipboard"
 src.prefix = "v"
 fetch.url = "https://github.com/UniClipboard/UniClipboard/releases/download/v$ver/uniclipboard-cli-$ver-x86_64-unknown-linux-musl.tar.gz"
 
+# Shipped to L2's Windows boot through nix-win (hosts/win/L2/uniclipboard.nix).
+[uniclipboard-cli-x86_64-windows]
+src.github = "UniClipboard/UniClipboard"
+src.prefix = "v"
+fetch.url = "https://github.com/UniClipboard/UniClipboard/releases/download/v$ver/uniclipboard-cli-$ver-x86_64-pc-windows-msvc.zip"
+
 [zerobrew-zb-aarch64]
 src.github = "lucasgelfond/zerobrew"
 src.prefix = "v"

@@ -304,6 +304,14 @@
       sha256 = "sha256-JV7uj2ROKED3j14MzquVzbiHLinEpsnC+AXaMQ2xjhw=";
     };
   };
+  uniclipboard-cli-x86_64-windows = {
+    pname = "uniclipboard-cli-x86_64-windows";
+    version = "1.4.0";
+    src = fetchurl {
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-pc-windows-msvc.zip";
+      sha256 = "sha256-siuIzVGlAcschiWyfNIjR0AITmLZeWAcHPwHNscOWL4=";
+    };
+  };
   warpd = {
     pname = "warpd";
     version = "v2.2.0";

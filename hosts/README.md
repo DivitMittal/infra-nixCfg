@@ -676,3 +676,28 @@ Connection logs and a pointer/keyboard handoff establish actual connectivity;
 an active peer entry alone does not. Certificate replacement requires updating
 the public fingerprint in `lib/lan-mouse.nix` and reapplying the affected
 configurations. Private PEM keys stay on their respective machines.
+
+### Desk clipboard sharing (UniClipboard)
+
+L1, T2 and L2's Windows boot share one encrypted UniClipboard space.
+`home/tools/hid/uniclipboard.nix` runs `uniclip run` as a LaunchAgent on L1
+and as a user service bound to `sway-session.target` on T2, so T2 only syncs
+while its Sway session runs. On L1 it also retires the LaunchAgent that
+`uniclip service start` writes, which pins a single store path.
+`hosts/win/L2/uniclipboard.nix` ships the Windows CLI through nix-win to
+`%LOCALAPPDATA%\uniclipboard\bin` and registers the `UniClipboard` login task,
+launched like Lan Mouse through a headless conhost. Its log is
+`%LOCALAPPDATA%\uniclipboard\daemon.log`. Because Windows locks running
+executables, stop the task before a `win-deploy L2` that upgrades the CLI.
+
+Membership lives in each device's profile, not in Nix. L1 sponsors the space;
+its passphrase is in L1's login Keychain under `uniclipboard-space`. To add a
+device, run `uniclip space invite` on L1, then on the new device:
+
+```sh
+uniclip space join --code <code> --passphrase '<passphrase>' --device-name <name>
+```
+
+Read the passphrase on L1 with `security find-generic-password -s
+uniclipboard-space -w`. Check the result with `uniclip member list` on
+both sides, and a round trip with `uniclip send --text test` and `uniclip get`.

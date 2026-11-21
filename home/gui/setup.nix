@@ -9,6 +9,7 @@
     ++ [(inputs.import-tree ./music)]
     ++ [(inputs.import-tree ./vicinae)]
     ++ [
+      ./3d-printing.nix
       ./comms.nix
       ./docs.nix
       ./lan.nix

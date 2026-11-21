@@ -137,8 +137,10 @@ changes under "Feasibility". On T3: `modprobe -r hp_bioscfg; insmod ./hp-bioscfg
 then `cat '/sys/class/firmware-attributes/hp-bioscfg/attributes/After Power Loss/'{current_value,possible_values}`.
 Write only after the read works: `echo On > …/current_value`, check
 `pending_reboot` = 1, reboot, read back, then do the plug test. Risk: the
-earlier T3 hang followed live WMI reads into SMM (cause unknown), so expect
-that a hang is possible. Recovery: power-cycle, blacklist the module, then F10.
+earlier T3 network outage was experimentally traced to a loose cable; it is
+not evidence of a firmware hang. New WMI/SMM calls still carry a general risk
+of blocking or hanging the machine; that failure has not been proven on T3.
+Any recovery power-cycle needs separate approval.
 
 **Option C: ThinPro live USB + `hptc-bios-cfg -G`.** This runs HP's
 supported stack on HP's own kernel. It is not recommended: it boots a
@@ -356,6 +358,119 @@ ACPI packages from older HP BIOS", `b0e2af3ec94e`, `05c808362e80`,
   `/dev/mem` is `STRICT_DEVMEM`. The static DSDT gives names and possible
   values only, never the current value.
 
+## Reproducible driver candidate (2026-11-20)
+
+`pkgs/custom/hp-bioscfg-m43/` now contains an experimental external-module
+package and a reviewable GPL kernel patch. It builds against the selected
+host kernel's source and development output, so its vermagic follows that
+kernel. The patch was applied without fuzz to Linux v6.18.38 source and
+fixture-tested locally; **the complete kernel module has not been built or
+loaded**. A different kernel source may reject the patch; do not force it.
+
+The decoder accepts bounded plain ASCII and strictly formed `0xNN` tokens,
+preserves escaping for backslash and whitespace, and rejects malformed tokens,
+embedded NULs and non-ASCII bytes. A terminal encoded NUL remains supported.
+Its zeroed allocation also avoids the short-token allocation problem in the
+6.18 decoder. The WMAA change allocates a 16-byte header plus at least 128
+zeroed payload bytes, retaining the real `datasize` and copying only that many
+input bytes. It does not change the set-setting method. String/ordered-list
+AML defects and duplicate WMI GUIDs remain outside this patch.
+
+Current upstream was rechecked at
+[`8dac6df92a2e66e2098bbc69061964cfe7e8375b`](https://github.com/torvalds/linux/tree/8dac6df92a2e66e2098bbc69061964cfe7e8375b/drivers/platform/x86/hp/hp-bioscfg):
+the decoder still assumes hex tokens and WMAA still allocates only `insize`
+payload bytes. The earlier conclusions about those defects still apply.
+
+`hardware.hpBiosInventory.candidateDriver` is a build target only. It does
+not add an external module to the boot environment, install a service, or
+change the existing inventory or standard UEFI boot-order module. For an
+approved build on T2 (maximum two jobs and two cores), or on a native GitHub
+runner with the usual private-input overrides:
+
+```sh
+nix build --no-link --max-jobs 2 --cores 2 \
+  .#nixosConfigurations.T3.config.hardware.hpBiosInventory.candidateDriver
+```
+
+### Standalone package evaluation and parent build handoff
+
+Avoid full host evaluation by importing only the locked Linux nixpkgs and this
+package. The following immutable paths were used for standalone drvPath
+evaluation on the shared Mac (paths must be transferred before direct reuse
+on another machine):
+
+- nixpkgs source: `/nix/store/vvm2mhg5vjn8wg61ai0jhwvl85wrmk60-source`
+- nixpkgs revision: `c4013e501c048ae7c4a8940c92837636042bf6c3`
+- nixpkgs locked NAR hash: `sha256-9b2xGt5CAd6WriPJOZs/EYXq9fGVCeoisYo1P3nhL2Y=`
+- candidate package source: `/nix/store/p23c2mj4p9dklypxscm7bzvln46sai3h-hp-bioscfg-m43`
+- current standalone derivation: `/nix/store/ncg6v0l74yr0g3ln6a8qf9pwhn7xxsf4-hp-bioscfg-m43-6.18.38-candidate1.drv`
+- kernel source referenced by the derivation: `/nix/store/jmz03vdamnniqivlckgm2snglgjximh7-linux-6.18.38.tar.xz`
+
+The earlier `qyilm4y976i0gkd2ibqa1dpn40vzqcjv` candidate drv predates the
+allocation-failure fixture update; use the current derivation above.
+
+A transport archive containing only `package.nix`, `m43.patch` and
+`test_patch.py` is available on the Mac as
+`/tmp/hp-bioscfg-m43-candidate1.tar.gz`, SHA-256
+`547e7684ee3bd2ba25575627f587c7e938909bd6044eb4d50f289bb24145da99`.
+After transferring and extracting that archive so the directory is
+`/tmp/hp-bioscfg-m43` on T2, the parent can run this package-only build after
+its build slot is available:
+
+```sh
+nix build --impure --no-link --max-jobs 2 --cores 2 --expr '
+  let
+    pkgs = import (builtins.getFlake
+      "github:nixos/nixpkgs/c4013e501c048ae7c4a8940c92837636042bf6c3").outPath {
+      system = "x86_64-linux";
+    };
+  in pkgs.callPackage /tmp/hp-bioscfg-m43/package.nix {}
+'
+```
+
+This expression evaluates no repository flake, host configuration, L1 output
+or private input. Only drvPath evaluation has been performed by this worker;
+full compilation remains for the parent on T2. No `insmod` approval exists.
+
+The package runs `test_patch.py` during `postPatch`. That script extracts the
+**patched C decoder and query-buffer setup**, compiles them with a small
+userspace allocation shim, then checks plain names (including `After Power
+Loss`), bounded non-NUL-terminated input, tokenised names, escaping, malformed
+input, and every payload length from 0 through 256. It checks the actual
+allocated length, header, original `datasize`, copied bytes and zero padding.
+Allocation-failure fixtures also check `-ENOMEM`; a negative control that
+replaces the padded query allocation with poisoned `kmalloc` memory fails the
+zero-padding assertion. It accesses no firmware. These fixtures pass on macOS with `cc`; they do not
+prove ACPI/SMM compatibility or a successful kernel-module build.
+
+```sh
+# Offline, after applying m43.patch to a scratch Linux source tree:
+python3 pkgs/custom/hp-bioscfg-m43/test_patch.py /path/to/patched/linux
+```
+
+Safe live evidence collected on T3 on 2026-11-20: kernel 6.18.38, M43 v01.11,
+the same four malformed directory names plus `Sure_Start`/`pending_reboot`,
+and existing boot-log WQBD/WQBE/HWMC/WMAA errors. Only cached identity files,
+directory listings and existing logs were inspected. No vendor attribute was
+read and no module was inserted. The later cable diagnosis explains network
+outages. The parent reports all three t640s online for 10 hours without outages
+on 2026-11-20; this is availability evidence, not validation of new SMM calls.
+
+**Reviewable proposal for parent approval:** run only the package-only build
+above on T2 from this branch, keeping the output path for inspection. Then
+run `modinfo` on the built `lib/modules/6.18.38/extra/hp-bioscfg.ko` and verify
+its vermagic against T3's `uname -r`. This scope authorizes no `modprobe`,
+`insmod`, module removal, sysfs attribute reads, service activation, reboot or
+firmware writes. No package build has been started on T2.
+
+**Subsequent parent coordination:** after successful build and module
+metadata review, request a separate T3 console-supervised replacement of the
+stock module and one enumeration-only `current_value` read for `After Power
+Loss`. Loading the driver executes firmware queries during probe, even before
+that read. A hang may require a separately authorized power cycle. Keep
+`Sure_Start` reads, writes, reboots, EFI boot and T1 out of that test. No
+firmware-setting policy is activated by this implementation.
+
 ## HP and IGEL vendor tools
 
 ### `hptc-bios-cfg` (HP ThinPro): analysed from the official image
@@ -552,12 +667,14 @@ ACPI Error: Aborting method \_SB.WMID.WMAA due to previous error (AE_AML_BUFFER_
 hp_bioscfg: Returned error 0x300a, "Generic/Other error"
 ```
 
-**Incident note:** T3 stopped responding at some point after that read-only
-session, and the cause is undiagnosed. The only firmware-executing calls were
-the `Sure_Start` audit-log reads (live WMI queries into SMM, which returned
-EIO) and UEFI runtime `GetVariable` reads via efivarfs. Until the cause is
-known, treat even read-only WMI attribute reads on M43 as non-trivial. The
-inventory command deliberately reads only `pending_reboot` and directory names.
+**Incident correction (2026-11-20):** the earlier loss of T3 network access was
+experimentally traced to a loose cable. It must not be described as a verified
+firmware hang or as an undiagnosed outage following WMI reads. That session's
+`Sure_Start` queries returned EIO and efivarfs reads executed UEFI runtime
+calls, but neither establishes a hang. New WMI/SMM calls still carry a general
+blocking/hang risk and require the agreed supervision; no such failure has
+been proven on T3. The inventory command deliberately reads only
+`pending_reboot` and directory names for the HP attributes.
 
 ### Earlier findings (2026-11-17)
 

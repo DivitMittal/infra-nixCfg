@@ -1,0 +1,126 @@
+--- a/drivers/platform/x86/hp/hp-bioscfg/bioscfg.c
++++ b/drivers/platform/x86/hp/hp-bioscfg/bioscfg.c
+@@ -429,59 +429,61 @@
+ 
+ int hp_convert_hexstr_to_str(const char *input, u32 input_len, char **str, int *len)
+ {
+-	int ret = 0;
+-	int new_len = 0;
+-	char tmp[] = "0x00";
+-	char *new_str = NULL;
+-	long  ch;
+-	int i;
+-
+-	if (input_len <= 0 || !input || !str || !len)
++	char *result;
++	u32 i, used = 0;
++	bool encoded;
++
++	if (!input || !input_len || !str || !len || input_len > INT_MAX / 2 - 1)
+ 		return -EINVAL;
+-
++	*str = NULL;
+ 	*len = 0;
+-	*str = NULL;
+-
+-	new_str = kmalloc(input_len, GFP_KERNEL);
+-	if (!new_str)
++	/* M43 packages contain ordinary ASCII, newer HP packages use 0xNN. */
++	encoded = input_len >= 2 && input[0] == '0' && input[1] == 'x';
++	result = kzalloc(2 * input_len + 1, GFP_KERNEL);
++	if (!result)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < input_len; i += 5) {
+-		strscpy(tmp, input + i);
+-		if (kstrtol(tmp, 16, &ch) == 0) {
+-			// escape char
+-			if (ch == '\\' ||
+-			    ch == '\r' ||
+-			    ch == '\n' || ch == '\t') {
+-				if (ch == '\r')
+-					ch = 'r';
+-				else if (ch == '\n')
+-					ch = 'n';
+-				else if (ch == '\t')
+-					ch = 't';
+-				new_str[new_len++] = '\\';
+-			}
+-			new_str[new_len++] = ch;
+-			if (ch == '\0')
+-				break;
++	for (i = 0; i < input_len;) {
++		unsigned char ch;
++		int hi, lo;
++
++		if (encoded) {
++			if (input_len - i < 4 || input[i] != '0' || input[i + 1] != 'x')
++				goto invalid;
++			hi = hex_to_bin(input[i + 2]);
++			lo = hex_to_bin(input[i + 3]);
++			if (hi < 0 || lo < 0)
++				goto invalid;
++			ch = (hi << 4) | lo;
++			i += 4;
++			if (i < input_len && input[i++] != ' ')
++				goto invalid;
++		} else {
++			ch = input[i++];
+ 		}
+-	}
+-
+-	if (new_len) {
+-		new_str[new_len] = '\0';
+-		*str = krealloc(new_str, (new_len + 1) * sizeof(char),
+-				GFP_KERNEL);
+-		if (*str)
+-			*len = new_len;
+-		else
+-			ret = -ENOMEM;
+-	} else {
+-		ret = -EFAULT;
+-	}
+-
+-	if (ret)
+-		kfree(new_str);
+-	return ret;
++		/* Encoded packages can terminate with a NUL token. */
++		if (!ch && encoded && i == input_len)
++			break;
++		/* Do not publish control characters as sysfs names or values. */
++		if (!ch || ch > 0x7e || (ch < 0x20 && ch != '\r' && ch != '\n' && ch != '\t'))
++			goto invalid;
++		if (ch == '\\' || ch == '\r' || ch == '\n' || ch == '\t') {
++			result[used++] = '\\';
++			if (ch == '\r')
++				ch = 'r';
++			else if (ch == '\n')
++				ch = 'n';
++			else if (ch == '\t')
++				ch = 't';
++		}
++		result[used++] = ch;
++	}
++	*str = result;
++	*len = used;
++	return 0;
++invalid:
++	kfree(result);
++	return -EINVAL;
+ }
+ 
+ /* map output size to the corresponding WMI method id */
+--- a/drivers/platform/x86/hp/hp-bioscfg/biosattr-interface.c
++++ b/drivers/platform/x86/hp/hp-bioscfg/biosattr-interface.c
+@@ -130,8 +130,9 @@
+ 	if (WARN_ON(mid < 0))
+ 		return mid;
+ 
+-	bios_args_size = struct_size(args, data, insize);
+-	args = kmalloc(bios_args_size, GFP_KERNEL);
++	/* M43 HWMC reads a 128-byte payload even for short queries. */
++	bios_args_size = struct_size(args, data, max_t(u32, insize, 128));
++	args = kzalloc(bios_args_size, GFP_KERNEL);
+ 	if (!args)
+ 		return -ENOMEM;
+ 

@@ -13,11 +13,13 @@
       exec ${pkgs.uv}/bin/uv tool run ${args} "$@"
     '';
 
-  # Creates a $out/bin/<name> that ephemerally runs a JS package via `pnpm dlx`.
-  # Uses pkgs.pnpm from nixpkgs.
-  mkPnpmDlxBin = pkgs: name: pkg:
+  # Creates a $out/bin/<name> that ephemerally runs a JS package via `bun x`.
+  # Equivalent to `bunx <pkg>`. Uses pkgs.bun from nixpkgs. Not `pnpm dlx`:
+  # pnpm (10 and 11) aborts node on darwin while installing
+  # (`Assertion failed: (errno == EINTR), function uv__io_poll, file kqueue.c`).
+  mkBunxBin = pkgs: name: pkg:
     pkgs.writeShellScriptBin name ''
-      exec ${pkgs.pnpm}/bin/pnpm dlx ${pkg} "$@"
+      exec ${pkgs.bun}/bin/bun x ${pkg} "$@"
     '';
 
   ## Intro: Scans a directory and returns a list of paths to all Nix modules (directories or .nix files)

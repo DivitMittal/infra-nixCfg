@@ -623,3 +623,53 @@ deploy .#VPS2-home
 Inside the devshell, `deploy-home VPS1 --dry-activate` is a shorthand for
 `deploy .#VPS1-home --dry-activate`. The local `hms` and `hts` commands still
 operate on the current machine's hostname and are not remote deploy wrappers.
+
+### Desk input sharing (Lan Mouse)
+
+L1 (`192.168.2.4`, wired USB adapter) is the centre of the desk. L2 Windows
+(`192.168.2.6`) is above it; T2 (`192.168.2.171`) is to its left. Move back
+through L2's bottom edge or T2's right edge to return to L1. The emergency
+release shortcut on all three machines is **Ctrl+Shift+Esc**.
+
+`lib/lan-mouse.nix` declares the peers, layout, certificate fingerprint
+allowlists and Windows task settings for all three machines.
+`home/tools/hid/lan-mouse.nix` consumes those settings and manages desktop
+startup. Linux builds enable layer-shell capture and
+wlroots emulation even though the GTK frontend is disabled. T2 requires a
+logged-in Sway session; Lan Mouse starts with `sway-session.target`, not at the
+login greeter. L1 starts its LaunchAgent at login. Home Manager installs and
+registers `~/Applications/Lan Mouse Desktop.app` and associates the agent with
+that app so macOS can identify it for Local Network privacy. Grant the app
+Accessibility and Local Network access in System Settings; those user grants
+are not managed by Nix. Other hosts do not join this desk automatically.
+
+T2 enables `programs.ydotool` to provide a virtual keyboard when no physical
+keyboard is attached. Lan Mouse's wlroots backend needs that keyboard's
+keymap to initialize. The ydotool socket remains restricted to its service
+group; no desktop user membership is required for this purpose.
+
+The text greeter runs before Lan Mouse, so the Mac's shared keyboard cannot
+type into it. With no physical keyboard attached to T2, run
+`./utils/t2_console_login.sh` in a terminal on L1. Enter the existing `div`
+password at its hidden SSH prompt; the helper types it through T2's virtual
+keyboard, then Sway starts the normal Lan Mouse service. The password is not
+stored or passed as a process argument. This requires L1's agenix SSH key and
+does not enable automatic login or change the password.
+
+For L2, build `nix build .#lan-mouse-windows`, copy `result/L2.json` and
+`result/Apply.ps1` together to Windows, then run `./Apply.ps1` in PowerShell as
+`vanee`. The generated JSON is the desired state; the apply script consumes it
+to render the config and register the login task, without maintaining a second
+copy of the peer settings. Inspect it with `nix eval --json .#lanMouse.windows.L2`.
+The script backs up changed configuration and registers the `Lan Mouse` task
+to start in the interactive desktop session at login. The installed executable
+must be at `%USERPROFILE%\.local\bin\lan-mouse.exe`. Windows must allow inbound
+UDP 4242 on the active network profile. Its daemon log is
+`%LOCALAPPDATA%\lan-mouse\daemon.log`; L1 logs to `~/.cache/lan-mouse.err.log`.
+T2 logs are available through `journalctl --user -u lan-mouse`.
+
+Use `lan-mouse cli list` on each machine to check active peer directions.
+Connection logs and a pointer/keyboard handoff establish actual connectivity;
+an active peer entry alone does not. Certificate replacement requires updating
+the public fingerprint in `lib/lan-mouse.nix` and reapplying the affected
+configurations. Private PEM keys stay on their respective machines.

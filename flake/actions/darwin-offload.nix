@@ -15,6 +15,20 @@
   };
 in {
   flake.actions-nix.workflows.".github/workflows/darwin-offload.yml" = {
+    on.push = {
+      branches = ["master"];
+      paths = [
+        "flake.nix"
+        "flake.lock"
+        "flake/**"
+        "common/**"
+        "home/**"
+        "hosts/darwin/**"
+        "modules/**"
+        "overlays/**"
+        "pkgs/**"
+      ];
+    };
     on.workflow_dispatch.inputs.target = {
       description = "Native Darwin target (build only)";
       type = "choice";
@@ -23,6 +37,10 @@ in {
       required = true;
     };
     jobs.build = {
+      concurrency = {
+        group = "darwin-offload-\${{ inputs.target || 'L1' }}";
+        cancel-in-progress = true;
+      };
       runs-on = "\${{ inputs.target == 'ASL1' && 'macos-15' || 'macos-15-intel' }}";
       timeout-minutes = 360;
       permissions.contents = "read";
@@ -56,14 +74,14 @@ in {
           {
             name = "Join the tailnet for the private Darwin cache";
             id = "darwin_tailnet";
+            timeout-minutes = 10;
             "if" = "steps.darwin_credentials.outputs.enabled == 'true'";
-            uses = "tailscale/github-action@v3";
-            "with" = {
-              oauth-client-id = "\${{ secrets.TS_OAUTH_CLIENT_ID }}";
-              oauth-secret = "\${{ secrets.TS_OAUTH_SECRET }}";
-              tags = "tag:ci";
-              args = "--accept-routes --accept-dns=false";
-            };
+            env.TS_OAUTH_SECRET = "\${{ secrets.TS_OAUTH_SECRET }}";
+            run = ''
+              rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
+              nix profile install "github:NixOS/nixpkgs/$rev#tailscale" "github:NixOS/nixpkgs/$rev#attic-client"
+              python3 flake/actions/darwin-tailnet.py
+            '';
             continue-on-error = true;
           }
           {
@@ -72,8 +90,6 @@ in {
             "if" = "steps.darwin_tailnet.outcome == 'success'";
             env = privateCacheEnv;
             run = ''
-              rev=$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)
-              nix profile install "github:NixOS/nixpkgs/$rev#attic-client"
               python3 flake/actions/darwin-cache.py
               attic use ${atticTarget}
             '';
@@ -101,21 +117,75 @@ in {
           }
           {
             name = "Build on native Darwin";
-            env.TARGET = "\${{ inputs.target }}";
+            id = "darwin_build";
+            # Leave time inside the job limit to cache partial progress.
+            timeout-minutes = 300;
+            env.TARGET = "\${{ inputs.target || 'L1' }}";
             shell = "bash";
             run = ''
               set -euo pipefail
+              # Snapshot valid paths so a later step can push whatever this run
+              # built, even if it fails or times out. `attic watch-store` is not
+              # usable here: its kqueue watcher hits EMFILE on /nix/store.
+              nix path-info --all | sort > "$RUNNER_TEMP/store-before.txt"
               case "$TARGET" in
                 L1) test "$(uname -m)" = x86_64 ;;
                 ASL1) test "$(uname -m)" = arm64 ;;
                 *) echo "Unsupported target" >&2; exit 1 ;;
               esac
-              read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
-              nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#darwinConfigurations.$TARGET.system" --out-link result-system "''${local_overrides[@]}"
-              nix build --accept-flake-config --no-write-lock-file --max-jobs 2 --cores 2 --option fallback true \
-                ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "''${local_overrides[@]}"
+              # macOS's Bash 3.2 treats an empty array as unset under nounset.
+              set --
+              if [ -n "$LOCAL_OVERRIDES" ]; then
+                read -r -a local_overrides <<< "$LOCAL_OVERRIDES"
+                set -- "''${local_overrides[@]}"
+              fi
+              # Upstream fetches (e.g. GitHub commit .patch URLs) intermittently
+              # return 503. --keep-going lets unrelated paths finish (and reach
+              # the incremental uploader); retries only redo what is missing.
+              build() {
+                local attempt
+                for attempt in 1 2 3; do
+                  if nix build --accept-flake-config --no-write-lock-file --keep-going \
+                    --max-jobs 2 --cores 2 --option fallback true "$@"; then
+                    return 0
+                  fi
+                  if [ "$attempt" -lt 3 ]; then
+                    echo "::warning::nix build attempt $attempt failed; retrying in $((attempt * 60))s"
+                    sleep $((attempt * 60))
+                  fi
+                done
+                return 1
+              }
+              # Attempt both closures so one failure doesn't block caching the other.
+              status=0
+              build ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@" || status=1
+              build ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@" || status=1
+              [ "$status" -eq 0 ]
+              readlink -f result-system > deployment-paths.txt
+              readlink -f result-home >> deployment-paths.txt
+              printf '%s\n' "$GITHUB_SHA" > source-revision.txt
             '';
+          }
+          {
+            name = "Push newly built paths to the private Darwin cache";
+            "if" = "always() && steps.darwin_probe.outcome == 'success'";
+            timeout-minutes = 40;
+            env = privateCacheEnv;
+            shell = "bash";
+            run = ''
+              set -euo pipefail
+              before="$RUNNER_TEMP/store-before.txt"
+              test -f "$before" || { echo "No pre-build snapshot; nothing to push"; exit 0; }
+              nix path-info --all | sort | comm -13 "$before" - | grep -v '\.drv$' > "$RUNNER_TEMP/store-new.txt" || true
+              count=$(wc -l < "$RUNNER_TEMP/store-new.txt" | tr -d ' ')
+              echo "New store paths after build: $count" >> "$GITHUB_STEP_SUMMARY"
+              [ "$count" -gt 0 ] || exit 0
+              python3 flake/actions/darwin-cache.py
+              # Attic skips paths already signed by upstream caches.
+              xargs attic push -j 2 ${atticTarget} < "$RUNNER_TEMP/store-new.txt"
+              echo "Pushed $count new paths to the private Darwin cache" >> "$GITHUB_STEP_SUMMARY"
+            '';
+            continue-on-error = true;
           }
           {
             name = "Push both closures to the private Darwin cache";
@@ -132,6 +202,17 @@ in {
             continue-on-error = true;
           }
           {
+            name = "Upload cached deployment paths and provenance";
+            "if" = "steps.darwin_push.outcome == 'success'";
+            uses = "actions/upload-artifact@v4";
+            "with" = {
+              name = "darwin-\${{ inputs.target || 'L1' }}-\${{ github.sha }}";
+              path = "deployment-paths.txt\nsource-revision.txt";
+              if-no-files-found = "error";
+              retention-days = 30;
+            };
+          }
+          {
             name = "Encrypt both deployment closures";
             "if" = "steps.darwin_push.outcome != 'success'";
             env.ARTIFACT_RECIPIENT = "\${{ vars.CACHE_ARTIFACT_RECIPIENT }}";
@@ -146,17 +227,24 @@ in {
                   | sort -u | nix-store --export --stdin | zstd -T2 -3 \
                   | age -r "$ARTIFACT_RECIPIENT" -o deployment.nar.zst.age
               '
-              readlink -f result-system > deployment-paths.txt
-              readlink -f result-home >> deployment-paths.txt
-              printf '%s\n' "$GITHUB_SHA" > source-revision.txt
             '';
+          }
+          {
+            name = "Disconnect the ephemeral Darwin runner";
+            "if" = "always() && steps.darwin_credentials.outputs.enabled == 'true'";
+            run = ''
+              if command -v tailscale >/dev/null; then
+                sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock" logout
+              fi
+            '';
+            continue-on-error = true;
           }
           {
             name = "Upload encrypted closures and provenance";
             "if" = "steps.darwin_push.outcome != 'success'";
             uses = "actions/upload-artifact@v4";
             "with" = {
-              name = "darwin-\${{ inputs.target }}-\${{ github.sha }}";
+              name = "darwin-\${{ inputs.target || 'L1' }}-\${{ github.sha }}";
               path = "deployment.nar.zst.age\ndeployment-paths.txt\nsource-revision.txt";
               if-no-files-found = "error";
               compression-level = 0;

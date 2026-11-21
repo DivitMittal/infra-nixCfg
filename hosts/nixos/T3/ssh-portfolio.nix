@@ -1,5 +1,6 @@
 # `ssh divit@qezta.com`: the Qezta/ssh terminal portfolio as a k3s workload.
 # The image is built by Nix and preloaded into k3s, so no registry is needed.
+# An onion listener for the same Service is qezta-ssh in qezta-endpoints.nix.
 {
   inputs,
   pkgs,
@@ -143,7 +144,16 @@ in {
     {
       apiVersion = "v1";
       kind = "Service";
-      inherit metadata;
+      metadata =
+        metadata
+        // {
+          # Tor hidden service qezta-ssh (below) forwards virtual port 22 to
+          # this NodePort. No second Deployment: the pod is the only server.
+          annotations = {
+            "qezta.com/onion-service" = "qezta-ssh";
+            "qezta.com/node-port" = toString nodePort;
+          };
+        };
       spec = {
         type = "NodePort";
         # Keep real client addresses in the server's connection log; the pod
@@ -164,8 +174,26 @@ in {
 
   networking.firewall.allowedTCPPorts = [nodePort];
 
+  # Same nodePort as the Service. Hidden services need no WAN forward; the
+  # hostname is state, written under /var/lib/tor/onion/qezta-ssh/.
+  services.tor = {
+    enable = true;
+    relay.onionServices.qezta-ssh = {
+      version = 3;
+      map = [
+        {
+          port = 22;
+          target = {
+            addr = "127.0.0.1";
+            port = nodePort;
+          };
+        }
+      ];
+    };
+  };
+
   topology.self.services.ssh-portfolio = {
     name = "SSH portfolio";
-    info = "ssh -p ${toString nodePort} divit@T3.lan";
+    info = "ssh -p ${toString nodePort} divit@T3.lan; onion in /var/lib/qezta-endpoints/endpoints.txt";
   };
 }

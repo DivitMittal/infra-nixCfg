@@ -3353,6 +3353,22 @@
         "type": "github"
       }
     },
+    "qezta-site": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795124656,
+        "narHash": "sha256-U8JuvIt+eTczRzGDiKUH+jRfDbT2gZPy+LmBX2EqBEU=",
+        "owner": "Qezta",
+        "repo": "site",
+        "rev": "2d3c8268dd9d121a745db3fb139b5cca36321170",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "site",
+        "type": "github"
+      }
+    },
     "qezta-ssh": {
       "inputs": {
         "OS-nixCfg": "OS-nixCfg_4",
@@ -3547,6 +3563,7 @@
         "nvchad4nix": "nvchad4nix",
         "openwrt-imagebuilder": "openwrt-imagebuilder",
         "openwrt-nix": "openwrt-nix",
+        "qezta-site": "qezta-site",
         "qezta-ssh": "qezta-ssh",
         "quant-nixCfg": "quant-nixCfg",
         "ragenix": "ragenix",

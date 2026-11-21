@@ -117,19 +117,17 @@ in {
           }
           {
             name = "Build on native Darwin";
-            env = {
-              TARGET = "\${{ inputs.target || 'L1' }}";
-              CACHE_VERIFIED = "\${{ steps.darwin_probe.outcome == 'success' }}";
-            };
+            id = "darwin_build";
+            # Leave time inside the job limit to cache partial progress.
+            timeout-minutes = 300;
+            env.TARGET = "\${{ inputs.target || 'L1' }}";
             shell = "bash";
             run = ''
               set -euo pipefail
-              # Preserve completed dependencies across cancelled or failed runs.
-              # This is enabled only after the private signed-cache probe passes.
-              if [ "$CACHE_VERIFIED" = true ]; then
-                attic watch-store -j 2 ${atticTarget} > "$RUNNER_TEMP/darwin-attic-watch.log" 2>&1 &
-                echo "$!" > "$RUNNER_TEMP/darwin-attic-watch.pid"
-              fi
+              # Snapshot valid paths so a later step can push whatever this run
+              # built, even if it fails or times out. `attic watch-store` is not
+              # usable here: its kqueue watcher hits EMFILE on /nix/store.
+              nix path-info --all | sort > "$RUNNER_TEMP/store-before.txt"
               case "$TARGET" in
                 L1) test "$(uname -m)" = x86_64 ;;
                 ASL1) test "$(uname -m)" = arm64 ;;
@@ -158,12 +156,36 @@ in {
                 done
                 return 1
               }
-              build ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@"
-              build ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@"
+              # Attempt both closures so one failure doesn't block caching the other.
+              status=0
+              build ".#darwinConfigurations.$TARGET.system" --out-link result-system "$@" || status=1
+              build ".#homeConfigurations.$TARGET.activationPackage" --out-link result-home "$@" || status=1
+              [ "$status" -eq 0 ]
               readlink -f result-system > deployment-paths.txt
               readlink -f result-home >> deployment-paths.txt
               printf '%s\n' "$GITHUB_SHA" > source-revision.txt
             '';
+          }
+          {
+            name = "Push newly built paths to the private Darwin cache";
+            "if" = "always() && steps.darwin_probe.outcome == 'success'";
+            timeout-minutes = 40;
+            env = privateCacheEnv;
+            shell = "bash";
+            run = ''
+              set -euo pipefail
+              before="$RUNNER_TEMP/store-before.txt"
+              test -f "$before" || { echo "No pre-build snapshot; nothing to push"; exit 0; }
+              nix path-info --all | sort | comm -13 "$before" - | grep -v '\.drv$' > "$RUNNER_TEMP/store-new.txt" || true
+              count=$(wc -l < "$RUNNER_TEMP/store-new.txt" | tr -d ' ')
+              echo "New store paths after build: $count" >> "$GITHUB_STEP_SUMMARY"
+              [ "$count" -gt 0 ] || exit 0
+              python3 flake/actions/darwin-cache.py
+              # Attic skips paths already signed by upstream caches.
+              xargs attic push -j 2 ${atticTarget} < "$RUNNER_TEMP/store-new.txt"
+              echo "Pushed $count new paths to the private Darwin cache" >> "$GITHUB_STEP_SUMMARY"
+            '';
+            continue-on-error = true;
           }
           {
             name = "Push both closures to the private Darwin cache";
@@ -211,20 +233,6 @@ in {
             name = "Disconnect the ephemeral Darwin runner";
             "if" = "always() && steps.darwin_credentials.outputs.enabled == 'true'";
             run = ''
-              if [ -f "$RUNNER_TEMP/darwin-attic-watch.pid" ]; then
-                pid=$(cat "$RUNNER_TEMP/darwin-attic-watch.pid")
-                if kill -0 "$pid" 2>/dev/null; then
-                  kill "$pid"
-                else
-                  echo "::warning::The incremental cache uploader stopped before job cleanup"
-                fi
-                # Its output is otherwise invisible; show what reached the cache.
-                log="$RUNNER_TEMP/darwin-attic-watch.log"
-                if [ -f "$log" ]; then
-                  echo "Incremental uploader pushed $(grep -c '✅' "$log" || true) paths" >> "$GITHUB_STEP_SUMMARY"
-                  tail -n 40 "$log"
-                fi
-              fi
               if command -v tailscale >/dev/null; then
                 sudo -n tailscale --socket="$RUNNER_TEMP/darwin-tailscaled.sock" logout
               fi

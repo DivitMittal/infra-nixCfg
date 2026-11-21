@@ -1842,11 +1842,11 @@
     },
     "kolu": {
       "locked": {
-        "lastModified": 1793581554,
-        "narHash": "sha256-Z31KhxJvHb8TIwaUPtwb+it69WAY7wOBCrgGEaX7Qqw=",
+        "lastModified": 1793662054,
+        "narHash": "sha256-eAe62+98PtWb+IJlVEU5V6Uxj56m5d43BNmlLpcz7IE=",
         "owner": "juspay",
         "repo": "kolu",
-        "rev": "113ab7f7e84194e50039e6c2cc848cc4046c14e5",
+        "rev": "d0782947a0aa6a9db511671e9c2c13e376e4e6bf",
         "type": "github"
       },
       "original": {
@@ -3967,11 +3967,11 @@
         "wezterm": "wezterm"
       },
       "locked": {
-        "lastModified": 1793748330,
-        "narHash": "sha256-KYiC7RY172kAK5RyTDas7K7ypzPWdqI85cVWNYhl8vU=",
+        "lastModified": 1795038059,
+        "narHash": "sha256-w4QkpTO6RsFXqSfofIkLKZ+yytxRz4YD3VZyPGFoHeI=",
         "owner": "DivitMittal",
         "repo": "term-nixCfg",
-        "rev": "4e3e58fddba7a4277b7728688eb0a1e7df9991a6",
+        "rev": "e8cf6db70872a7e1b2c25ddf665371dbf5842f3e",
         "type": "github"
       },
       "original": {

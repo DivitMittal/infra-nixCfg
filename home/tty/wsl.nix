@@ -22,6 +22,8 @@
   winConfig = "${winHome}/.config";
 in
   mkIf (config.hostSpec.hostName == "WSL") (let
+    # Generate from merged settings rather than Home Manager's internal filename.
+    starshipWin = (pkgs.formats.toml {}).generate "starship-windows.toml" config.programs.starship.settings;
     # Fastfetch config stripped of the iTerm logo (Nix store path invalid on Windows).
     # Inherits display settings and modules from the home-manager-managed config.
     fastfetchWin = pkgs.writeText "fastfetch-windows.jsonc" (builtins.toJSON {
@@ -59,7 +61,7 @@ in
         ${optionalString config.programs.starship.enable ''
         $DRY_RUN_CMD mkdir -p "${winConfig}"
         $DRY_RUN_CMD cp --remove-destination \
-          "${config.xdg.configFile."starship.toml".source}" \
+          "${starshipWin}" \
           "${winConfig}/starship.toml"
         _sync_log "starship.toml ✓"
       ''}

@@ -145,15 +145,15 @@ verified. The names are recorded in `/var/lib/qezta-endpoints/endpoints.txt`.
 Tor needs no inbound port. Hostnames are state, copied to
 `/var/lib/qezta-endpoints/endpoints.txt`.
 
-| Name | What it is |
-| --- | --- |
-| `onion.qezta-www` | static Qezta/site build (same path as `ipns.qezta`) |
-| `onion.divit-www` | HTTP reverse proxy to `https://divit.qezta.com` (chatbot included) |
-| `onion.qezta-ssh` | virtual port 22 to the portfolio NodePort. `torsocks ssh divit@<onion>` |
-| `onion.qezta-ipfs` | path gateway for local pins only (`/ipfs/`, `/ipns/`) |
-| `ipns.qezta` | static company site build |
-| `ipns.divit` | static portfolio build with chat disabled |
-| `ipns.endpoints` | `endpoints.json` and a short index. Not the site |
+| Name               | What it is                                                              |
+| ------------------ | ----------------------------------------------------------------------- |
+| `onion.qezta-www`  | static Qezta/site build (same path as `ipns.qezta`)                     |
+| `onion.divit-www`  | HTTP reverse proxy to `https://divit.qezta.com` (chatbot included)      |
+| `onion.qezta-ssh`  | virtual port 22 to the portfolio NodePort. `torsocks ssh divit@<onion>` |
+| `onion.qezta-ipfs` | path gateway for local pins only (`/ipfs/`, `/ipns/`)                   |
+| `ipns.qezta`       | static company site build                                               |
+| `ipns.divit`       | static portfolio build with chat disabled                               |
+| `ipns.endpoints`   | `endpoints.json` and a short index. Not the site                        |
 
 The divit proxy rewrites `Host` to the Vercel name, drops HSTS and CSP (so
 the browser does not upgrade the onion to HTTPS), and does not forward the

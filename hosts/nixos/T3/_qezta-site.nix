@@ -22,7 +22,7 @@ pkgs.stdenv.mkDerivation {
     inherit src;
     pname = "qezta-site";
     version = "0.0.1";
-    pnpm = pkgs.pnpm;
+    inherit (pkgs) pnpm;
     fetcherVersion = 3;
     hash = "sha256-TfzYZ2JocnvBoH32wFuoFSVPC2fbV4ifJRIimrBIQyM=";
   };

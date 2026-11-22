@@ -73,8 +73,6 @@ jobs:
         ATTIC_ENDPOINT: http://192.168.2.8:8080
         ATTIC_REMOTE: homelab
         DARWIN_CACHE_PUBLIC_KEY: ${{ vars.DARWIN_CACHE_PUBLIC_KEY }}
-        HTTP_PROXY: http://127.0.0.1:1055
-        NO_PROXY: 127.0.0.1,localhost
         http_proxy: http://127.0.0.1:1055
         no_proxy: 127.0.0.1,localhost
       id: darwin_cache
@@ -91,8 +89,6 @@ jobs:
         ATTIC_ENDPOINT: http://192.168.2.8:8080
         ATTIC_REMOTE: homelab
         DARWIN_CACHE_PUBLIC_KEY: ${{ vars.DARWIN_CACHE_PUBLIC_KEY }}
-        HTTP_PROXY: http://127.0.0.1:1055
-        NO_PROXY: 127.0.0.1,localhost
         http_proxy: http://127.0.0.1:1055
         no_proxy: 127.0.0.1,localhost
       id: darwin_probe
@@ -116,8 +112,6 @@ jobs:
         ATTIC_ENDPOINT: http://192.168.2.8:8080
         ATTIC_REMOTE: homelab
         DARWIN_CACHE_PUBLIC_KEY: ${{ vars.DARWIN_CACHE_PUBLIC_KEY }}
-        HTTP_PROXY: http://127.0.0.1:1055
-        NO_PROXY: 127.0.0.1,localhost
         http_proxy: http://127.0.0.1:1055
         no_proxy: 127.0.0.1,localhost
       if: steps.darwin_probe.outcome == 'success'

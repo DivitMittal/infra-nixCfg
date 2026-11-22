@@ -7,9 +7,7 @@
 }: let
   atticTarget = "${attic.remote}:${attic.darwinCache}";
   privateCacheEnv = {
-    HTTP_PROXY = "http://127.0.0.1:1055";
     http_proxy = "http://127.0.0.1:1055";
-    NO_PROXY = "127.0.0.1,localhost";
     no_proxy = "127.0.0.1,localhost";
     ATTIC_DARWIN_TOKEN = "\${{ secrets.ATTIC_DARWIN_TOKEN }}";
     DARWIN_CACHE_PUBLIC_KEY = "\${{ vars.DARWIN_CACHE_PUBLIC_KEY }}";

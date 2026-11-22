@@ -19,49 +19,54 @@
   configHome = "${home}\\.config";
 
   mkAdvanced = valueName: dword: {
-    keyPath = "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced";
+    keyPath = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced";
     inherit valueName;
     valueData.DWord = dword;
   };
 in {
   win.dsc.enable = true;
 
+  # keyPath takes the hive without a colon (HKLM\..., not PowerShell's HKLM:\...);
+  # the colon form fails the whole DSC run with "Invalid hive".
   win.dsc.resource."Microsoft.Windows/Registry" = {
     # ── Developer Mode — symlinks without UAC prompt (HKLM, needs admin) ──
-    "Developer Mode".keyPath = "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock";
+    "Developer Mode".keyPath = "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock";
     "Developer Mode".valueName = "AllowDevelopmentWithoutDevLicense";
     "Developer Mode".valueData.DWord = 1;
 
     # ── Telemetry / Privacy (HKLM entries need admin) ──────────────────────
-    "Telemetry Level".keyPath = "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection";
+    "Telemetry Level".keyPath = "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection";
     "Telemetry Level".valueName = "AllowTelemetry";
     "Telemetry Level".valueData.DWord = 1; # 0=Off 1=Basic 2=Enhanced 3=Full
 
-    "Advertising ID".keyPath = "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo";
+    "Advertising ID".keyPath = "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo";
     "Advertising ID".valueName = "Enabled";
     "Advertising ID".valueData.DWord = 0; # disabled
 
-    "Activity Feed".keyPath = "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System";
+    "Activity Feed".keyPath = "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\System";
     "Activity Feed".valueName = "EnableActivityFeed";
     "Activity Feed".valueData.DWord = 0; # disabled
 
     # ── Context Menu — restore full Windows 11 right-click menu ───────────
-    "Full Context Menu".keyPath = "HKCU:\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32";
-    "Full Context Menu".valueData.String = "";
+    "Full Context Menu".keyPath = "HKCU\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32";
+    # An expression, not "": DSC 3.2 fails the whole run on a literal empty
+    # string ("Unable to parse statement root"), and the menu needs the default
+    # value set to empty rather than absent.
+    "Full Context Menu".valueData.String = "[concat('', '')]";
 
     # ── Taskbar ─────────────────────────────────────────────────────────────
     "Taskbar Combine" = mkAdvanced "TaskbarGlomLevel" 0; # 0=always 1=when full 2=never
-    "Taskbar Search".keyPath = "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search";
+    "Taskbar Search".keyPath = "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search";
     "Taskbar Search".valueName = "SearchboxTaskbarMode";
     "Taskbar Search".valueData.DWord = 0;
 
     # ── AutoRun hardening — remove CMD AutoRun entirely ────────────────────
     "CMD AutoRun"._exist = false;
-    "CMD AutoRun".keyPath = "HKCU:\\SOFTWARE\\Microsoft\\Command Processor";
+    "CMD AutoRun".keyPath = "HKCU\\SOFTWARE\\Microsoft\\Command Processor";
     "CMD AutoRun".valueName = "AutoRun";
 
     # ── File Associations ───────────────────────────────────────────────────
-    ".toml -> vim".keyPath = "HKCU:\\SOFTWARE\\Classes\\.toml";
+    ".toml -> vim".keyPath = "HKCU\\SOFTWARE\\Classes\\.toml";
     ".toml -> vim".valueData.String = "toml_auto_file";
 
     # ── Explorer preferences (roles/windows_settings/tasks/explorer.yml) ───
@@ -77,9 +82,12 @@ in {
 
   # ── User-scoped env vars, forced to Machine scope — see module header ───
   win.dsc.psdsc.environment = let
+    # No Target: nix-win emits Windows PowerShell 5.1's built-in
+    # PSDesiredStateConfiguration/Environment, which always writes Machine
+    # scope and rejects the property ("Undefined property Target"), although
+    # the option comes from PSDscResources' schema.
     mkEnv = value: {
       Ensure = "Present";
-      Target = ["Machine"];
       Value = value;
     };
   in {

@@ -7,4 +7,8 @@
 _: {
   # Vega 3 iGPU, for the Sway session.
   hardware.graphics.enable = true;
+
+  # Lan Mouse's wlroots backend needs a keyboard keymap even when the desk
+  # has no physical input devices attached to this box.
+  programs.ydotool.enable = true;
 }

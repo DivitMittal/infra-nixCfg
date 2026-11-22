@@ -637,3 +637,87 @@ deploy .#VPS2-home
 Inside the devshell, `deploy-home VPS1 --dry-activate` is a shorthand for
 `deploy .#VPS1-home --dry-activate`. The local `hms` and `hts` commands still
 operate on the current machine's hostname and are not remote deploy wrappers.
+
+### Desk input sharing (Lan Mouse)
+
+L1 (`192.168.2.4`, wired USB adapter) is the centre of the desk. L2 Windows
+(`192.168.2.6`) is above it; T2 (`192.168.2.171`) is to its left. Move back
+through L2's bottom edge or T2's right edge to return to L1. The emergency
+release shortcut on all three machines is **Ctrl+Shift+Esc**.
+
+`lib/lan-mouse.nix` declares the peers, layout, certificate fingerprint
+allowlists and Windows task settings for all three machines.
+`home/tools/hid/lan-mouse.nix` consumes those settings and manages desktop
+startup. Linux builds enable layer-shell capture and
+wlroots emulation even though the GTK frontend is disabled. T2 requires a
+logged-in Sway session; Lan Mouse starts with `sway-session.target`, not at the
+login greeter. L1 starts its LaunchAgent at login. Home Manager installs and
+registers `~/Applications/Lan Mouse Desktop.app` and associates the agent with
+that app so macOS can identify it for Local Network privacy. Grant the app
+Accessibility and Local Network access in System Settings; those user grants
+are not managed by Nix. Other hosts do not join this desk automatically.
+
+T2 enables `programs.ydotool` to provide a virtual keyboard when no physical
+keyboard is attached. Lan Mouse's wlroots backend needs that keyboard's
+keymap to initialize. The ydotool socket remains restricted to its service
+group; no desktop user membership is required for this purpose.
+
+The text greeter runs before Lan Mouse, so the Mac's shared keyboard cannot
+type into it. With no physical keyboard attached to T2, run
+`./utils/t2_console_login.sh` in a terminal on L1. Enter the existing `div`
+password at its hidden SSH prompt; the helper types it through T2's virtual
+keyboard, then Sway starts the normal Lan Mouse service. The password is not
+stored or passed as a process argument. This requires L1's agenix SSH key and
+does not enable automatic login or change the password.
+
+L2's Windows boot gets its part through nix-win (`win-deploy L2`), from
+`hosts/win/L2/lan-mouse.nix`. That module installs the v0.11.0 Windows release
+to `%LOCALAPPDATA%\lan-mouse\bin` and writes
+`%LOCALAPPDATA%\lan-mouse\config.toml` from `lib/lan-mouse.nix`. Inspect the
+settings with `nix eval --json .#lanMouse.windows.L2`.
+
+`hosts/win/L2/desk.nix` turns each `desk.daemons` entry (Lan Mouse and
+UniClipboard) into DSC resources: a ComputerManagementDsc `ScheduledTask`
+that starts the daemon in vanee's interactive session at login, a
+NetworkingDsc `Firewall` rule allowing inbound traffic from the local subnet,
+and a `Script` resource that deletes the Block rules Windows records when its
+network prompt is dismissed. L2's LAN is classed Public, so without those rules
+each daemon would raise that prompt. The task launches the daemon through
+`conhost.exe --headless`, so no console window opens; Windows Terminal ignores
+`powershell -WindowStyle Hidden`. Each deploy restarts both tasks. The login
+task only runs at logon, so a daemon that exhausts its restarts stays down
+until the next login or `Start-ScheduledTask 'Lan Mouse'`. Its daemon log is
+`%LOCALAPPDATA%\lan-mouse\daemon.log`; L1 logs to `~/.cache/lan-mouse.err.log`.
+T2 logs are available through `journalctl --user -u lan-mouse`.
+
+Use `lan-mouse cli list` on each machine to check active peer directions.
+Connection logs and a pointer/keyboard handoff establish actual connectivity;
+an active peer entry alone does not. Certificate replacement requires updating
+the public fingerprint in `lib/lan-mouse.nix` and reapplying the affected
+configurations. Private PEM keys stay on their respective machines.
+
+### Desk clipboard sharing (UniClipboard)
+
+L1, T2 and L2's Windows boot share one encrypted UniClipboard space.
+`home/tools/hid/uniclipboard.nix` runs `uniclip run` as a LaunchAgent on L1
+and as a user service bound to `sway-session.target` on T2, so T2 only syncs
+while its Sway session runs. On L1 it also retires the LaunchAgent that
+`uniclip service start` writes, which pins a single store path.
+`hosts/win/L2/uniclipboard.nix` ships the Windows CLI through nix-win to
+`%LOCALAPPDATA%\uniclipboard\bin` and declares its `desk.daemons` entry, so
+it gets the same task and firewall handling as Lan Mouse. Its log is
+`%LOCALAPPDATA%\uniclipboard\daemon.log`. Keep other `win.files` for L2 off
+the `appdata-local` root (use `home` with an `AppData/Local/...` path):
+nix-win silently drops `win.packages` on a root that `win.files` also uses.
+
+Membership lives in each device's profile, not in Nix. L1 sponsors the space;
+its passphrase is in L1's login Keychain under `uniclipboard-space`. To add a
+device, run `uniclip space invite` on L1, then on the new device:
+
+```sh
+uniclip space join --code <code> --passphrase '<passphrase>' --device-name <name>
+```
+
+Read the passphrase on L1 with `security find-generic-password -s
+uniclipboard-space -w`. Check the result with `uniclip member list` on
+both sides, and a round trip with `uniclip send --text test` and `uniclip get`.

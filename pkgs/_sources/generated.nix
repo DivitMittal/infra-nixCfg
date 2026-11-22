@@ -134,6 +134,14 @@
       sha256 = "sha256-plCH3tvZiibd5/IxkGE42WqaG3VmRsmUcjHUEbHkIlQ=";
     };
   };
+  lan-mouse-windows-x86_64 = {
+    pname = "lan-mouse-windows-x86_64";
+    version = "0.11.0";
+    src = fetchurl {
+      url = "https://github.com/feschber/lan-mouse/releases/download/v0.11.0/lan-mouse-windows-x86_64.zip";
+      sha256 = "sha256-+U9Om8bmTF+X9JfmSR889HjIDysqPhPYjqGM6lgcBqA=";
+    };
+  };
   launchdeck-aarch64 = {
     pname = "launchdeck-aarch64";
     version = "0.1.4";
@@ -302,6 +310,14 @@
     src = fetchurl {
       url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-unknown-linux-musl.tar.gz";
       sha256 = "sha256-JV7uj2ROKED3j14MzquVzbiHLinEpsnC+AXaMQ2xjhw=";
+    };
+  };
+  uniclipboard-cli-x86_64-windows = {
+    pname = "uniclipboard-cli-x86_64-windows";
+    version = "1.4.0";
+    src = fetchurl {
+      url = "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-pc-windows-msvc.zip";
+      sha256 = "sha256-siuIzVGlAcschiWyfNIjR0AITmLZeWAcHPwHNscOWL4=";
     };
   };
   warpd = {

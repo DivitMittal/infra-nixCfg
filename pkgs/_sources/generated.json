@@ -239,6 +239,21 @@
     },
     "version": "22.0.0"
   },
+  "lan-mouse-windows-x86_64": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "lan-mouse-windows-x86_64",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-+U9Om8bmTF+X9JfmSR889HjIDysqPhPYjqGM6lgcBqA=",
+      "type": "url",
+      "url": "https://github.com/feschber/lan-mouse/releases/download/v0.11.0/lan-mouse-windows-x86_64.zip"
+    },
+    "version": "0.11.0"
+  },
   "launchdeck-aarch64": {
     "cargoLock": null,
     "date": null,

@@ -134,6 +134,14 @@
       sha256 = "sha256-plCH3tvZiibd5/IxkGE42WqaG3VmRsmUcjHUEbHkIlQ=";
     };
   };
+  lan-mouse-windows-x86_64 = {
+    pname = "lan-mouse-windows-x86_64";
+    version = "0.11.0";
+    src = fetchurl {
+      url = "https://github.com/feschber/lan-mouse/releases/download/v0.11.0/lan-mouse-windows-x86_64.zip";
+      sha256 = "sha256-+U9Om8bmTF+X9JfmSR889HjIDysqPhPYjqGM6lgcBqA=";
+    };
+  };
   launchdeck-aarch64 = {
     pname = "launchdeck-aarch64";
     version = "0.1.4";

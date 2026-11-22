@@ -41,7 +41,8 @@ in {
   windows = {
     L2 = {
       config = settingsFor "L2";
-      executable = ".local\\bin\\lan-mouse.exe";
+      # Relative to %USERPROFILE%; installed by nix-win (hosts/win/L2/lan-mouse.nix).
+      executable = "AppData\\Local\\lan-mouse\\bin\\lan-mouse.exe";
       task = {
         name = "Lan Mouse";
         runLevel = "Limited";

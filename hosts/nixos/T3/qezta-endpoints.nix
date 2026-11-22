@@ -2,7 +2,7 @@
 #
 # Clearnet stays on Vercel (DNS in Qezta/infra). This host does not scrape it.
 # qezta.com is the Nix build of Qezta/site (adapter-static). divit.qezta.com
-# stays a reverse proxy: the chatbot is a Vercel function and cannot be pinned.
+# uses a reverse proxy over Tor for chat and a chat-free static build on IPFS.
 # The declarative endpoints are:
 #
 #   * hidden services generated from `proxies`
@@ -27,6 +27,11 @@
     src = inputs.qezta-site;
   };
 
+  divitMirror = import ./_divit-ipfs.nix {
+    inherit pkgs;
+    src = inputs.divit-ipfs;
+  };
+
   ipfsGatewayPort = 8082;
   ipfsOnionPort = 8093;
   ipfsDataDir = config.services.kubo.dataDir;
@@ -42,7 +47,7 @@
       port = 8091;
       root = qeztaSite;
     };
-    # Chatbot is /api/chat on Vercel. Do not pin a static export of this.
+    # Keep the live chatbot available over Tor through the Vercel backend.
     divit-www = {
       port = 8092;
       host = "divit.qezta.com";
@@ -52,19 +57,19 @@
 
   # Store paths pinned under their own IPNS keys. A rebuild republishes
   # because the path is a restartTrigger. Do not scrape Vercel into here.
-  # `endpoints` is the host record, not the site. DNSLink waits for ipns.qezta.
+  # `endpoints` is the host record. Each site has a separate IPNS key.
   ipfsRoots = {
+    divit = divitMirror;
     endpoints = endpointRecord;
     qezta = qeztaSite;
   };
 
   shellArg = lib.escapeShellArg;
 
-  publishInvocations =
-    lib.concatMapStringsSep "\n" (
+  publishInvocations = lib.concatStringsSep "\n" (lib.mapAttrsToList (
       name: root: "ensure_key ${shellArg name} || failed=1\npublish_root ${shellArg name} ${shellArg root} || failed=1"
     )
-    ipfsRoots;
+    ipfsRoots);
 
   # Nix double-quoted \n is a newline. printf needs the two characters \n.
   ipnsLines = lib.concatMapStringsSep "\n" (
@@ -80,7 +85,7 @@
         then {
           inherit (site) host;
           upstream = "https://${site.host}/";
-          redirectHosts = site.redirectHosts;
+          inherit (site) redirectHosts;
         }
         else {
           kind = "nix-store";
@@ -91,7 +96,7 @@
         nodePort = 30022;
         clearnet = "ssh divit@qezta.com";
       };
-      note = "Onion hostnames and IPNS ids are host state, not in this pin. ipns.qezta is the site. The divit chatbot is the Vercel upstream, reached through the divit-www onion.";
+      note = "Onion hostnames and IPNS ids are host state, not in this pin. ipns.qezta is the company site and ipns.divit is the static portfolio. The divit chatbot is the Vercel upstream, reached through the divit-www onion.";
     }}
     EOF
     cat > $out/index.html <<'EOF'
@@ -99,7 +104,7 @@
     <meta charset="utf-8">
     <title>qezta endpoints</title>
     <h1>qezta endpoints</h1>
-    <p>This pin is the declarative record, not the site. The site is the <code>qezta</code> IPNS key. divit.qezta.com stays on Vercel.</p>
+    <p>This pin is the declarative record, not the site. The company site is under the <code>qezta</code> IPNS key and the static portfolio is under <code>divit</code>.</p>
     <ul>
       <li><a href="https://www.qezta.com/">www.qezta.com</a></li>
       <li><a href="https://divit.qezta.com/">divit.qezta.com</a></li>
@@ -111,7 +116,7 @@
   listenOn = port: [
     {
       addr = "127.0.0.1";
-      port = port;
+      inherit port;
       extraParameters = ["default_server"];
     }
   ];
@@ -124,7 +129,7 @@
       then {
         # Store path: types.path accepts a derivation, and the nginx
         # config build depends on it. A runtime directory would not.
-        root = site.root;
+        inherit (site) root;
         tryFiles = "$uri $uri/ $uri.html /index.html";
       }
       else {
@@ -186,8 +191,8 @@
       if [[ -f $prev_file ]]; then
         prev=$(<"$prev_file")
       fi
-      cid=$(${ipfs} add -r -Q --pin=false --cid-version=1 "$root")
-      ${ipfs} pin add "$cid"
+      cid=$(${ipfs} add -r -Q --pin=false --cid-version=1 "$root") || return 1
+      ${ipfs} pin add "$cid" || return 1
       if ${ipfs} name publish --key="$name" --lifetime=168h "/ipfs/$cid"; then
         if [[ -n $prev && $prev != "$cid" ]]; then
           ${ipfs} pin rm "$prev" || true
@@ -195,7 +200,9 @@
         printf '%s\n' "$cid" >"$prev_file"
         echo "published $name /ipfs/$cid"
       else
-        ${ipfs} pin rm "$cid" || true
+        if [[ $cid != "$prev" ]]; then
+          ${ipfs} pin rm "$cid" || true
+        fi
         echo "IPNS publish failed for $name" >&2
         return 1
       fi
@@ -302,7 +309,7 @@ in {
             port = 80;
             target = {
               addr = "127.0.0.1";
-              port = site.port;
+              inherit (site) port;
             };
           }
         ];
@@ -359,7 +366,7 @@ in {
   systemd.services.tor.wants = ["nginx.service"];
 
   systemd.services.qezta-ipfs-publish = {
-    description = "Pin and IPNS-publish the declarative Qezta endpoint record";
+    description = "Pin and IPNS-publish the Qezta sites and endpoint record";
     wantedBy = ["multi-user.target"];
     after = ["ipfs.service" "network-online.target"];
     wants = ["ipfs.service" "network-online.target"];

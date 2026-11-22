@@ -755,6 +755,23 @@
         "type": "github"
       }
     },
+    "divit-ipfs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795335922,
+        "narHash": "sha256-3AzNYf7ZeujdndLVgc3mCP9TteIrznT/sriEXfYCNkA=",
+        "owner": "Qezta",
+        "repo": "divit",
+        "rev": "c485ae8ce2b5e56faf2b2731fbc2498997d2cb87",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "divit",
+        "rev": "c485ae8ce2b5e56faf2b2731fbc2498997d2cb87",
+        "type": "github"
+      }
+    },
     "doomemacs": {
       "flake": false,
       "locked": {
@@ -3529,6 +3546,7 @@
         "devshell": "devshell",
         "direnv-instant": "direnv-instant",
         "disko": "disko",
+        "divit-ipfs": "divit-ipfs",
         "firefox-nixCfg": "firefox-nixCfg",
         "flake-compat": "flake-compat_2",
         "flake-parts": "flake-parts_5",

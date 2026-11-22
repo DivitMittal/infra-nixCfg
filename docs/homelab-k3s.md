@@ -135,11 +135,12 @@ listeners, and the IPFS pins from `proxies` and `ipfsRoots`. It does not
 scrape Vercel. `qezta-www` serves the Nix build of
 [Qezta/site](https://github.com/Qezta/site) (`adapter-static`, relative
 `_app` paths, Vercel analytics removed). That same store path is the `qezta`
-IPNS pin. divit's chatbot is a Vercel function, so `divit-www` stays a reverse
-proxy and is not pinned. The `endpoints` pin is the host record
-(`endpoints.json`), not the site. Do not put DNSLink on the apex TXT. A
-`_dnslink.qezta.com` record belongs in Qezta/infra, and only after
-`/var/lib/qezta-endpoints/endpoints.txt` contains `ipns.qezta`.
+IPNS pin. The static portfolio is published under the `divit` IPNS key.
+It omits chat. The `divit-www` onion proxies to Vercel to keep chat available.
+The separate `endpoints` pin contains only the declarative endpoint record.
+Publish DNSLink TXT records at `_dnslink.qezta.com` and
+`_dnslink.divit.qezta.com` once the matching IPNS names are published and
+verified. The names are recorded in `/var/lib/qezta-endpoints/endpoints.txt`.
 
 Tor needs no inbound port. Hostnames are state, copied to
 `/var/lib/qezta-endpoints/endpoints.txt`.
@@ -150,7 +151,8 @@ Tor needs no inbound port. Hostnames are state, copied to
 | `onion.divit-www` | HTTP reverse proxy to `https://divit.qezta.com` (chatbot included) |
 | `onion.qezta-ssh` | virtual port 22 to the portfolio NodePort. `torsocks ssh divit@<onion>` |
 | `onion.qezta-ipfs` | path gateway for local pins only (`/ipfs/`, `/ipns/`) |
-| `ipns.qezta` | the site build. Not a DNSLink record until the id is known |
+| `ipns.qezta` | static company site build |
+| `ipns.divit` | static portfolio build with chat disabled |
 | `ipns.endpoints` | `endpoints.json` and a short index. Not the site |
 
 The divit proxy rewrites `Host` to the Vercel name, drops HSTS and CSP (so

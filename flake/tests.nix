@@ -1,13 +1,15 @@
 # Test suites exposed as flake checks.
 #
-# Nix suites (tests/*.nix) are `lib.debug.runTests` attrsets. Failures throw at
-# evaluation time, so they surface even under CI's `nix flake check --no-build`.
-# Shell suites (tests/shell/*.bats) and shellcheck need a build:
+# Nix suites (tests/*.nix) are `lib.debug.runTests` attrsets; failures throw at
+# evaluation time with the expected/got values. Shell suites (tests/shell/*.bats)
+# and shellcheck are builds. CI's flake-check job runs `nix flake check` on
+# x86_64-linux, which covers all of them. One at a time:
 #   nix build .#checks.<system>.shell-tests
 {
   inputs,
   lib,
   self,
+  withSystem,
   ...
 }: {
   perSystem = {pkgs, ...}: let
@@ -48,8 +50,15 @@
           touch $out
         '';
       }
-      // lib.optionalAttrs isDarwin {
-        tests-modules-darwin = mkEvalCheck "modules-darwin" (suite ../tests/modules-darwin.nix);
+      // {
+        ## Eval-only, so Linux evaluates it against aarch64-darwin pkgs: CI's
+        ## `nix flake check` runs on a Linux runner, and eval.yml never runs
+        ## checks, so a darwin-only check would never run in CI.
+        tests-modules-darwin = mkEvalCheck "modules-darwin" (
+          if isDarwin
+          then suite ../tests/modules-darwin.nix
+          else withSystem "aarch64-darwin" ({pkgs, ...}: import ../tests/modules-darwin.nix (args // {inherit pkgs;}))
+        );
       };
   };
 }

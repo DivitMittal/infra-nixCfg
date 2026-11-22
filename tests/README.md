@@ -8,13 +8,14 @@ Test suites wired into `nix flake check` by `flake/tests.nix`.
 | `tests-hosts`          | `hosts.nix`          | `hosts/*` ↔ configuration outputs ↔ home configs ↔ deploy nodes |
 | `tests-packages`       | `packages.nix`       | `pkgs/*` exposure via the overlay, package metadata             |
 | `tests-modules-home`   | `modules-home.nix`   | `modules/home/*` evaluated through home-manager                 |
-| `tests-modules-darwin` | `modules-darwin.nix` | `modules/hosts/darwin/*` evaluated through nix-darwin (darwin)  |
+| `tests-modules-darwin` | `modules-darwin.nix` | `modules/hosts/darwin/*` evaluated through nix-darwin           |
 | `shellcheck`           | —                    | `utils/*.sh`, `tests/shell/*.bash`                              |
 | `shell-tests`          | `shell/*.bats`       | `utils/*.sh` with every external command stubbed                |
 
-The Nix suites are `lib.debug.runTests` attrsets. Failures throw during
-evaluation, so they also fail CI's `nix flake check --no-build`. The shell
-suites need a build:
+The Nix suites are `lib.debug.runTests` attrsets whose failures throw during
+evaluation. CI's flake-check job runs `nix flake check` on x86_64-linux, which
+evaluates every suite (the darwin one against aarch64-darwin pkgs) and builds
+the shell suites. To run one locally:
 
 ```bash
 nix build .#checks.$(nix eval --impure --raw --expr builtins.currentSystem).shell-tests

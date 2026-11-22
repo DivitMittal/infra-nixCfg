@@ -5,8 +5,19 @@
   lib,
   self,
 }: let
+  ## `_`-prefixed directories (e.g. hosts/nixos/_homelab) hold modules shared
+  ## between hosts, not hosts.
   hostDirs = class:
-    lib.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir (self + "/hosts/${class}")));
+    lib.filter (n: !(lib.hasPrefix "_" n))
+    (lib.attrNames (lib.filterAttrs (_: type: type == "directory") (builtins.readDir (self + "/hosts/${class}"))));
+
+  ## Installer/boot images live in nixosConfigurations but aren't hosts.
+  installerDirs = hostDirs "iso" ++ hostDirs "netboot";
+
+  ## System-only hosts with no home-manager profile, on purpose:
+  ## T1 is the home-lab router appliance; L2W is the NixOS-WSL evaluator
+  ## inside L2's Windows install (L2 itself carries the home config).
+  systemOnly = ["T1" "L2W"];
 
   sorted = lib.sort lib.lessThan;
   missingFrom = attrs: names: lib.filter (n: !(attrs ? ${n})) names;
@@ -21,7 +32,7 @@
   variants = {colima-arm = "colima";};
   hostDirOf = name: variants.${name} or name;
 
-  systemHosts = lib.attrNames darwin ++ lib.attrNames droid ++ lib.subtractLists (hostDirs "iso") (lib.attrNames nixos);
+  systemHosts = lib.attrNames darwin ++ lib.attrNames droid ++ lib.subtractLists installerDirs (lib.attrNames nixos);
   nodeNames = lib.attrNames nodes;
   homeNodes = lib.filter (lib.hasSuffix "-home") nodeNames;
   systemNodes = lib.subtractLists homeNodes nodeNames;
@@ -49,9 +60,14 @@ in {
     expected = [];
   };
 
+  testEveryNetbootHostDirHasConfiguration = {
+    expr = missingFrom nixos (hostDirs "netboot");
+    expected = [];
+  };
+
   ## ── every output has a host directory backing it ──────────────────────────
   testEveryNixosConfigurationHasHostDir = {
-    expr = lib.filter (n: !(builtins.elem (hostDirOf n) (hostDirs "nixos" ++ hostDirs "iso"))) (lib.attrNames nixos);
+    expr = lib.filter (n: !(builtins.elem (hostDirOf n) (hostDirs "nixos" ++ installerDirs))) (lib.attrNames nixos);
     expected = [];
   };
 
@@ -75,7 +91,13 @@ in {
 
   ## ── home-manager pairs with every system host (installers excluded) ───────
   testEverySystemHostHasHomeConfiguration = {
-    expr = sorted (missingFrom home systemHosts);
+    expr = sorted (missingFrom home (lib.subtractLists systemOnly systemHosts));
+    expected = [];
+  };
+
+  testSystemOnlyHostsExistAndHaveNoHome = {
+    ## Keeps the exception list honest: drop a name once it gains a home config.
+    expr = lib.filter (n: !(nixos ? ${n}) || home ? ${n}) systemOnly;
     expected = [];
   };
 

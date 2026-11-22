@@ -3,7 +3,8 @@
   python3,
   runCommand,
 }:
-runCommand "tcc-prune" {
+runCommand "tcc-prune-0.1.0" {
+  version = "0.1.0";
   meta = {
     description = "Report or delete stale macOS TCC grants (old /nix/store paths, uninstalled apps)";
     license = lib.licenses.mit;

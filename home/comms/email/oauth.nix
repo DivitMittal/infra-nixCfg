@@ -5,8 +5,8 @@
   ...
 }: {
   # Expose Google OAuth credentials as env vars by reading decrypted age files at shell startup.
-  # Note: builtins.getEnv in pkgs/custom/mutt-oauth2 runs at eval time (hms);
-  # these vars are for interactive use and for the eval-time build to pick up.
+  # pkgs/custom/mutt-oauth2 reads these at runtime for the Google registration,
+  # so `oauth2` (and aerc/himalaya calling it) must inherit them from a shell.
   programs = let
     clientId = config.age.secrets."google/client_id.age".path;
     clientSecret = config.age.secrets."google/client_secret.age".path;

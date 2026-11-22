@@ -21,6 +21,9 @@
   '';
 in {
   options.programs.vpn = {
+    mullvadPackage = lib.mkPackageOption pkgs "mullvad" {
+      extraDescription = "The desktop layer selects its GUI package, which also provides the CLI.";
+    };
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -33,7 +36,7 @@ in {
 
   config = lib.mkIf cfg.enable {
     home.packages =
-      lib.lists.optional hostPlatform.isLinux [pkgs.mullvad pkgs.tailscale]
+      lib.lists.optionals hostPlatform.isLinux [cfg.mullvadPackage pkgs.tailscale]
       ++ lib.lists.optionals hostPlatform.isDarwin [mullvadCliWrapper tailscaleCliWrapper];
   };
 }

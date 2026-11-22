@@ -25,7 +25,8 @@
   # nix-darwin has no `networking.hosts` (that's NixOS-only) and taking over
   # /etc/hosts via `environment.etc.hosts` aborts activation unless its current
   # hash is whitelisted, so apply the block with an idempotent activation script.
-  system.activationScripts.spicetifyHosts.text = ''
+  # Must hook a built-in phase: nix-darwin silently ignores custom script names.
+  system.activationScripts.postActivation.text = lib.mkAfter ''
     # Remove any previously applied block, then (re)append the current one.
     if [ -f /etc/hosts ]; then
       tmp="$(mktemp)"
@@ -64,6 +65,7 @@
       inherit
         (pkgs.customDarwin)
         tccutil # macOS TCC/privacy permissions cli
+        tcc-prune # drop stale TCC grants (old store paths, removed apps)
         ;
     }
     ++ [(pkgs.perl.withPackages (ps: [ps.Tk ps.Appcpanminus]))]; # perl with Tk support + cpanm

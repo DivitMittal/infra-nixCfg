@@ -23,6 +23,28 @@ function yellow() {
   fi
 }
 
+# Refuse to pick the t640's T2 config on L1's NixOS.
+# Usage: refuse_stale_l1n_hostname <hostname>
+#
+# L1's NixOS was installed as host "T2"; that name now belongs to an HP t640
+# (nixosConfigurations.T2 / homeConfigurations.T2) and the MacBook's config is
+# L1N. Until L1's NixOS is switched once to .#L1N its hostname is still T2, so
+# selecting the flake attribute by hostname would apply the t640's disks,
+# bootloader and k3s role to the MacBook. A real t640 reports vendor HP, so
+# only the Apple + T2 combination is refused.
+function refuse_stale_l1n_hostname() {
+  local host="$1" vendor=""
+  [[ $host == "T2" ]] || return 0
+  [[ -r /sys/class/dmi/id/sys_vendor ]] && vendor="$(</sys/class/dmi/id/sys_vendor)"
+  [[ $vendor == Apple* ]] || return 0
+
+  red "Hostname is T2 but this is Apple hardware: this is L1's NixOS, not the HP t640."
+  yellow "Switch it once to its renamed config, from the repo root:"
+  yellow "  sudo nixos-rebuild switch --flake .#L1N"
+  yellow "The hostname becomes L1N; afterwards hts/hms select L1N automatically."
+  exit 1
+}
+
 # Build switch arguments
 # Usage: build_switch_args [additional_flags...]
 function build_switch_args() {

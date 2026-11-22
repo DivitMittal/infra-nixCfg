@@ -94,6 +94,12 @@ src.prefix = "v"
 # Tag "v1.23.4" → version "1.23.4"; asset filename uses bare version (no v prefix)
 fetch.url = "https://github.com/ruittenb/Spaceman/releases/download/v$ver/Spaceman-$ver.dmg"
 
+[BattOpt]
+src.github = "js4jiang5/BattOpt"
+src.prefix = "v"
+# Tag "v1.2.9" → version "1.2.9"; asset filename uses "v" + bare version
+fetch.url = "https://github.com/js4jiang5/BattOpt/releases/download/v$ver/BattOpt_v$ver.dmg"
+
 [LosslessSwitcher]
 src.github = "vincentneo/LosslessSwitcher"
 fetch.url = "https://github.com/vincentneo/LosslessSwitcher/releases/download/$ver/LosslessSwitcher2.app.zip"
@@ -178,6 +184,18 @@ fetch.url = "https://github.com/UniClipboard/UniClipboard/releases/download/v$ve
 src.github = "UniClipboard/UniClipboard"
 src.prefix = "v"
 fetch.url = "https://github.com/UniClipboard/UniClipboard/releases/download/v$ver/uniclipboard-cli-$ver-x86_64-unknown-linux-musl.tar.gz"
+
+# Shipped to L2's Windows boot through nix-win (hosts/win/L2/lan-mouse.nix).
+[lan-mouse-windows-x86_64]
+src.github = "feschber/lan-mouse"
+src.prefix = "v"
+fetch.url = "https://github.com/feschber/lan-mouse/releases/download/v$ver/lan-mouse-windows-x86_64.zip"
+
+# Shipped to L2's Windows boot through nix-win (hosts/win/L2/uniclipboard.nix).
+[uniclipboard-cli-x86_64-windows]
+src.github = "UniClipboard/UniClipboard"
+src.prefix = "v"
+fetch.url = "https://github.com/UniClipboard/UniClipboard/releases/download/v$ver/uniclipboard-cli-$ver-x86_64-pc-windows-msvc.zip"
 
 [zerobrew-zb-aarch64]
 src.github = "lucasgelfond/zerobrew"

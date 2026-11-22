@@ -6,5 +6,6 @@
   programs.firefox-nixCfg = {
     enable = true;
     enableTridactyl = true;
+    enableWebHID = true;
   };
 }

@@ -4,6 +4,9 @@
   lib,
   ...
 }: {
+  # The GUI package already supplies mullvad and mullvad-daemon. Selecting it
+  # for CLI use avoids merging two independently versioned implementations.
+  programs.vpn.mullvadPackage = lib.mkIf hostPlatform.isLinux pkgs.mullvad-vpn;
   home.packages = lib.attrsets.attrValues {
     mullvad-vpn =
       if hostPlatform.isDarwin

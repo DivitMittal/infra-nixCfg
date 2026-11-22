@@ -30,11 +30,11 @@
         ++ [
           {
             name = "Build iso";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.iso.config.system.build.isoImage --show-trace -o result-iso";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.iso.config.system.build.isoImage --show-trace -o result-iso $LOCAL_OVERRIDES";
           }
           {
-            name = "Build t2-iso";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.t2-iso.config.system.build.isoImage --show-trace -o result-t2-iso";
+            name = "Build l1n-iso";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.l1n-iso.config.system.build.isoImage --show-trace -o result-l1n-iso $LOCAL_OVERRIDES";
           }
           {
             name = "Upload iso to Cloudflare R2";
@@ -52,9 +52,9 @@
             };
           }
           {
-            name = "Upload t2-iso to Cloudflare R2";
+            name = "Upload l1n-iso to Cloudflare R2";
             run = ''
-              ISO_FILE=$(find result-t2-iso/iso -name "*.iso" | head -1)
+              ISO_FILE=$(find result-l1n-iso/iso -name "*.iso" | head -1)
               ISO_NAME=$(basename "$ISO_FILE")
               aws s3 cp "$ISO_FILE" "s3://$R2_BUCKET/''${GITHUB_REF_NAME}/$ISO_NAME" \
                 --endpoint-url "https://''${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
@@ -70,7 +70,7 @@
             # Requires binfmt_misc + QEMU on the runner, or a native aarch64 builder.
             # Register emulation: nix.settings.extra-platforms = ["aarch64-linux"];
             name = "Build as-iso";
-            run = "nix -vL build --accept-flake-config .#nixosConfigurations.as-iso.config.system.build.isoImage --show-trace -o result-as-iso";
+            run = "nix -vL build --accept-flake-config .#nixosConfigurations.as-iso.config.system.build.isoImage --show-trace -o result-as-iso $LOCAL_OVERRIDES";
           }
           {
             name = "Upload as-iso to Cloudflare R2";

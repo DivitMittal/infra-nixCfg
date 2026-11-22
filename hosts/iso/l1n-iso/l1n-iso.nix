@@ -11,7 +11,7 @@ in {
     inputs.nixos-hardware.nixosModules.apple-t2
   ];
 
-  image.fileName = mkForce "nixos-t2-${hostPlatform.system}.iso";
+  image.fileName = mkForce "nixos-l1n-${hostPlatform.system}.iso";
 
   nix.settings = {
     trusted-substituters = [

@@ -9,6 +9,9 @@
   inherit (lib) mkIf mkOption;
   spicePkgs = inputs.spicetify-nix.legacyPackages.${hostPlatform.system};
   cfg = config.programs.spotify;
+  # Spotify ships no aarch64-linux build; nixpkgs refuses to evaluate it there
+  # (and spicetify patches that same package), so neither mode applies.
+  spotifyAvailable = hostPlatform.isDarwin || lib.meta.availableOn hostPlatform pkgs.spotify;
 
   stockSpotify =
     if hostPlatform.isDarwin
@@ -39,7 +42,7 @@ in {
   };
 
   config = {
-    programs.spicetify = mkIf (cfg.mode == "spicetify") {
+    programs.spicetify = mkIf (spotifyAvailable && cfg.mode == "spicetify") {
       enable = true;
 
       theme = lib.mkForce (spicePkgs.themes.text
@@ -67,6 +70,6 @@ in {
       experimentalFeatures = true;
     };
 
-    home.packages = mkIf (cfg.mode == "stock") [stockSpotify];
+    home.packages = mkIf (spotifyAvailable && cfg.mode == "stock") [stockSpotify];
   };
 }

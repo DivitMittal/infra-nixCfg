@@ -43,6 +43,8 @@ Options:
                           Copy this local private key to /var/lib/agenix/id_ed25519.
   --no-agenix             Do not seed an agenix identity with --extra-files.
   --build-on <mode>       nixos-anywhere build mode: remote, local, or auto. Default: remote.
+  --phases <list>         nixos-anywhere phases, e.g. disko,install,reboot to skip kexec
+                          when the target already runs a NixOS installer (t1-netboot).
   --port <port>           SSH port.
   --ssh-identity <path>   SSH identity for reaching the rescue/current system.
   --ssh-option <KEY=VALUE>
@@ -72,6 +74,7 @@ destroy_confirmed=false
 seed_agenix=true
 agenix_identity="${AGENIX_IDENTITY_PATH:-}"
 build_on="remote"
+phases=""
 port=""
 ssh_identity=""
 ssh_options=()
@@ -118,6 +121,11 @@ while [[ $# -gt 0 ]]; do
   --build-on)
     require_value "$1" "${2:-}"
     build_on="$2"
+    shift
+    ;;
+  --phases)
+    require_value "$1" "${2:-}"
+    phases="$2"
     shift
     ;;
   --port)
@@ -233,6 +241,9 @@ if [[ -n $ssh_identity ]]; then
 fi
 
 nixos_anywhere_args=(--flake ".#$host" --build-on "$build_on")
+if [[ -n $phases ]]; then
+  nixos_anywhere_args+=(--phases "$phases")
+fi
 for opt in "${base_ssh_options[@]}" "${ssh_options[@]}"; do
   nixos_anywhere_args+=(--ssh-option "$opt")
 done

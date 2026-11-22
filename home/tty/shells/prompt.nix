@@ -121,7 +121,7 @@ in {
       };
       package = {
         disabled = false;
-        format = "[🎁 $version]($sytle) ";
+        format = "[🎁 $version]($style) ";
         style = "208 bold";
       };
       shell = {

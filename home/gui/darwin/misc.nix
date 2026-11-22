@@ -3,7 +3,13 @@
   lib,
   hostPlatform,
   ...
-}: {
+}: let
+  # brew-nix ignores the cask's `binary` stanza, so crispctl (shipped inside the
+  # .app bundle) never lands on $PATH; wrap it like the vpn.nix CLI wrappers.
+  crispctlWrapper = pkgs.writeShellScriptBin "crispctl" ''
+    exec "${pkgs.brewCasks.crisp}/Applications/Crisp.app/Contents/MacOS/crispctl" "$@"
+  '';
+in {
   home.packages = lib.attrsets.attrValues (
     {
       inherit
@@ -11,9 +17,11 @@
         pearcleaner # macOS all-in-one cleaner
         hiddenbar # hide menubar items
         hot # CPU temperature monitor for menubar
+        stats # macOS system monitor in menubar (CPU/GPU/mem/disk/sensors)
         linearmouse # mouse/trackpad customization
         music-decoy # prevent macOS Music from auto-launching on media keys
         finetune # audio fine-tuning and volume control
+        crisp # display manager: HiDPI scaling, DDC brightness/volume, presets
         #gswitch # MUX switcher (using pmset instead)
         #bluesnooze # turns bluetooth off when asleep
         #aldente # Battery Management
@@ -26,10 +34,12 @@
         Spaceman-bin # spaces in menubar for macOS (ruittenb fork)
         menubar-dock-bin # macOS dock in menubar
         LiveWallpaperMacOS-bin # Live wallpaper for macOS
+        BattOpt-bin # battery charge limiter (GUI + `battopt` CLI)
         #MultiSoundChanger-bin # aggregate-output volume control in menubar
         #Iris-bin # Webcam mirror
         #LosslessSwitcher-bin # Lossless audio toggle in menubar
         ;
+      crispctl = crispctlWrapper; # Crisp CLI
     }
     // lib.optionalAttrs hostPlatform.isx86_64 {
       VoltageShift = pkgs.customDarwin.VoltageShift; # Intel-only undervolting CLI
@@ -37,19 +47,17 @@
     }
   );
 
-  ## Kept on Homebrew (brew-nix can't handle them):
-  ## - macs-fan-control: moves itself to /Applications, privileged SMC helper
-  ## - wezterm@nightly: unversioned nightly download (hash can't be pinned),
-  ##   and its WezTerm.app would clash with term-nixCfg's stable brewCasks.wezterm
+  ## Kept on Homebrew: macs-fan-control moves itself to /Applications and
+  ## installs a privileged SMC helper, which brew-nix can't handle.
+  ## (wezterm@nightly is declared by term-nixCfg's wezterm module.)
   homebrew.casks = [
     "macs-fan-control" # fan speed control & temperature monitor
-    "wezterm@nightly" # nightly build alongside term-nixCfg's stable brewCasks.wezterm
   ];
 
   homebrew.mas = [
-    {
-      name = "Plash"; # website as desktop wallpaper
-      id = 1494023538;
-    }
+    # {
+    #   name = "Plash"; # website as desktop wallpaper
+    #   id = 1494023538;
+    # }
   ];
 }

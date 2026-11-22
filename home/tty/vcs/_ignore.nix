@@ -37,4 +37,7 @@
 
   # Personal notes
   "TODO.md"
+
+  # Git worktrees kept inside the project directory
+  ".worktrees/"
 ]

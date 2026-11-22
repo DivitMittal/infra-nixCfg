@@ -1,7 +1,15 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  hostPlatform,
+  ...
+}: {
   programs.warpd = {
     enable = true;
-    package = pkgs.customDarwin.warpd;
+    # customDarwin.warpd is the macOS build; nixpkgs' warpd covers Linux.
+    package =
+      if hostPlatform.isDarwin
+      then pkgs.customDarwin.warpd
+      else pkgs.warpd;
     settings = {
       ## Normal mode movement
       left = "n";

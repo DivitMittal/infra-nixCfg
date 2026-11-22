@@ -41,7 +41,11 @@
             # any undeclared option exists.
             #
             # libolm (used by gomuks Matrix TUI client) is deprecated upstream
-            permittedInsecurePackages = mkDefault ["olm-3.2.16"];
+            #
+            # openclaw is marked insecure as a whole (LLM-driven, full system
+            # access by default); used deliberately via ai-nixCfg on ASL1.
+            # Pinned to the exact version so a new one needs re-approval.
+            permittedInsecurePackages = mkDefault ["olm-3.2.16" "openclaw-2026.6.5"];
           };
           overlays = lib.attrsets.attrValues {
             inherit (self.outputs.overlays) default;
@@ -81,7 +85,9 @@
     import-tree.url = "github:vic/import-tree";
 
     ## flake helpers
-    systems.url = "github:nix-systems/default";
+    # Pinned: upstream dropped x86_64-darwin (L1) in c29398b5; a relock would
+    # silently strip L1 outputs from every input that follows this.
+    systems.url = "github:nix-systems/default/da67096a3b9bf56a91d16901293e51ba5b49a27e";
     flake-utils = {
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
@@ -137,6 +143,7 @@
       inputs = {
         agenix.follows = "agenix";
         nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
       };
     };
     infra-nixCfg-secrets = {
@@ -164,6 +171,7 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
         nvchad-starter.follows = "Vim-Cfg";
+        flake-utils.follows = "flake-utils";
       };
     };
     Emacs-Cfg = {
@@ -181,8 +189,8 @@
 
     ## Terminal Emulator
     term-nixCfg = {
-      #url = "github:DivitMittal/term-nixCfg";
-      url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
+      url = "github:DivitMittal/term-nixCfg";
+      #url = "git+file:///Users/div/Projects/Cfgs/term-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -211,9 +219,15 @@
     };
 
     ## AI
+    # aicommit2 pins a pnpm 10 dependency store. Following the main nixpkgs
+    # silently switches it to pnpm 11's different store representation.
+    aicommit2-build-nixpkgs = {
+      url = "github:NixOS/nixpkgs/7fd36ee82c0275fb545775cc5e4d30542899511d";
+      flake = false;
+    };
     ai-nixCfg = {
-      #url = "github:DivitMittal/ai-nixCfg";
-      url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
+      url = "github:DivitMittal/ai-nixCfg";
+      #url = "git+file:///Users/div/Projects/Cfgs/ai-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -227,8 +241,8 @@
 
     ## Quant / algo trading
     quant-nixCfg = {
-      #url = "github:DivitMittal/quant-nixCfg";
-      url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
+      url = "github:DivitMittal/quant-nixCfg";
+      #url = "git+file:///Users/div/Projects/Cfgs/quant-nixCfg";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-parts.follows = "flake-parts";
@@ -243,10 +257,14 @@
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.systems.follows = "systems";
     };
     spotatui = {
       url = "github:LargeModGames/spotatui";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
 
     ## TidalCycles
@@ -264,6 +282,32 @@
     };
 
     ### Infra
+    ## ssh divit@qezta.com terminal portfolio, run on T3's k3s as an OCI image
+    qezta-ssh = {
+      url = "github:Qezta/ssh";
+      #url = "git+file:///Users/div/Projects/qezta/ssh";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
+        flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
+        import-tree.follows = "import-tree";
+        devshell.follows = "devshell";
+        treefmt-nix.follows = "treefmt-nix";
+        git-hooks.follows = "git-hooks";
+        actions-nix.follows = "actions-nix";
+      };
+    };
+    # Marketing site. No package output; T3 builds adapter-static itself.
+    qezta-site = {
+      url = "github:Qezta/site";
+      flake = false;
+    };
+    # Static portfolio mirror with the chat route omitted.
+    divit-ipfs = {
+      url = "github:Qezta/divit/c485ae8ce2b5e56faf2b2731fbc2498997d2cb87";
+      flake = false;
+    };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs = {
@@ -277,6 +321,16 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## OpenWrt/ImmortalWrt image builders (Nix-native wrappers around the
+    ## upstream binary ImageBuilder, x86_64-linux only — see flake/openwrt-images.nix)
+    openwrt-imagebuilder = {
+      url = "github:astro/nix-openwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    immortalwrt-imagebuilder = {
+      url = "github:codgician/nix-immortalwrt-imagebuilder";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-wsl = {
       url = "github:nix-community/nixos-wsl/main";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -286,9 +340,31 @@
       url = "github:nix-community/nixos-apple-silicon";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ## OpenWrt UCI compiler and safe SSH deployer
+    openwrt-nix = {
+      url = "github:lonerOrz/openwrt-nix";
+      flake = false;
+    };
+    ## Terraform config generator, used for the S1 switch (Nix instead of HCL)
+    terranix = {
+      url = "github:terranix/terranix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+        flake-parts.follows = "flake-parts";
+      };
+    };
     ## Android
     nix-on-droid = {
       url = "github:nix-community/nix-on-droid";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        home-manager.follows = "home-manager";
+      };
+    };
+    # Termux Launcher's fork, tracking the app's bundled bootstrap (com.termux.launcher.nix edition)
+    nix-on-droid-launcher = {
+      url = "github:PickleHik3/nix-on-droid/launcher-nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
@@ -314,6 +390,17 @@
 
     areofyl-fetch = {
       url = "github:areofyl/fetch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    ## Windows
+    ## nix-darwin-style declarative config for Windows hosts (L1/L2's Windows
+    ## boot slot), evaluated inside WSL and applied via Scoop/WinGet/DSC v3.
+    ## EXPERIMENTAL — single-maintainer, pre-1.0, no releases as of migration.
+    ## Replaces DivitMittal/playbooks-4-windows (Ansible), which is being
+    ## decommissioned. Hosts are reached over OpenSSH with the home-lab key.
+    nix-win = {
+      url = "github:jacobbrugh/nix-win";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -352,6 +439,8 @@
         actions-nix.follows = "actions-nix";
       };
     };
+    ## Bootstraps brew on x86_64-darwin, where the official installer refuses to run
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     ## Declarative homebrew setup (via home-manager)
     home-manager-brew = {
       url = "github:koalalorenzo/home-manager-brew";
@@ -380,6 +469,7 @@
         #nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
         systems.follows = "systems";
+        cl-nix-lite.inputs.systems.follows = "systems";
       };
     };
 
@@ -387,11 +477,23 @@
     kanata-tray = {
       url = "github:rszyma/kanata-tray";
       #url = "github:DivitMittal/kanata-tray/fix/nix-hostplatform-system";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
     TLTR = {
       url = "github:DivitMittal/TLTR";
       flake = false;
+    };
+
+    ## Launcher (Raycast alternative)
+    vicinae = {
+      url = "github:vicinaehq/vicinae";
+      # Don't follow nixpkgs: on darwin (where nixpkgs' vicinae is unsupported)
+      # we use this flake's own package, and its pinned nixpkgs is what
+      # vicinae.cachix.org has binaries for; nixpkgs' vicinae everywhere else.
+      inputs.systems.follows = "systems";
     };
 
     ## Topology
@@ -406,7 +508,10 @@
     ## Misc.
     yazi = {
       url = "github:sxyazi/yazi";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
     yazi-plugins = {
       url = "github:yazi-rs/plugins";
@@ -436,12 +541,14 @@
       "https://yazi.cachix.org"
       "https://wezterm.cachix.org"
       "https://cache.numtide.com"
+      "https://vicinae.cachix.org"
       #"https://cache.lix.systems"
     ];
     extra-trusted-public-keys = [
       "yazi.cachix.org-1:Dcdz63NZKfvUCbDGngQDAZq6kOroIrFoyO064uvLh8k="
       "wezterm.cachix.org-1:kAbhjYUC9qvblTE+s7S+kl5XM1zVa4skO+E/1IDWdH0="
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      "vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc="
       #"cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
     ];
   };

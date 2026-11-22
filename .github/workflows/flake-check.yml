@@ -21,19 +21,72 @@ jobs:
       uses: nixbuild/nix-quick-install-action@master
     - name: Magic Nix Cache(Use Github Actions Cache)
       uses: DeterminateSystems/magic-nix-cache-action@main
-    - name: Configure to use personal binary cache @ Cachix
+    - continue-on-error: true
+      name: Configure to use personal binary cache @ Cachix
       uses: cachix/cachix-action@master
       with:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         name: divitmittal
+        skipPush: true
     - name: SSH-agent with auth for private repos
       uses: webfactory/ssh-agent@master
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - id: attic
+      name: Check for attic credentials
+      run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' && secrets.TS_OAUTH_CLIENT_ID
+        != '' && secrets.TS_OAUTH_SECRET != '' }}" >> "$GITHUB_OUTPUT"
+    - continue-on-error: true
+      id: tailnet
+      if: steps.attic.outputs.enabled == 'true'
+      name: Join the tailnet to reach attic on T3
+      timeout-minutes: 5
+      uses: tailscale/github-action@v3
+      with:
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        tags: tag:ci
+    - continue-on-error: true
+      env:
+        ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
+      id: attic_setup
+      if: steps.tailnet.outcome == 'success'
+      name: Use the attic cache on T3
+      run: |-
+        if [ "$RUNNER_OS" = Linux ]; then
+          sudo tailscale set --accept-routes=true --accept-dns=false
+        fi
+        # An offline optional home cache must not hold up unrelated CI.
+        curl --fail --silent --show-error --connect-timeout 5 --max-time 15 \
+          http://192.168.2.8:8080/infra/nix-cache-info > /dev/null
+        nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
+        # Keep the JWT out of process arguments and the Nix store.
+        install -d -m 700 "$HOME/.config/attic"
+        umask 077
+        python3 - <<'PYCONFIG'
+        import json, os
+        from pathlib import Path
+        config = Path.home() / ".config/attic/config.toml"
+        config.write_text('[servers.homelab]\nendpoint = "http://192.168.2.8:8080/"\ntoken = ' + json.dumps(os.environ["ATTIC_TOKEN"]) + '\n')
+        config.chmod(0o600)
+        PYCONFIG
+        attic use homelab:infra
+      timeout-minutes: 5
+    - name: Point local-checkout inputs at GitHub
+      run: |-
+        overrides=$(jq -r '
+          .nodes as $n | $n.root.inputs | to_entries[]
+          | select(.value | type == "string") | .key as $k | $n[.value].locked
+          | select(.type == "path" or ((.url // "") | startswith("file:")))
+          | ((.path // .url) | sub("/+$"; "") | split("/") | last) as $repo
+          | if ($repo | test("secrets"))
+            then "--override-input \($k) git+ssh://git@github.com/DivitMittal/\($repo).git"
+            else "--override-input \($k) github:DivitMittal/\($repo)"
+            end' flake.lock | tr '\n' ' ')
+        echo "LOCAL_OVERRIDES=$overrides" >> "$GITHUB_ENV"
+        echo "overrides: $overrides"
     - name: Run nix flake check
-      run: nix -vL flake check --all-systems --no-build
-    - name: Run shell tests
-      run: nix -vL build --no-link .#checks.x86_64-linux.shellcheck .#checks.x86_64-linux.shell-tests
+      run: nix -vL flake check $LOCAL_OVERRIDES
     timeout-minutes: 90
 'on':
   pull_request:

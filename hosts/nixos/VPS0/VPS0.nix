@@ -36,7 +36,7 @@ in {
   systemd.network = {
     enable = true;
     networks."10-oci-primary" = {
-      matchConfig.MACAddress = "02:00:17:05:eb:38";
+      matchConfig.MACAddress = inputs.infra-nixCfg-secrets.homelab.macs.VPS0;
       linkConfig.MTUBytes = "9000";
       networkConfig = {
         DHCP = "ipv4";

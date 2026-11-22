@@ -3,7 +3,7 @@ _: {
   home.file.".shortcuts/tasks/dev-on" = {
     executable = true;
     text = ''
-      #!/data/data/com.termux/files/usr/bin/sh
+      #!/system/bin/sh
 
       su -c '
       settings put global development_settings_enabled 1
@@ -20,7 +20,7 @@ _: {
   home.file.".shortcuts/tasks/dev-off" = {
     executable = true;
     text = ''
-      #!/data/data/com.termux/files/usr/bin/sh
+      #!/system/bin/sh
 
       su -c '
       settings put global adb_enabled 0

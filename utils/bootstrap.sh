@@ -144,6 +144,7 @@ bootstrap_home() {
 
 main() {
   run_preflight_checks
+  refuse_stale_l1n_hostname "$HOST"
 
   local mode="${1:-host}"
   case "$mode" in

@@ -116,6 +116,69 @@ sudo k3s kubectl -n qezta-ssh get deployment,pods,service,pvc
 sudo k3s kubectl -n qezta-ssh logs deployment/ssh-portfolio
 ```
 
+## Onion and IPFS endpoints
+
+Clearnet is unchanged: Vercel still serves qezta.com and divit.qezta.com
+(DNS in Qezta/infra). SSH still needs the WAN forward above for
+`ssh divit@qezta.com`.
+
+Kubernetes is only the SSH server. `hosts/nixos/T3/ssh-portfolio.nix` is the
+Deployment and the NodePort Service, and the `qezta-ssh` hidden service in
+that same file forwards virtual port 22 to that NodePort. There is no second
+pod. The Service annotation `qezta.com/onion-service` records the link.
+Website onions are not pods. nginx on localhost serves the site build or
+proxies the declared upstream. Tor and Kubo keep host keys and the IPFS
+repo on disk.
+
+`hosts/nixos/T3/qezta-endpoints.nix` generates the website onions, the nginx
+listeners, and the IPFS pins from `proxies` and `ipfsRoots`. It does not
+scrape Vercel. `qezta-www` serves the Nix build of
+[Qezta/site](https://github.com/Qezta/site) (`adapter-static`, relative
+`_app` paths, Vercel analytics removed). That same store path is the `qezta`
+IPNS pin. The static portfolio is published under the `divit` IPNS key.
+It omits chat. The `divit-www` onion proxies to Vercel to keep chat available.
+The separate `endpoints` pin contains only the declarative endpoint record.
+Publish DNSLink TXT records at `_dnslink.qezta.com` and
+`_dnslink.divit.qezta.com` once the matching IPNS names are published and
+verified. The names are recorded in `/var/lib/qezta-endpoints/endpoints.txt`.
+
+Tor needs no inbound port. Hostnames are state, copied to
+`/var/lib/qezta-endpoints/endpoints.txt`.
+
+| Name | What it is |
+| --- | --- |
+| `onion.qezta-www` | static Qezta/site build (same path as `ipns.qezta`) |
+| `onion.divit-www` | HTTP reverse proxy to `https://divit.qezta.com` (chatbot included) |
+| `onion.qezta-ssh` | virtual port 22 to the portfolio NodePort. `torsocks ssh divit@<onion>` |
+| `onion.qezta-ipfs` | path gateway for local pins only (`/ipfs/`, `/ipns/`) |
+| `ipns.qezta` | static company site build |
+| `ipns.divit` | static portfolio build with chat disabled |
+| `ipns.endpoints` | `endpoints.json` and a short index. Not the site |
+
+The divit proxy rewrites `Host` to the Vercel name, drops HSTS and CSP (so
+the browser does not upgrade the onion to HTTPS), and does not forward the
+client address. Chat requests on that onion transit T3 on their way to Vercel.
+The site pin still loads Three.js from cdnjs for the cursor. `@qezta/ui`'s
+font URLs do not resolve in the build (the same unresolved urls the Vercel
+build emits). Those are not `/_app` assets. Onion hostnames and IPNS ids do
+not exist until T3 activates this config.
+
+Kubo is a DHT client capped at 2 GiB of repo and 768 MiB of RAM. Its gateway
+is `127.0.0.1:8082` with `Gateway.NoFetch`, so it is not an open proxy and
+does not take Attic's port 8080. It does not relay other people's traffic.
+Swarm is TCP/UDP 4001. A WAN forward of 4001 is optional and not declared;
+relay clients cover the NAT. IPNS lifetime is 7 days; the publisher runs when
+the pinned store path changes, and again at boot.
+
+Once onion hostnames exist, the site repos can advertise them with an
+`Onion-Location` header. That header is not set from this flake.
+
+```sh
+cat /var/lib/qezta-endpoints/endpoints.txt
+sudo k3s kubectl -n qezta-ssh get svc ssh-portfolio -o jsonpath='{.metadata.annotations}'
+systemctl status qezta-ipfs-publish.service qezta-endpoints.service
+```
+
 ## Operations after installation
 
 On T3, use root's local kubeconfig (`sudo k3s kubectl ...`):

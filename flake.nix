@@ -298,6 +298,16 @@
         actions-nix.follows = "actions-nix";
       };
     };
+    # Marketing site. No package output; T3 builds adapter-static itself.
+    qezta-site = {
+      url = "github:Qezta/site";
+      flake = false;
+    };
+    # Static portfolio mirror with the chat route omitted.
+    divit-ipfs = {
+      url = "github:Qezta/divit/c485ae8ce2b5e56faf2b2731fbc2498997d2cb87";
+      flake = false;
+    };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs = {

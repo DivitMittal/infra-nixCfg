@@ -755,6 +755,23 @@
         "type": "github"
       }
     },
+    "divit-ipfs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795335922,
+        "narHash": "sha256-3AzNYf7ZeujdndLVgc3mCP9TteIrznT/sriEXfYCNkA=",
+        "owner": "Qezta",
+        "repo": "divit",
+        "rev": "c485ae8ce2b5e56faf2b2731fbc2498997d2cb87",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "divit",
+        "rev": "c485ae8ce2b5e56faf2b2731fbc2498997d2cb87",
+        "type": "github"
+      }
+    },
     "doomemacs": {
       "flake": false,
       "locked": {
@@ -3353,6 +3370,22 @@
         "type": "github"
       }
     },
+    "qezta-site": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795124656,
+        "narHash": "sha256-U8JuvIt+eTczRzGDiKUH+jRfDbT2gZPy+LmBX2EqBEU=",
+        "owner": "Qezta",
+        "repo": "site",
+        "rev": "2d3c8268dd9d121a745db3fb139b5cca36321170",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "site",
+        "type": "github"
+      }
+    },
     "qezta-ssh": {
       "inputs": {
         "OS-nixCfg": "OS-nixCfg_4",
@@ -3513,6 +3546,7 @@
         "devshell": "devshell",
         "direnv-instant": "direnv-instant",
         "disko": "disko",
+        "divit-ipfs": "divit-ipfs",
         "firefox-nixCfg": "firefox-nixCfg",
         "flake-compat": "flake-compat_2",
         "flake-parts": "flake-parts_5",
@@ -3547,6 +3581,7 @@
         "nvchad4nix": "nvchad4nix",
         "openwrt-imagebuilder": "openwrt-imagebuilder",
         "openwrt-nix": "openwrt-nix",
+        "qezta-site": "qezta-site",
         "qezta-ssh": "qezta-ssh",
         "quant-nixCfg": "quant-nixCfg",
         "ragenix": "ragenix",

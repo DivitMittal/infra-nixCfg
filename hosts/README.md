@@ -657,17 +657,22 @@ stored or passed as a process argument. This requires L1's agenix SSH key and
 does not enable automatic login or change the password.
 
 L2's Windows boot gets its part through nix-win (`win-deploy L2`), from
-`hosts/win/L2/lan-mouse.nix`. That module writes
-`%LOCALAPPDATA%\lan-mouse\config.toml` from `lib/lan-mouse.nix` and registers
-the `Lan Mouse` task to start in vanee's interactive desktop session at login,
-then restarts it. The task launches the daemon through `conhost.exe --headless`,
-so no console window opens; Windows Terminal ignores
-`powershell -WindowStyle Hidden`. Inspect the settings with
-`nix eval --json .#lanMouse.windows.L2`. The installed executable must be at
-`%USERPROFILE%\.local\bin\lan-mouse.exe`; without it, activation warns and skips
-the task. Windows must allow inbound UDP 4242 on the active network profile.
-The login task only runs at logon, so a daemon that exhausts its restarts stays
-down until the next login or `Start-ScheduledTask 'Lan Mouse'`. Its daemon log is
+`hosts/win/L2/lan-mouse.nix`. That module installs the v0.11.0 Windows release
+to `%LOCALAPPDATA%\lan-mouse\bin` and writes
+`%LOCALAPPDATA%\lan-mouse\config.toml` from `lib/lan-mouse.nix`. Inspect the
+settings with `nix eval --json .#lanMouse.windows.L2`.
+
+`hosts/win/L2/desk.nix` turns each `desk.daemons` entry (Lan Mouse and
+UniClipboard) into DSC resources: a ComputerManagementDsc `ScheduledTask`
+that starts the daemon in vanee's interactive session at login, a
+NetworkingDsc `Firewall` rule allowing inbound traffic from the local subnet,
+and a `Script` resource that deletes the Block rules Windows records when its
+network prompt is dismissed. L2's LAN is classed Public, so without those rules
+each daemon would raise that prompt. The task launches the daemon through
+`conhost.exe --headless`, so no console window opens; Windows Terminal ignores
+`powershell -WindowStyle Hidden`. Each deploy restarts both tasks. The login
+task only runs at logon, so a daemon that exhausts its restarts stays down
+until the next login or `Start-ScheduledTask 'Lan Mouse'`. Its daemon log is
 `%LOCALAPPDATA%\lan-mouse\daemon.log`; L1 logs to `~/.cache/lan-mouse.err.log`.
 T2 logs are available through `journalctl --user -u lan-mouse`.
 
@@ -685,8 +690,8 @@ and as a user service bound to `sway-session.target` on T2, so T2 only syncs
 while its Sway session runs. On L1 it also retires the LaunchAgent that
 `uniclip service start` writes, which pins a single store path.
 `hosts/win/L2/uniclipboard.nix` ships the Windows CLI through nix-win to
-`%LOCALAPPDATA%\uniclipboard\bin` and registers the `UniClipboard` login task,
-launched like Lan Mouse through a headless conhost. Its log is
+`%LOCALAPPDATA%\uniclipboard\bin` and declares its `desk.daemons` entry, so
+it gets the same task and firewall handling as Lan Mouse. Its log is
 `%LOCALAPPDATA%\uniclipboard\daemon.log`. Keep other `win.files` for L2 off
 the `appdata-local` root (use `home` with an `AppData/Local/...` path):
 nix-win silently drops `win.packages` on a root that `win.files` also uses.

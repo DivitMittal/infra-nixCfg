@@ -77,9 +77,12 @@ in {
 
   # ── User-scoped env vars, forced to Machine scope — see module header ───
   win.dsc.psdsc.environment = let
+    # No Target: nix-win emits Windows PowerShell 5.1's built-in
+    # PSDesiredStateConfiguration/Environment, which always writes Machine
+    # scope and rejects the property ("Undefined property Target"), although
+    # the option comes from PSDscResources' schema.
     mkEnv = value: {
       Ensure = "Present";
-      Target = ["Machine"];
       Value = value;
     };
   in {

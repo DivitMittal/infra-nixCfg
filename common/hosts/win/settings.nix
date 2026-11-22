@@ -49,7 +49,10 @@ in {
 
     # ── Context Menu — restore full Windows 11 right-click menu ───────────
     "Full Context Menu".keyPath = "HKCU\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32";
-    "Full Context Menu".valueData.String = "";
+    # An expression, not "": DSC 3.2 fails the whole run on a literal empty
+    # string ("Unable to parse statement root"), and the menu needs the default
+    # value set to empty rather than absent.
+    "Full Context Menu".valueData.String = "[concat('', '')]";
 
     # ── Taskbar ─────────────────────────────────────────────────────────────
     "Taskbar Combine" = mkAdvanced "TaskbarGlomLevel" 0; # 0=always 1=when full 2=never

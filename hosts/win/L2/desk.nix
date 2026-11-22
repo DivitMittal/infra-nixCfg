@@ -131,8 +131,10 @@ in {
     win.dsc.scheduledTasks = lib.mapAttrs taskFor cfg;
     win.dsc.firewall.rules = lib.mapAttrs' ruleFor cfg;
     win.dsc.psdsc.script."nix-win desk prompt blocks" = {
-      GetScript = "@{ Result = [string]${promptBlocks}.Count }";
-      TestScript = "${promptBlocks}.Count -eq 0";
+      # Parenthesised: promptBlocks spans lines, and a bare `.Count` on its
+      # own line would parse as a command.
+      GetScript = "@{ Result = [string](${promptBlocks}).Count }";
+      TestScript = "(${promptBlocks}).Count -eq 0";
       SetScript = "${promptBlocks} | Remove-NetFirewallRule";
     };
 

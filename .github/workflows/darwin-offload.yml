@@ -77,7 +77,8 @@ jobs:
       if: steps.darwin_tailnet.outcome == 'success'
       name: Use only the private pinned Darwin cache
       run: |-
-        python3 flake/actions/darwin-cache.py
+        python3 flake/actions/darwin-network-probe.py --prepare
+          python3 flake/actions/darwin-cache.py
         attic use homelab:darwin
     - continue-on-error: true
       env:

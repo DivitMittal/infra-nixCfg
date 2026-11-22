@@ -91,7 +91,8 @@ in {
               "if" = "steps.darwin_tailnet.outcome == 'success'";
               env = privateCacheEnv;
               run = ''
-                python3 flake/actions/darwin-cache.py
+                python3 flake/actions/darwin-network-probe.py --prepare
+                  python3 flake/actions/darwin-cache.py
                 attic use ${atticTarget}
               '';
               continue-on-error = true;

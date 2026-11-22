@@ -4,7 +4,10 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
+import urllib.error
+import urllib.request
 
 
 def connection(cli):
@@ -12,8 +15,10 @@ def connection(cli):
     status = json.loads(result.stdout)
     routers = [
         peer for peer in status.get("Peer", {}).values()
-        if "192.168.2.0/24" in peer.get("PrimaryRoutes", [])
+        if "192.168.2.0/24" in peer.get("PrimaryRoutes", []) + peer.get("AllowedIPs", [])
+        or peer.get("HostName", "").lower() == "t1"
     ]
+    print(json.dumps({"backend": status.get("BackendState"), "router_candidates": len(routers)}), flush=True)
     for peer in routers:
         print(json.dumps({
             "router_online": peer.get("Online"), "direct": bool(peer.get("CurAddr")),
@@ -23,7 +28,7 @@ def connection(cli):
     return routers
 
 
-def main():
+def prepare():
     directory = Path(os.environ["RUNNER_TEMP"]).resolve()
     cli = ["sudo", "-n", "tailscale", "--socket=" + str(directory / "darwin-tailscaled.sock")]
     routers = connection(cli)
@@ -35,6 +40,29 @@ def main():
     for line in (netcheck.stdout + netcheck.stderr).decode(errors="replace").splitlines():
         if any(label in line for label in ["UDP:", "MappingVariesByDestIP:", "PortMapping:", "Nearest DERP:"]):
             print(line.strip(), flush=True)
+    route = subprocess.run(["/sbin/route", "-n", "get", "192.168.2.8"], capture_output=True, timeout=10)
+    for line in route.stdout.decode(errors="replace").splitlines():
+        if "interface:" in line or "flags:" in line:
+            print("cache_route " + line.strip(), flush=True)
+    proxies = urllib.request.getproxies()
+    print(json.dumps({"http_proxy_configured": bool(proxies.get("http")), "private_proxy_bypass": urllib.request.proxy_bypass("192.168.2.8")}), flush=True)
+    for label, opener in [
+        ("default", urllib.request.build_opener()),
+        ("direct", urllib.request.build_opener(urllib.request.ProxyHandler({}))),
+    ]:
+        try:
+            with opener.open(os.environ["ATTIC_ENDPOINT"] + "/darwin/nix-cache-info", timeout=5) as response:
+                print(label + "_cache_http=" + str(response.status), flush=True)
+        except urllib.error.HTTPError as error:
+            print(label + "_cache_http=" + str(error.code), flush=True)
+        except (urllib.error.URLError, TimeoutError):
+            print(label + "_cache_unreachable=true", flush=True)
+
+
+def main():
+    directory = Path(os.environ["RUNNER_TEMP"]).resolve()
+    cli = ["sudo", "-n", "tailscale", "--socket=" + str(directory / "darwin-tailscaled.sock")]
+    prepare()
     fixture = directory / ("cache-network-probe-" + os.environ["GITHUB_RUN_ID"])
     fixture.write_bytes(os.urandom(8 * 1024 * 1024))
     store_path = subprocess.check_output(["nix-store", "--add", str(fixture)], text=True).strip()
@@ -66,4 +94,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["--prepare"]:
+        prepare()
+    else:
+        main()

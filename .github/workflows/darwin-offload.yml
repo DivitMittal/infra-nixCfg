@@ -73,6 +73,10 @@ jobs:
         ATTIC_ENDPOINT: http://192.168.2.8:8080
         ATTIC_REMOTE: homelab
         DARWIN_CACHE_PUBLIC_KEY: ${{ vars.DARWIN_CACHE_PUBLIC_KEY }}
+        HTTP_PROXY: http://127.0.0.1:1055
+        NO_PROXY: 127.0.0.1,localhost
+        http_proxy: http://127.0.0.1:1055
+        no_proxy: 127.0.0.1,localhost
       id: darwin_cache
       if: steps.darwin_tailnet.outcome == 'success'
       name: Use only the private pinned Darwin cache
@@ -87,6 +91,10 @@ jobs:
         ATTIC_ENDPOINT: http://192.168.2.8:8080
         ATTIC_REMOTE: homelab
         DARWIN_CACHE_PUBLIC_KEY: ${{ vars.DARWIN_CACHE_PUBLIC_KEY }}
+        HTTP_PROXY: http://127.0.0.1:1055
+        NO_PROXY: 127.0.0.1,localhost
+        http_proxy: http://127.0.0.1:1055
+        no_proxy: 127.0.0.1,localhost
       id: darwin_probe
       if: steps.darwin_cache.outcome == 'success'
       name: Prove signed private cache push and independent pull
@@ -108,6 +116,10 @@ jobs:
         ATTIC_ENDPOINT: http://192.168.2.8:8080
         ATTIC_REMOTE: homelab
         DARWIN_CACHE_PUBLIC_KEY: ${{ vars.DARWIN_CACHE_PUBLIC_KEY }}
+        HTTP_PROXY: http://127.0.0.1:1055
+        NO_PROXY: 127.0.0.1,localhost
+        http_proxy: http://127.0.0.1:1055
+        no_proxy: 127.0.0.1,localhost
       if: steps.darwin_probe.outcome == 'success'
       name: Measure native Darwin cache transport
       run: python3 flake/actions/darwin-network-probe.py

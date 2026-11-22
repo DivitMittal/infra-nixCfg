@@ -27,6 +27,7 @@ def join():
     with (directory / "darwin-tailscaled.log").open("wb") as log:
         process = subprocess.Popen([
             "sudo", "-n", daemon, "--state=mem:", "--socket=" + socket,
+            "--tun=userspace-networking", "--outbound-http-proxy-listen=127.0.0.1:1055",
         ], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     for _ in range(30):
         if process.poll() is not None:

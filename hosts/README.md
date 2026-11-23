@@ -638,6 +638,26 @@ Inside the devshell, `deploy-home VPS1 --dry-activate` is a shorthand for
 `deploy .#VPS1-home --dry-activate`. The local `hms` and `hts` commands still
 operate on the current machine's hostname and are not remote deploy wrappers.
 
+### T1 dedicated WLED access point
+
+`hosts/nixos/T1/wled-ap.nix` runs the RTL8821CU adapter as a 2.4 GHz,
+20 MHz WPA2-PSK/CCMP AP named `T1-WLED` on channel 6. The interface is
+named `wled0` by driver rather than USB port. Its password is encrypted in
+`infra-nixCfg-secrets/secrets/homelab/t1-wled-ap.age` and decrypted by agenix;
+read it as root from `/run/agenix/t1-wled-ap` when onboarding the ESP32.
+
+The AP gateway is `192.168.50.1`, with DHCP leases `.20` through `.99`.
+`hosts/openwrt/T640/modules/wled-ap.nix` routes that subnet through T1's
+existing LAN address, allowing LAN clients to reach WLED's HTTP/JSON API
+without double NAT. Use the leased IP for Home Assistant; multicast discovery
+does not automatically cross the routed subnet. Wi-Fi is for control and
+optional MQTT. HyperHDR continues to use USB Adalight.
+
+Verify `systemctl status hostapd dnsmasq`, `iw dev wled0 info`, and the
+DHCP lease in `/var/lib/dnsmasq/dnsmasq.leases`. An enabled AP and a working
+route do not prove the ESP32 has associated: check the lease and WLED's
+`/json/info` endpoint before reporting client connectivity.
+
 ### Desk input sharing (Lan Mouse)
 
 L1 (`192.168.2.4`, wired USB adapter) is the centre of the desk. L2 Windows

@@ -24,10 +24,13 @@ snapshot=$(mktemp -d "$state_dir/inspection.XXXXXXXX")
 for property in \
   ro.product.manufacturer ro.product.model ro.product.device \
   ro.build.version.release ro.build.version.sdk ro.build.fingerprint \
-  ro.product.cpu.abi ro.product.cpu.abilist; do
+  ro.product.cpu.abi ro.product.cpu.abilist ro.board.platform \
+  ro.boot.flash.locked ro.boot.verifiedbootstate ro.boot.slot_suffix; do
   value=$(adb -s "$serial" shell getprop "$property")
   printf '%s=%s\n' "$property" "${value//$'\r'/}" >>"$snapshot/device.txt"
 done
+adb -s "$serial" shell uname -a >"$snapshot/kernel.txt"
+adb -s "$serial" shell cat /proc/version >"$snapshot/kernel-build.txt"
 adb -s "$serial" shell wm size >"$snapshot/display.txt"
 # Avoid --show-versioncode and cmd role, which older firmware may not support.
 adb -s "$serial" shell pm list packages -f >"$snapshot/packages.txt"

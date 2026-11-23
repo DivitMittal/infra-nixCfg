@@ -61,7 +61,7 @@ committed, synced or sent to an external notes service.
 
 ## Build, review and deploy
 
-First confirm B1's ABI, enable `./apps.nix` in `android/B1/device.nix`, resolve
+First verify B1 with `b1-device inspect`, enable `./apps.nix` in `android/B1/device.nix`, resolve
 `android/B1/apps.lock.json`, review the nix-android plan and install the apps as
 described in the parent README. The APK declaration pins the KOReader release;
 the lock records the selected APK's hash and signer. The configuration bundle

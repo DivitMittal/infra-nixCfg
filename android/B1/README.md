@@ -2,9 +2,12 @@
 
 Controller-side Android management through nix-android, alongside M1 and E1.
 This profile is on `feat/boox-c69`, based on `feat/nix-android-device` (PR #40).
-The owner reports Android 11 (SDK 30), for AI conversations, EPUBs, research
-papers and RSS. The device has not been inspected or changed. Its exact firmware,
-ABI and display size remain unknown; the initial manifest has no actions.
+The owner confirms the C69_M_STAR Android 11 firmware documented by the
+community, for AI conversations, EPUBs, research papers and RSS. B1 is declared
+as ARM64. The reader has not arrived; `identity.json` records the expected model,
+ABI, firmware fingerprint, kernel and SDK for verification before changes.
+The default manifest sets a five-minute screen timeout and the front-button
+mapping; app installation and debloating remain opt-in.
 
 ## First connection
 
@@ -15,7 +18,7 @@ or developer settings, depending on its firmware.
 Run from this worktree's root:
 
 ```sh
-nix develop path:.
+nix develop
 adb devices
 bash android/B1/inspect.sh SERIAL
 ```
@@ -26,30 +29,66 @@ outside Git in `${XDG_STATE_HOME:-$HOME/.local/state}/infra-nixCfg/B1/`, with
 private file permissions. It does not install, disable, remove or reboot anything.
 An interrupted snapshot is incomplete; rerun the command if it fails.
 
-Compare `ro.product.model`, the build fingerprint, SDK and package inventory
-before treating this as the firmware targeted by the upstream tool. Replace
-the provisional `device.abi = "armeabi-v7a"` with the reported
-`ro.product.cpu.abi`, and change `abi` in `apps.lock.json` to match. Supported
-values in the pinned nix-android are `armeabi-v7a`, `arm64-v8a`, and `x86_64`.
-The engine refuses an ABI mismatch, but it does not verify model or firmware:
-serial selection and the inventory review are essential.
+## Verify, plan and apply
 
-The commands use `path:.` so Nix includes the new, untracked profile files
-during review. Once the files are tracked by Git, ordinary `.#B1` references
-work too.
-
-## Establish the baseline
+Use the B1 controller from this repository root:
 
 ```sh
-nix run path:.#android-rebuild -- build --flake path:.#B1
-nix run path:.#android-rebuild -- plan --flake path:.#B1 --serial SERIAL
+nix run .#b1-device -- --serial SERIAL inspect
+nix run .#b1-device -- --serial SERIAL plan
+# After reviewing the plan:
+nix run .#b1-device -- --serial SERIAL apply
 ```
 
-The baseline should report no pending actions. A plan exits 3 when changes are
-pending; inspect its output. Stop if package queries fail on this firmware.
-Upstream primarily tests recent Pixel/GrapheneOS devices, so a successful Nix
-evaluation alone does not prove this reader supports every Android primitive.
-Do not use snapshot/import as the first probe: older Android lacks `cmd role`.
+`inspect` only reads the selected reader. All modes verify the expected model,
+SDK 30, ARM64 ABI, Bengal platform, exact firmware fingerprint and kernel prefix.
+A mismatch stops before nix-android or a settings write. Inspect reports the
+boot lock state and slot without assuming a missing slot means `_a`.
+Use `--flake /path/to/this/checkout` if running outside the repository root.
+
+The default settings retain **Back** on a short front-button press and use
+**Recent Apps** on a long press, replacing the nonfunctional frontlight action
+on this hardware. The screen sleeps after **five minutes** of inactivity.
+Side buttons, display density, radio settings, Google services and keyboards
+retain their existing configuration.
+
+`plan` uses nix-android's read-only plan and preserves exit 3 for pending changes.
+`apply` saves original values of every managed setting outside Git with private
+permissions, runs nix-android, and sends `onyx.action.refresh_keymapping` only
+when the switch succeeds. The reload runs even when the manifest already matches,
+so retrying apply can recover from an interrupted reload. Prefer this wrapper to
+calling `android-rebuild switch` directly, which does not send the Onyx reload.
+These are reported community interfaces; read-back and physical button behavior
+still need verification when B1 arrives.
+
+Original values are in
+`${XDG_STATE_HOME:-$HOME/.local/state}/infra-nixCfg/B1/before-apply-*/settings.json`.
+Keep the **first** snapshot: later snapshots can contain already-managed values.
+For recovery, restore the recorded namespace/key/value with Android `settings
+put`; a recorded `"null"` represents an unset key and requires `settings delete`
+instead. Reload the key mapping after restoring its settings. Reverting Git
+alone does not restore Android state. Snapshots include the selected serial and
+firmware identity and must remain outside the public repository.
+
+## Recovery artifact and root research
+
+`nix build .#b1-recovery --no-link --print-out-paths` obtains the TWRP image from
+[Zeusx212 Power Studio v1.1.4](https://github.com/Zeusx212/onyx-c69hd-power-studio/releases/tag/v1.1.4),
+verified against its pinned SHA-256 in `identity.json`. It only downloads an image;
+it never reboots, unlocks, boots recovery or flashes a partition. The byte hash
+identifies the upstream artifact, not a compatibility test on our unit.
+
+The [recovery fork](https://github.com/Zeusx212/android_device_onyx_c69) reports
+working e-ink/touch and root ADB, but still uses the stock prebuilt 4.19.157 kernel.
+It provides a useful route to investigate our own partition backups after device
+verification. It does not provide matching kernel source or a ReSukiSU/SUSFS
+build. Do not substitute shared pre-patched boot images for our own stock images.
+Rooting/recovery tests remain explicit maintenance operations after receipt.
+
+The front-button mapping follows
+[Zeusx212's native Onyx setting interface](https://github.com/Zeusx212/onyx-c69hd-button-remap).
+The broad RAM/debloat presets, root wake daemon, and GUI flashing fallbacks are
+not dependencies of this profile. No external desktop utility is executed.
 
 ## Select debloat entries
 
@@ -74,10 +113,10 @@ gallery, media providers, OTA and Google components. It does not repair any
 of these if a previous tool already removed or disabled them.
 
 ```sh
-nix run path:.#android-rebuild -- plan --flake path:.#B1 --serial SERIAL
+nix run .#b1-device -- --serial SERIAL plan
 # After reviewing the exact changes:
-nix run path:.#android-rebuild -- switch --flake path:.#B1 --serial SERIAL
-nix run path:.#android-rebuild -- plan --flake path:.#B1 --serial SERIAL
+nix run .#b1-device -- --serial SERIAL apply
+nix run .#b1-device -- --serial SERIAL plan
 ```
 
 Check reading, sleep/wake, setting a sleep picture, Wi-Fi and USB after each
@@ -92,7 +131,7 @@ Remove the package from `boox.disabledPackages` first, then explicitly enable it
 ```sh
 adb -s SERIAL shell pm enable --user 0 com.android.egg
 adb -s SERIAL shell pm list packages -e
-nix run path:.#android-rebuild -- plan --flake path:.#B1 --serial SERIAL
+nix run .#b1-device -- --serial SERIAL plan
 ```
 
 Removing the declaration or reverting Git does **not** undo a disable. Android
@@ -128,16 +167,16 @@ service is deployed and reachable before adding it. Desktop Calibre is also
 configured in `home/gui/docs.nix`; use it as the main EPUB library. No Calibre
 OPDS server is declared by this change.
 
-After confirming ABI, uncomment `./apps.nix` in `device.nix` and resolve pins.
+After the identity check succeeds, uncomment `./apps.nix` in `device.nix` and resolve pins.
 The bundle is disabled initially and its APKs are not locked yet. KOReader uses
 `org.koreader.launcher`: the F-Droid flavor (`org.koreader.launcher.fdroid`)
 disables user patches. See [the KOReader setup](koreader/README.md) for the
 pinned plugins, Lua profiles and their deployment:
 
 ```sh
-nix run path:.#android-rebuild -- update --flake path:.#B1 --lock android/B1/apps.lock.json
+nix run .#android-rebuild -- update --flake .#B1 --lock android/B1/apps.lock.json
 git diff -- android/B1/device.nix android/B1/apps.lock.json
-nix run path:.#android-rebuild -- plan --flake path:.#B1 --serial SERIAL
+nix run .#b1-device -- --serial SERIAL plan
 ```
 
 The explicit `--lock` matters in this multi-device repository. Review SDK
@@ -167,7 +206,7 @@ Start with a light theme, large text, paged movement and reduced animation in
 each app where available. Try PDF cropping/landscape for papers; a small screen
 can still make two-column papers awkward. Export feed subscriptions as OPML and
 keep the non-secret subscription list with the configuration once selected;
-the current profile does not import feeds or manage app-internal preferences.
+feed import remains manual; KOReader preferences are managed by its separate bundle.
 
 ## KOReader customizations
 

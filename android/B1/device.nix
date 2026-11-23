@@ -1,4 +1,4 @@
-# B1: Boox C69 HD, 16 GB, Android 11 per the owner. ABI is not yet inspected.
+# B1: owner-confirmed C69_M_STAR firmware; verify the received unit with b1-device.
 {
   imports = [
     ./debloat.nix
@@ -6,12 +6,24 @@
   ];
 
   device.name = "B1";
-  # Provisional, not a hardware finding. The engine rejects a mismatched target.
-  # Replace with ro.product.cpu.abi from inspect.sh and update apps.lock.json.
-  device.abi = "armeabi-v7a";
+  device.abi = "arm64-v8a";
 
-  # Keep the initial manifest empty so onboarding cannot remove existing apps.
   apps.cleanup = "none";
+
+  # Replace the frontlight action on this edition, which has no frontlight.
+  # b1-device reloads Onyx's mapping after a successful nix-android switch.
+  android.settings = {
+    global = {
+      KEYCODE_BACK = builtins.toJSON {
+        keySet = ["KEYCODE_BACK"];
+        shortPressAction = "";
+        longPressAction = "KEYCODE_APP_SWITCH";
+        repeat = false;
+      };
+      key_custom_side_key_short_press_enable = 0;
+    };
+    system.screen_off_timeout = 300000;
+  };
 
   # Select individual entries only after comparing the snapshot with catalog.nix.
   # Disabling retains the system APK and its data; removing an entry does NOT

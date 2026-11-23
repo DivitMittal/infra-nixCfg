@@ -3,7 +3,14 @@
 # nix-on-droid's on-device Termux/proot environment instead). mkDevice's
 # shape (system/modules/lockFile, no hostSpec/class layering) doesn't fit
 # mkCfg's configGenerator switch, so it's wired directly here.
-{inputs, ...}: {
+{inputs, ...}: let
+  e1 = extraModules:
+    inputs.nix-android.lib.mkDevice {
+      system = "x86_64-linux"; # T3
+      modules = [../android/E1/device.nix] ++ extraModules;
+      lockFile = ../android/E1/apps.lock.json;
+    };
+in {
   flake.androidConfigurations.M1 = inputs.nix-android.lib.mkDevice {
     system = "x86_64-darwin"; # L1 — the controller, not the phone
     modules = [../android/M1/device.nix];
@@ -11,11 +18,7 @@
   };
 
   # Echo Show 5, plugged into T3 by USB; T3 is its controller.
-  flake.androidConfigurations.E1 = inputs.nix-android.lib.mkDevice {
-    system = "x86_64-linux"; # T3
-    modules = [../android/E1/device.nix];
-    lockFile = ../android/E1/apps.lock.json;
-  };
+  flake.androidConfigurations.E1 = e1 [];
 
   perSystem = {
     system,
@@ -23,7 +26,27 @@
     lib,
     ...
   }:
-    lib.attrsets.optionalAttrs (builtins.elem system ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"]) {
+    lib.attrsets.optionalAttrs (system == "x86_64-linux") {
+      # E1 can't be snapshotted (no `cmd role` on SDK 25), so this is the only
+      # coverage it has off-device: run its real converge engine against a fake
+      # Android 7.1 adb. The probe build adds the primitives known to work at
+      # SDK 25, so device.nix can grow with them without a live test first.
+      checks.android-E1-sdk25 = let
+        probe = e1 [
+          {
+            android.settings.global.stay_on_while_plugged_in = "3";
+            android.packages.disabled = ["com.amazon.example.bloat"];
+          }
+        ];
+      in
+        pkgs.runCommand "android-E1-sdk25" {} ''
+          ${pkgs.bash}/bin/bash ${../android/E1/sdk25-check.sh} ${pkgs.bash}/bin/bash \
+            ${(e1 []).converge}/bin/nix-android-converge-E1 \
+            ${probe.converge}/bin/nix-android-converge-E1
+          touch "$out"
+        '';
+    }
+    // lib.attrsets.optionalAttrs (builtins.elem system ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"]) {
       # aarch64-darwin (ASL1) and x86_64-linux (T3, E1's controller) get the
       # CLI straight from upstream. nix-android's own flake restricts its
       # `systems` to x86_64-linux/aarch64-darwin, so x86_64-darwin (L1) has no

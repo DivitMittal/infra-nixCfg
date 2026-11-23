@@ -82,7 +82,15 @@
       hostName = "T3";
       system = "x86_64-linux";
       inherit class;
-      additionalModules = ttyDevModules ++ [./_homelab-package-fixes.nix];
+      additionalModules =
+        ttyDevModules
+        ++ [
+          ./_homelab-package-fixes.nix
+          # kolu (from term-nixCfg's tty profile) crash-looped here for a day,
+          # exiting on an unset KOLU_STATE_DIR and restarting 8,000+ times at
+          # ~280 MB each, before T3 hung on 2026-11-20. Off until fixed upstream.
+          ({lib, ...}: {services.kolu.enable = lib.mkForce false;})
+        ];
     };
 
     MON1 = mkCfg {

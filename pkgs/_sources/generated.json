@@ -239,6 +239,21 @@
     },
     "version": "22.0.0"
   },
+  "lan-mouse-windows-x86_64": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "lan-mouse-windows-x86_64",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-+U9Om8bmTF+X9JfmSR889HjIDysqPhPYjqGM6lgcBqA=",
+      "type": "url",
+      "url": "https://github.com/feschber/lan-mouse/releases/download/v0.11.0/lan-mouse-windows-x86_64.zip"
+    },
+    "version": "0.11.0"
+  },
   "launchdeck-aarch64": {
     "cargoLock": null,
     "date": null,
@@ -551,6 +566,21 @@
       "sha256": "sha256-JV7uj2ROKED3j14MzquVzbiHLinEpsnC+AXaMQ2xjhw=",
       "type": "url",
       "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-unknown-linux-musl.tar.gz"
+    },
+    "version": "1.4.0"
+  },
+  "uniclipboard-cli-x86_64-windows": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "uniclipboard-cli-x86_64-windows",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "name": null,
+      "sha256": "sha256-siuIzVGlAcschiWyfNIjR0AITmLZeWAcHPwHNscOWL4=",
+      "type": "url",
+      "url": "https://github.com/UniClipboard/UniClipboard/releases/download/v1.4.0/uniclipboard-cli-1.4.0-x86_64-pc-windows-msvc.zip"
     },
     "version": "1.4.0"
   },

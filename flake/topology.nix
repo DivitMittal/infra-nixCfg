@@ -156,6 +156,16 @@
                   }
                 ];
               };
+              port4 = {
+                network = "home";
+                type = "ethernet";
+                physicalConnections = [
+                  {
+                    node = "L2-windows";
+                    interface = "eth0";
+                  }
+                ];
+              };
             };
           };
 
@@ -249,7 +259,12 @@
           nodes.L2-windows = {
             name = "Windows (L2)";
             deviceType = "device";
-            hardware.info = "Windows 11 (Ansible IaC) - dual-boot with L2 NixOS on x86_64 hardware — user: vanee";
+            hardware.info = "Windows 11 (nix-win, evaluated in L2W) - dual-boot with L2 NixOS on x86_64 hardware — user: vanee";
+            # Wired into S2 (edge declared from S2); 192.168.2.6 reserved.
+            interfaces.eth0 = {
+              network = "home";
+              type = "ethernet";
+            };
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";
@@ -260,12 +275,17 @@
                 }
               ];
             };
+            interfaces.wsl0 = {
+              network = "wsl";
+              type = "virtual";
+              virtual = true;
+            };
           };
 
           nodes.M1 = {
             name = "M1";
             deviceType = "device";
-            hardware.info = "Android - nix-on-droid (aarch64 MediaTek)";
+            hardware.info = "Android 16 phone (DN2103, aarch64 MediaTek) - Termux Launcher Nix edition (nix-on-droid fork); SSH on 8022 with the home-lab key";
             interfaces.wlan0 = {
               network = "home";
               type = "wifi";

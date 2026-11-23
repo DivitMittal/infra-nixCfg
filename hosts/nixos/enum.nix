@@ -13,6 +13,13 @@
       system = "x86_64-linux";
       additionalModules = [inputs.nixos-wsl.nixosModules.default];
     };
+    # NixOS-WSL inside L2's Windows install (nix-win's evaluator there).
+    L2W = mkCfg {
+      inherit class;
+      hostName = "L2W";
+      system = "x86_64-linux";
+      additionalModules = [inputs.nixos-wsl.nixosModules.default];
+    };
     colima = mkCfg {
       inherit class;
       hostName = "colima";

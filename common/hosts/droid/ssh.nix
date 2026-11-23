@@ -1,38 +1,59 @@
 {
   config,
   pkgs,
-  lib,
   ...
 }: let
-  sshdTmpDirectory = "${config.user.home}/.sshd-tmp";
-  sshdDirectory = "${config.user.home}/.sshd";
-  pathToPubKey = "${sshdDirectory}/ssh_host_rsa_key.pub";
+  home = config.user.home;
+  sshdDirectory = "${home}/.sshd";
+  hostKey = "${sshdDirectory}/ssh_host_rsa_key";
   port = 8022;
-in {
-  environment.packages = lib.attrsets.attrValues {
-    sshd-start = pkgs.writeScriptBin "sshd-start" ''
-      #!${pkgs.runtimeShell}
 
-      echo "Starting sshd in non-daemonized way on port ${toString port}"
-      ${pkgs.openssh}/bin/sshd -f "${sshdDirectory}/sshd_config" -D
-    '';
-  };
+  # The home-lab key (same as hosts/nixos/_homelab/base.nix), so a phone or
+  # tablet is reached with the key every other box already trusts.
+  sshPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHiaeSJP9C/rfe4nldhwrXjCJ3qP4qTWreR4lHMr/1BI";
+
+  # Lives in the store so a deploy changes it; only the host key is per-device.
+  sshdConfig = pkgs.writeText "sshd_config" ''
+    HostKey ${hostKey}
+    Port ${toString port}
+    PidFile ${sshdDirectory}/sshd.pid
+    AuthorizedKeysFile ${home}/.ssh/authorized_keys
+    PasswordAuthentication no
+    KbdInteractiveAuthentication no
+  '';
+
+  sshd-start = pkgs.writeScriptBin "sshd-start" ''
+    #!${pkgs.runtimeShell}
+    echo "Starting sshd on port ${toString port}"
+    exec ${pkgs.openssh}/bin/sshd -f ${sshdConfig} -D
+  '';
+
+  # Detaches instead of holding the boot runner; sshd needs an absolute path
+  # because it re-executes itself.
+  bootScript = pkgs.writeScript "sshd-boot" ''
+    #!${pkgs.runtimeShell}
+    exec ${pkgs.openssh}/bin/sshd -f ${sshdConfig}
+  '';
+in {
+  environment.packages = [sshd-start];
 
   build.activation.sshd-setup = ''
-    if [[ ! -d "${sshdDirectory}" ]]; then
-      $DRY_RUN_CMD rm $VERBOSE_ARG -rf "${sshdTmpDirectory}"
-      $DRY_RUN_CMD mkdir $VERBOSE_ARG -p "${sshdTmpDirectory}"
+    $DRY_RUN_CMD mkdir $VERBOSE_ARG -p "${sshdDirectory}" "${home}/.ssh" "${home}/.termux/boot"
 
-      $VERBOSE_ECHO "Generating host keys..."
-      $DRY_RUN_CMD ${pkgs.openssh}/bin/ssh-keygen -t rsa -b 4096 -f "${sshdTmpDirectory}/ssh_host_rsa_key" -N ""
-
-      $VERBOSE_ECHO "Writing sshd_config..."
-      $DRY_RUN_CMD echo -e "HostKey ${sshdDirectory}/ssh_host_rsa_key\nPort ${toString port}\n" > "${sshdTmpDirectory}/sshd_config"
-
-      $DRY_RUN_CMD mv $VERBOSE_ARG "${sshdTmpDirectory}" "${sshdDirectory}"
+    # Checked per file, not per directory: a hand-started sshd may already
+    # have created ~/.sshd without this host key.
+    if [[ ! -f "${hostKey}" ]]; then
+      $VERBOSE_ECHO "Generating host key..."
+      $DRY_RUN_CMD ${pkgs.openssh}/bin/ssh-keygen -q -t rsa -b 4096 -f "${hostKey}" -N ""
     fi
 
-    $DRY_RUN_CMD mkdir $VERBOSE_ARG -p "${config.user.home}/.ssh"
-    $DRY_RUN_CMD cat ${pathToPubKey} 1> "${config.user.home}/.ssh/authorized_keys"
+    # Overwritten on every activation, so this list is the whole truth. The
+    # device's own host key stays in it because the deploy nodes (and older
+    # workstations) log in with a copy of that key.
+    $DRY_RUN_CMD sh -c '{ echo "${sshPubKey} homelab"; cat "${hostKey}.pub"; } > "${home}/.ssh/authorized_keys"'
+    $DRY_RUN_CMD chmod 600 "${home}/.ssh/authorized_keys"
+
+    # Termux Launcher's boot add-on runs these once Android has booted.
+    $DRY_RUN_CMD ln -sf ${bootScript} "${home}/.termux/boot/sshd"
   '';
 }

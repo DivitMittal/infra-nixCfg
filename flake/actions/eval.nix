@@ -5,6 +5,7 @@
   common-permissions,
   common-actions,
   environment,
+  attic,
   ...
 }: let
   # Each configuration is evaluated on a runner of its own system: darwin
@@ -68,17 +69,39 @@ in {
             {
               name = "List configurations to evaluate";
               id = "targets";
-              # The filter comes from the dispatch input or, on pushes, an
-              # `Eval-Filter: <regex>` trailer on the head commit. Both reach the
-              # shell via env/git only, never interpolated into the script.
-              env.FILTER_INPUT = "\${{ inputs.filter }}";
+              # Selection, first match wins:
+              #   1. the dispatch input or an `Eval-Filter: <regex>` trailer on
+              #      the head commit (manual override);
+              #   2. on pull requests, the targets the changed files can affect
+              #      (flake/actions/select-targets.sh), possibly none;
+              #   3. everything (pushes to master, eval/** without a trailer).
+              # Values reach the shell via env/git only, never interpolated into
+              # the script.
+              env = {
+                FILTER_INPUT = "\${{ inputs.filter }}";
+                EVENT_NAME = "\${{ github.event_name }}";
+                BASE_SHA = "\${{ github.event.pull_request.base.sha }}";
+              };
               # Assign first: inside `echo "$(...)"` a failed eval is swallowed
               # and the step passes with an empty matrix.
               run = ''
                 filter=''${FILTER_INPUT:-$(git log -1 --format='%(trailers:key=Eval-Filter,valueonly,separator=|)')}
+                source=manual
+                if [ -z "$filter" ] && [ "$EVENT_NAME" = pull_request ]; then
+                  git fetch --quiet --depth=1 origin "$BASE_SHA"
+                  changed=$(git diff --name-only "$BASE_SHA" HEAD)
+                  echo "changed files:"; sed 's/^/  /' <<<"$changed"
+                  selected=$(bash flake/actions/select-targets.sh <<<"$changed")
+                  if [ -z "$selected" ]; then
+                    echo "No evaluated configuration depends on these changes."
+                    echo "targets=[]" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  [ "$selected" = ALL ] || { filter=$selected; source=changes; }
+                fi
                 all=$(nix eval --accept-flake-config --json .#.evalTargets $LOCAL_OVERRIDES)
                 targets=$(jq -c --arg f "$filter" 'map(select(.attr | test($f)))' <<<"$all")
-                echo "filter: ''${filter:-<none>}"
+                echo "filter ($source): ''${filter:-<none>}"
                 jq -r '.[].attr' <<<"$targets"
                 if [ "$(jq length <<<"$targets")" -eq 0 ]; then
                   echo "::error::Eval filter '$filter' matched no targets"
@@ -92,9 +115,14 @@ in {
       evaluate = {
         name = "\${{ matrix.target.attr }}";
         needs = ["list-targets"];
+        # A PR whose changes no configuration depends on selects nothing; an
+        # empty matrix would fail the workflow instead of skipping.
+        "if" = "needs.list-targets.outputs.targets != '[]'";
         runs-on = "\${{ matrix.target.runner }}";
         permissions = common-permissions;
         inherit environment;
+        # Builds on master can take a while on a cold cache.
+        timeout-minutes = 300;
         strategy = {
           fail-fast = false;
           matrix.target = "\${{ fromJSON(needs.list-targets.outputs.targets) }}";
@@ -107,6 +135,27 @@ in {
               # Leading `.` skips the packages.<system>/legacyPackages.<system>
               # prefix search, which would force every package's attr name.
               run = "nix eval --accept-flake-config --show-trace --raw .#.\${{ matrix.target.attr }}.drvPath $LOCAL_OVERRIDES";
+            }
+            {
+              # On master, build whatever the attic cache on T3 doesn't have
+              # yet and push it, so hosts download instead of compiling.
+              # Checking the output path first avoids downloading an
+              # already-cached closure. Off until the attic secrets exist.
+              name = "Build and cache";
+              "if" = "github.event_name == 'push' && github.ref == 'refs/heads/master' && runner.os != 'macOS' && steps.attic_setup.outcome == 'success'";
+              env.ATTR = "\${{ matrix.target.attr }}";
+              run = ''
+                out=$(nix eval --accept-flake-config --raw ".#.$ATTR.outPath" $LOCAL_OVERRIDES)
+                if nix path-info --store "${attic.store}" "$out" >/dev/null 2>&1; then
+                  echo "already cached: $out"
+                  exit 0
+                fi
+                if [ "$RUNNER_OS" = Linux ]; then
+                  sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+                fi
+                nix build --accept-flake-config --no-link ".#.$ATTR" $LOCAL_OVERRIDES
+                attic push ${attic.remote}:${attic.cache} "$out"
+              '';
             }
           ];
       };

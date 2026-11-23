@@ -1,3 +1,6 @@
+# Ports, measured from S1's per-port counters on 2026-11-19 (see also
+# flake/topology.nix):
+#   1 T3 · 2 T1 (router VM lan0) · 3 MON1 (100 Mbit/s NIC) · 4 T2 · 5 S2 uplink
 _: {
   terraform.required_providers.tplinkeasysmart = {
     source = "lucavb/tplink-easysmart";
@@ -7,12 +10,14 @@ _: {
   variable.switch_s1_password = {
     type = "string";
     sensitive = true;
-    description = "Admin password for S1's Easy Smart web UI (infra-nixCfg-secrets: secrets/network/S1.age; shared with R1)";
+    description = "Admin password for S1's Easy Smart web UI (infra-nixCfg-secrets: secrets/network/S1.age)";
   };
 
   provider.tplinkeasysmart = {
-    # TP-Link TL-SG105E: static management address, also reserved by the
-    # router so DHCP cannot allocate it to another device.
+    # TP-Link TL-SG105E v5: static management address, also reserved by the
+    # router so DHCP cannot allocate it to another device. Easy Smart switches
+    # only speak HTTP, so the password crosses the LAN in the clear; another
+    # reason the ISP side never touches this switch.
     host = "192.168.2.2";
     username = "admin";
     password = "\${var.switch_s1_password}";
@@ -21,26 +26,51 @@ _: {
 
   data.tplinkeasysmart_system_info.S1 = {};
 
-  # Disable the global 802.1Q mode rather than deleting VLAN/PVID resources one
-  # at a time. On the TL-SG105E this atomically makes the stale WAN (VLAN10),
-  # LAN (VLAN20), and their PVID assignments inactive, returning all ports to a
-  # flat untagged network while preserving the switch password and management
-  # settings. The resource's delete is intentionally a no-op, so removing it
-  # later stops management without changing the live mode.
+  # One flat, untagged LAN. WAN has its own NIC on T1, cabled straight to the
+  # GN XPON, so nothing is trunked here. Re-enable 802.1Q only for real
+  # segmentation (e.g. an IoT VLAN), which can only reach devices on S1's own
+  # ports: S2 is unmanaged, so everything behind port 5 shares one VLAN.
   resource.tplinkeasysmart_vlan_8021q_mode.flat = {
     enabled = false;
   };
 
-  # S1 carries a single flat LAN now: WAN has its own dedicated NIC on R1
-  # (wan0 → R0), so nothing is trunked here anymore. The old 802.1q VLAN20
-  # existed only to split WAN+LAN over one router-on-a-stick cable; with that
-  # gone, tagging is pure ceremony (R1 stripped VLAN20 straight back off), so
-  # all five ports are left in one untagged broadcast domain. port1 is R1's
-  # uplink (lan0); ports 2-5 are host-facing access ports. Re-introduce a VLAN
-  # here only if you add real segmentation (e.g. a guest/IoT subnet).
-  #
-  # Beyond the global mode, no per-port resources are needed for a flat LAN.
-  # Managed features worth enabling later (loop prevention, port mirroring)
-  # depend on tplink-easysmart provider support; check
-  # `terraform providers schema -json` before wiring them here.
+  # Keeps multicast (mDNS, SSDP) from flooding every port.
+  resource.tplinkeasysmart_igmp_snooping.S1 = {
+    enabled = true;
+    report_message_suppression = false;
+  };
+
+  # S2 is unmanaged, and it had port isolation switched on until 2026-11-19.
+  # Cap broadcast/multicast arriving from it so a loop or misbehaving device
+  # behind it can't flood the home-lab ports. 64 Mbit/s is far above normal
+  # discovery traffic.
+  resource.tplinkeasysmart_port_storm_control.port5 = {
+    port_id = 5;
+    enabled = true;
+    rate_kbps = 65536;
+    storm_types = ["broadcast" "multicast"];
+  };
+
+  # Adopt the live singletons instead of recreating them.
+  import = [
+    {
+      to = "tplinkeasysmart_igmp_snooping.S1";
+      id = "igmp_snooping";
+    }
+    {
+      to = "tplinkeasysmart_port_storm_control.port5";
+      id = "5";
+    }
+  ];
+
+  # Not managed here; set by hand in the web UI and must be re-done after a
+  # factory reset:
+  #   - Loop Prevention: enabled (System > Loop Prevention). The provider has
+  #     no resource for it.
+  #   - Port settings: every port enabled, speed auto, flow control off (pause
+  #     frames would stall a port for one slow receiver, e.g. MON1's
+  #     100 Mbit/s NIC). The provider can't import port settings, and
+  #     re-writing them can renegotiate links (port 2 is the router).
+  # The QoS mode is left unmanaged: no QoS is configured and there is no
+  # bufferbloat to fix (~5 ms loaded latency on the 400 Mbit/s line).
 }

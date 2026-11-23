@@ -25,16 +25,20 @@ jobs:
       with:
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
         name: divitmittal
+        skipPush: true
     - name: SSH-agent with auth for private repos
       uses: webfactory/ssh-agent@master
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
     - id: attic
       name: Check for attic credentials
-      run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+      run: echo "enabled=${{ secrets.ATTIC_TOKEN != '' && secrets.TS_OAUTH_CLIENT_ID
+        != '' && secrets.TS_OAUTH_SECRET != '' }}" >> "$GITHUB_OUTPUT"
     - continue-on-error: true
+      id: tailnet
       if: steps.attic.outputs.enabled == 'true'
-      name: Join the tailnet to reach attic on T1
+      name: Join the tailnet to reach attic on T3
+      timeout-minutes: 5
       uses: tailscale/github-action@v3
       with:
         oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
@@ -43,12 +47,29 @@ jobs:
     - continue-on-error: true
       env:
         ATTIC_TOKEN: ${{ secrets.ATTIC_TOKEN }}
-      if: steps.attic.outputs.enabled == 'true'
-      name: Use the attic cache on T1
+      id: attic_setup
+      if: steps.tailnet.outcome == 'success'
+      name: Use the attic cache on T3
       run: |-
+        if [ "$RUNNER_OS" = Linux ]; then
+          sudo tailscale set --accept-routes=true --accept-dns=false
+        fi
+        # An offline optional home cache must not hold up unrelated CI.
+        curl --fail --silent --show-error --connect-timeout 5 --max-time 15 \
+          http://192.168.2.8:8080/infra/nix-cache-info > /dev/null
         nix profile install "github:NixOS/nixpkgs/$(jq -r '.nodes["nixpkgs-2605"].locked.rev' flake.lock)#attic-client"
-        attic login t1 http://t1:8080 "$ATTIC_TOKEN"
-        attic use t1:infra
+        # Keep the JWT out of process arguments and the Nix store.
+        install -d -m 700 "$HOME/.config/attic"
+        umask 077
+        python3 - <<'PYCONFIG'
+        import json, os
+        from pathlib import Path
+        config = Path.home() / ".config/attic/config.toml"
+        config.write_text('[servers.homelab]\nendpoint = "http://192.168.2.8:8080/"\ntoken = ' + json.dumps(os.environ["ATTIC_TOKEN"]) + '\n')
+        config.chmod(0o600)
+        PYCONFIG
+        attic use homelab:infra
+      timeout-minutes: 5
     - name: Point local-checkout inputs at GitHub
       run: |-
         overrides=$(jq -r '

@@ -9,6 +9,7 @@
 # authoritative single source of truth for all deploy-rs nodes.
 {
   inputs,
+  lib,
   self,
   ...
 }: let
@@ -19,8 +20,37 @@
     configuration.activationPackage
     "${configuration.activationPackage}/activate";
 
+  ## Windows hosts (winConfigurations.*) are not deploy-rs nodes: the SSH
+  ## target is Windows, which has no Nix to receive a closure. They deploy
+  ## with `win-deploy <host>` (utils/win_deploy.sh) from the devshell.
   activateHome = system: configuration:
     inputs.deploy-rs.lib.${system}.activate.home-manager configuration;
+
+  # deploy-rs's activate.nixos, except that its systemd-boot cleanup uses GNU
+  # sed by absolute path. Upstream runs `sed` from the target's PATH, where
+  # uutils-sed 0.1.1 (common/hosts/all/misc.nix) rejects the address
+  # `/^default /` (trailing space). That step runs after the switch, so the
+  # failure triggers a rollback that cannot re-activate and leaves the host on
+  # the new system with its profile pointing at the old one.
+  activateNixos = system: configuration: let
+    inherit (configuration.config.boot.loader) systemd-boot efi;
+  in
+    (inputs.deploy-rs.lib.${system}.activate.custom
+      // {
+        dryActivate = "$PROFILE/bin/switch-to-configuration dry-activate";
+        boot = "$PROFILE/bin/switch-to-configuration boot";
+      })
+    configuration.config.system.build.toplevel
+    ''
+      # work around https://github.com/NixOS/nixpkgs/issues/73404
+      cd /tmp
+
+      $PROFILE/bin/switch-to-configuration switch
+
+      # https://github.com/serokell/deploy-rs/issues/31
+      ${lib.optionalString systemd-boot.enable
+        "${configuration.pkgs.gnused}/bin/sed -i '/^default /d' ${efi.efiSysMountPoint}/loader/loader.conf"}
+    '';
 
   # All home-lab boxes are x86_64-linux and built on the target, since the
   # workstation may be macOS.
@@ -30,10 +60,39 @@
       sshUser = "root";
       user = "root";
       remoteBuild = true;
-      path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos configuration;
+      path = activateNixos "x86_64-linux" configuration;
       sshOpts = ["-i" "/Users/div/.ssh/agenix/id_ed25519" "-o" "StrictHostKeyChecking=accept-new"];
     };
   };
+
+  mkDroidNode = {
+    hostname,
+    configuration,
+    sshOpts,
+  }: {
+    inherit hostname;
+    profiles.system = {
+      sshUser = "nix-on-droid";
+      user = "nix-on-droid";
+      magicRollback = true;
+      inherit sshOpts;
+      path = activateNixOnDroid configuration;
+    };
+  };
+
+  # Reached through `adb forward` (the devshell's <host>-adb-forward). Every
+  # forwarded device is 127.0.0.1, so known_hosts needs a per-node alias.
+  mkAdbDroidNode = {
+    name,
+    configuration,
+    port,
+    key,
+  }:
+    mkDroidNode {
+      hostname = "127.0.0.1";
+      inherit configuration;
+      sshOpts = ["-p" (toString port) "-i" key "-o" "HostKeyAlias=${name}" "-o" "CheckHostIP=no"];
+    };
 
   mkVpsHomeProfile = {
     system,
@@ -51,37 +110,20 @@
   };
 in {
   flake.deploy.nodes = {
-    # nix-on-droid device on the local network
-    M1 = {
-      hostname = "M1";
-      profiles.system = {
-        sshUser = "nix-on-droid";
-        user = "nix-on-droid";
-        magicRollback = true;
-        sshOpts = ["-p" "8022"];
-        path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
-      };
+    # The phone, on Termux Launcher's Nix edition. Its fixed LAN address is a
+    # router reservation (hosts/openwrt/T640); uid/gid are pinned in
+    # hosts/droid/M1/M1.nix because the build happens off-device.
+    M1 = mkDroidNode {
+      hostname = "192.168.2.7";
+      configuration = self.nixOnDroidConfigurations.M1;
+      sshOpts = ["-p" "8022" "-i" "~/.ssh/agenix/id_ed25519" "-o" "HostKeyAlias=M1"];
     };
 
-    # nix-on-droid device over ADB-forwarded SSH
-    M1-adb = {
-      hostname = "127.0.0.1";
-      profiles.system = {
-        sshUser = "nix-on-droid";
-        user = "nix-on-droid";
-        magicRollback = true;
-        sshOpts = [
-          "-p"
-          "18022"
-          "-i"
-          "~/.ssh/nix-on-droid/ssh_host_rsa_key"
-          "-o"
-          "HostKeyAlias=M1-adb"
-          "-o"
-          "CheckHostIP=no"
-        ];
-        path = activateNixOnDroid self.nixOnDroidConfigurations.M1;
-      };
+    M1-adb = mkAdbDroidNode {
+      name = "M1-adb";
+      configuration = self.nixOnDroidConfigurations.M1;
+      port = 18022;
+      key = "~/.ssh/agenix/id_ed25519";
     };
 
     # Home lab, reached over the LAN. T1's host address is static

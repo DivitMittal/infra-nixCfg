@@ -65,11 +65,11 @@ in {
             settings.allow_anonymous = false;
             users = {
               home-assistant = {
-                passwordFile = config.age.secrets.mqtt-home-assistant.path;
+                passwordFile = config.age.secrets.mqtt-home-assistant.path; # ggignore: runtime path, not a password
                 acl = ["read homeassistant/sensor/+/#" "read wled/desk/#" "write homeassistant/status"];
               };
               wled-desk = {
-                passwordFile = config.age.secrets.mqtt-wled-desk.path;
+                passwordFile = config.age.secrets.mqtt-wled-desk.path; # ggignore: runtime path, not a password
                 acl = ["readwrite wled/desk/#" "write homeassistant/sensor/+/#"];
               };
             };

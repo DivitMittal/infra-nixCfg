@@ -289,7 +289,8 @@ host change. Keep TCP 8123 and 1883 off WAN port forwards.
 1. Open `http://192.168.2.3:8123` on the trusted LAN and create the owner account.
 2. Add the MQTT integration using broker `192.168.2.3:1883` and username
    `home-assistant`. Enter the decrypted client password at onboarding.
-3. Add WLED using its LAN address if discovery does not find it. In WLED MQTT
+3. Add WLED using its device IP. The container uses a bridged network, so use
+   manual setup for the light and MQTT discovery for the sensors. In WLED MQTT
    settings, use the same broker with username `wled-desk` and device topic
    `wled/desk`. Leave the firmware's discovery prefix as `homeassistant`.
    Check that temperature and humidity update after the ESP32 restarts.

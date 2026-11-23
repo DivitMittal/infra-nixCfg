@@ -12,8 +12,6 @@
   enabled = lib.all (name: builtins.pathExists (secret name)) credentials;
   configuration = pkgs.writeText "home-assistant.yaml" ''
     default_config:
-    http:
-      server_host: ${lanAddress}
     automation: !include automations.yaml
     script: !include scripts.yaml
     scene: !include scenes.yaml
@@ -42,9 +40,10 @@ in {
               "${dir}:/config"
               "${configuration}:/config/configuration.yaml:ro"
             ];
-            # WLED discovery needs LAN multicast. Bound the container so routing
-            # retains CPU and memory headroom under sustained assistant load.
-            extraOptions = ["--network=host" "--cpus=1" "--memory=2g"];
+            # Enforce the dashboard's bind address at the container boundary.
+            # Home Assistant migrates HTTP YAML to UI-managed settings.
+            ports = ["${lanAddress}:8123:8123"];
+            extraOptions = ["--cpus=1" "--memory=2g"];
             environment.TZ = "Asia/Kolkata";
           };
         };

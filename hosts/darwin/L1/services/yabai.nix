@@ -31,7 +31,8 @@
   ...
 }: let
   yabaiBin = "${config.services.yabai.package}/bin/yabai";
-  tcc = "${pkgs.customDarwin.tccutil}/bin/tccutil";
+  tcc = lib.getExe pkgs.customDarwin.tccutil;
+  tccPrune = lib.getExe pkgs.customDarwin.tcc-prune;
 in {
   services.yabai = {
     enable = true;
@@ -95,24 +96,25 @@ in {
 
   # Pre-grant Accessibility to the current yabai store path so a rebuild
   # (which moves yabai to a new /nix/store/<hash>) does NOT re-trigger the
-  # System Settings toggle. Targets the SYSTEM TCC.db (writable as root here
-  # because yabai's scripting addition already requires SIP filesystem
-  # protection off). Idempotent + best-effort: never fails the build.
+  # System Settings toggle, then drop grants held by older yabai store paths
+  # and by store paths already garbage-collected, so rebuilds stop piling up
+  # TCC rows. Targets the SYSTEM TCC.db (writable as root here because yabai's
+  # scripting addition already requires SIP filesystem protection off).
+  # Best-effort: failures are reported but never abort activation.
   # Uses the predefined `postActivation` slot because nix-darwin's renderer
   # silently drops custom-named activation scripts. Not mkForce: other modules
   # (e.g. the spicetify hosts block) append to the same slot.
   system.activationScripts.postActivation.text = ''
     echo ">> yabai: syncing Accessibility TCC grant for current binary path..."
-    if [ ! -x "${tcc}" ]; then
-      echo "   tccutil missing; skipping TCC automation." >&2
-    elif ! "${tcc}" --list -s kTCCServiceAccessibility >/dev/null 2>&1; then
-      # tccutil's digest_check refuses unknown TCC.db schemas — expected on
-      # macOS 26 (Darwin 25), where v1.5.1 only allowlists through Sonoma.
-      echo "   tccutil cannot open this macOS's TCC.db (schema unrecognized)." >&2
-      echo "   Grant Accessibility manually once, or patch tccutil — see plan." >&2
-    else
-      "${tcc}" -i "${yabaiBin}" -s kTCCServiceAccessibility >/dev/null 2>&1 || true
-      "${tcc}" -e "${yabaiBin}" -s kTCCServiceAccessibility >/dev/null 2>&1 || true
+    if ! "${tcc}" -i "${yabaiBin}" -s kTCCServiceAccessibility >/dev/null \
+      || ! "${tcc}" -e "${yabaiBin}" -s kTCCServiceAccessibility >/dev/null; then
+      echo "   warning: tccutil could not grant Accessibility to ${yabaiBin};" >&2
+      echo "   enable it once in System Settings > Privacy & Security." >&2
     fi
+    "${tccPrune}" --apply --db system --quiet --superseded-by "${yabaiBin}" \
+      || echo "   warning: tcc-prune failed to drop older yabai grants" >&2
+    TCC_PRUNE_USER=${lib.escapeShellArg config.system.primaryUser} \
+      "${tccPrune}" --apply --quiet --nix-only --only path-gone \
+      || echo "   warning: tcc-prune failed to drop garbage-collected store grants" >&2
   '';
 }

@@ -9,6 +9,9 @@
   alsa-lib,
   libpulseaudio,
   pipewire,
+  fontconfig,
+  libglvnd,
+  xorg,
   ...
 }: let
   version = "7.66";
@@ -17,18 +20,22 @@
   sources =
     lib.attrsets.optionalAttrs stdenvNoCC.hostPlatform.isLinux {
       x86_64-linux = {
+        directory = "reaper_linux_x86_64";
         url = "https://www.reaper.fm/files/7.x/reaper${verShort}_linux_x86_64.tar.xz";
         hash = "sha256-GMNtVql069snZzvaUrw0SEygbbnafS20HSzLdQDC6yU=";
       };
       i686-linux = {
+        directory = "reaper_linux_i686";
         url = "https://www.reaper.fm/files/7.x/reaper${verShort}_linux_i686.tar.xz";
         hash = "sha256-eXG7Zds+hFBFMyjovdpLmLNRkxMIfExQw0xcKTuo21Q=";
       };
       aarch64-linux = {
+        directory = "reaper_linux_aarch64";
         url = "https://www.reaper.fm/files/7.x/reaper${verShort}_linux_aarch64.tar.xz";
         hash = "sha256-imoVxmC9oPzcl8dDtrs93/ADEB9NQFCThHZlxb8FIac=";
       };
       armv7l-linux = {
+        directory = "reaper_linux_armv7l";
         url = "https://www.reaper.fm/files/7.x/reaper${verShort}_linux_armv7l.tar.xz";
         hash = "sha256-vP+pyjgMNovVDFitTlmPpghWRIubWgWfWpADGU28SsY=";
       };
@@ -64,6 +71,10 @@ in
       alsa-lib
       libpulseaudio
       pipewire
+      fontconfig
+      libglvnd
+      xorg.libX11
+      xorg.libXi
       # libstdc++; stdenvNoCC has no compiler, so its .cc is null.
       stdenv.cc.cc.lib
     ];
@@ -79,7 +90,8 @@ in
 
     sourceRoot =
       if stdenvNoCC.hostPlatform.isLinux
-      then "REAPER"
+      # Linux archives contain a platform directory around the application.
+      then "${source.directory}/REAPER"
       else "REAPER_INSTALL_UNIVERSAL/REAPER.app";
 
     installPhase =

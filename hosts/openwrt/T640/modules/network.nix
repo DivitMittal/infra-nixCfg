@@ -213,6 +213,21 @@ in {
             mac = homelab.macs.M1-eth;
             ip = "192.168.2.7";
           };
+          # Fixed because CI and the home-lab hosts reach its attic cache by
+          # address (hosts/nixos/T3/attic.nix); everything else uses T3.lan.
+          T3 = {
+            _type = "host";
+            name = "T3";
+            mac = homelab.macs.T3-eth;
+            ip = "192.168.2.8";
+          };
+          # Preserve the compute worker's current address across renewals.
+          T2 = {
+            _type = "host";
+            name = "T2";
+            mac = homelab.macs.T2;
+            ip = "192.168.2.171";
+          };
         };
       }
       // optionalAttrs isPppoe {

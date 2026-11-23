@@ -64,6 +64,22 @@
         "type": "github"
       }
     },
+    "OS-nixCfg_4": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791592305,
+        "narHash": "sha256-va07wUM+mgLda2gFOwdpIFwOW87zqr+XMSNFIEAQgBk=",
+        "owner": "DivitMittal",
+        "repo": "OS-nixCfg",
+        "rev": "9904254dbd52e5805fca0d3b39185fb7bece604b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DivitMittal",
+        "repo": "OS-nixCfg",
+        "type": "github"
+      }
+    },
     "PKMS": {
       "flake": false,
       "locked": {
@@ -736,6 +752,23 @@
       "original": {
         "owner": "nix-community",
         "repo": "disko",
+        "type": "github"
+      }
+    },
+    "divit-ipfs": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795335922,
+        "narHash": "sha256-3AzNYf7ZeujdndLVgc3mCP9TteIrznT/sriEXfYCNkA=",
+        "owner": "Qezta",
+        "repo": "divit",
+        "rev": "c485ae8ce2b5e56faf2b2731fbc2498997d2cb87",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "divit",
+        "rev": "c485ae8ce2b5e56faf2b2731fbc2498997d2cb87",
         "type": "github"
       }
     },
@@ -1772,11 +1805,11 @@
         "treefmt-nix": "treefmt-nix_4"
       },
       "locked": {
-        "lastModified": 1795050880,
-        "narHash": "sha256-U+cLSdWhEkuiwZW9uuDciZYWWoEpJoXkf1lkwGr5ZG8=",
+        "lastModified": 1795200687,
+        "narHash": "sha256-tQ9Gh3Cv2CgdbhK4FjcbJBA94+WUm5r9enpdcGAm4DM=",
         "ref": "master",
-        "rev": "d77b7ffa60dc12d60532a62b281512ad577d1385",
-        "revCount": 299,
+        "rev": "c57da36cb27bfa02691e1eaef87aecadca11aa63",
+        "revCount": 339,
         "type": "git",
         "url": "ssh://git@github.com/DivitMittal/infra-nixCfg-secrets.git"
       },
@@ -2292,6 +2325,26 @@
       "original": {
         "owner": "oddlama",
         "repo": "nix-topology",
+        "type": "github"
+      }
+    },
+    "nix-win": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780348406,
+        "narHash": "sha256-EXORcqrMFwdqgL92tCKvyj1M97OPSgw/a7ktN2mVgAk=",
+        "owner": "jacobbrugh",
+        "repo": "nix-win",
+        "rev": "2507b659e15e84f5ac3b48396042e46a766b6634",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jacobbrugh",
+        "repo": "nix-win",
         "type": "github"
       }
     },
@@ -3317,6 +3370,67 @@
         "type": "github"
       }
     },
+    "qezta-site": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795124656,
+        "narHash": "sha256-U8JuvIt+eTczRzGDiKUH+jRfDbT2gZPy+LmBX2EqBEU=",
+        "owner": "Qezta",
+        "repo": "site",
+        "rev": "2d3c8268dd9d121a745db3fb139b5cca36321170",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "site",
+        "type": "github"
+      }
+    },
+    "qezta-ssh": {
+      "inputs": {
+        "OS-nixCfg": "OS-nixCfg_4",
+        "actions-nix": [
+          "actions-nix"
+        ],
+        "devshell": [
+          "devshell"
+        ],
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "git-hooks": [
+          "git-hooks"
+        ],
+        "import-tree": [
+          "import-tree"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-2605": [
+          "nixpkgs-2605"
+        ],
+        "systems": [
+          "systems"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795112355,
+        "narHash": "sha256-2vzlz6YhpBNJd9XBE8qCgguYvPA44x6tp8OFbiNpFHs=",
+        "owner": "Qezta",
+        "repo": "ssh",
+        "rev": "b4b5a2a953c8f8d740f9ad8658a278a04451051b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Qezta",
+        "repo": "ssh",
+        "type": "github"
+      }
+    },
     "qmd": {
       "inputs": {
         "flake-utils": [
@@ -3432,6 +3546,7 @@
         "devshell": "devshell",
         "direnv-instant": "direnv-instant",
         "disko": "disko",
+        "divit-ipfs": "divit-ipfs",
         "firefox-nixCfg": "firefox-nixCfg",
         "flake-compat": "flake-compat_2",
         "flake-parts": "flake-parts_5",
@@ -3454,6 +3569,7 @@
         "nix-on-droid": "nix-on-droid",
         "nix-on-droid-launcher": "nix-on-droid-launcher",
         "nix-topology": "nix-topology",
+        "nix-win": "nix-win",
         "nixos-apple-silicon": "nixos-apple-silicon",
         "nixos-hardware": "nixos-hardware",
         "nixos-wsl": "nixos-wsl",
@@ -3465,6 +3581,8 @@
         "nvchad4nix": "nvchad4nix",
         "openwrt-imagebuilder": "openwrt-imagebuilder",
         "openwrt-nix": "openwrt-nix",
+        "qezta-site": "qezta-site",
+        "qezta-ssh": "qezta-ssh",
         "quant-nixCfg": "quant-nixCfg",
         "ragenix": "ragenix",
         "spicetify-nix": "spicetify-nix",

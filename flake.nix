@@ -282,6 +282,32 @@
     };
 
     ### Infra
+    ## ssh divit@qezta.com terminal portfolio, run on T3's k3s as an OCI image
+    qezta-ssh = {
+      url = "github:Qezta/ssh";
+      #url = "git+file:///Users/div/Projects/qezta/ssh";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        "nixpkgs-2605".follows = "nixpkgs-2605";
+        flake-parts.follows = "flake-parts";
+        systems.follows = "systems";
+        import-tree.follows = "import-tree";
+        devshell.follows = "devshell";
+        treefmt-nix.follows = "treefmt-nix";
+        git-hooks.follows = "git-hooks";
+        actions-nix.follows = "actions-nix";
+      };
+    };
+    # Marketing site. No package output; T3 builds adapter-static itself.
+    qezta-site = {
+      url = "github:Qezta/site";
+      flake = false;
+    };
+    # Static portfolio mirror with the chat route omitted.
+    divit-ipfs = {
+      url = "github:Qezta/divit/c485ae8ce2b5e56faf2b2731fbc2498997d2cb87";
+      flake = false;
+    };
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs = {
@@ -364,6 +390,17 @@
 
     areofyl-fetch = {
       url = "github:areofyl/fetch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    ## Windows
+    ## nix-darwin-style declarative config for Windows hosts (L1/L2's Windows
+    ## boot slot), evaluated inside WSL and applied via Scoop/WinGet/DSC v3.
+    ## EXPERIMENTAL — single-maintainer, pre-1.0, no releases as of migration.
+    ## Replaces DivitMittal/playbooks-4-windows (Ansible), which is being
+    ## decommissioned. Hosts are reached over OpenSSH with the home-lab key.
+    nix-win = {
+      url = "github:jacobbrugh/nix-win";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

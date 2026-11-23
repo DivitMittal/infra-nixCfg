@@ -101,6 +101,7 @@ symlinkJoin {
 
   meta = {
     description = "Scripts to enable or disable Wacom tablet services on macOS";
+    license = lib.licenses.mit;
     platforms = lib.platforms.darwin;
   };
 }

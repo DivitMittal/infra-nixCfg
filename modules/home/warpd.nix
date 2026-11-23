@@ -41,7 +41,7 @@ in {
   };
 
   config = mkIf cfg.enable {
-    home.packages = [cfg.package];
+    home.packages = mkIf (cfg.package != null) [cfg.package];
 
     xdg.configFile."warpd/config" = mkIf (cfg.settings != {}) {
       text = formatConfig cfg.settings;

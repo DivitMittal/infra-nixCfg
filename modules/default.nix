@@ -22,6 +22,7 @@
     default = self.outputs.darwinModules.all;
 
     # Individual modules for selective importing
+    daemon-buster = import ./hosts/darwin/daemon-buster.nix;
     kanata = import ./hosts/darwin/kanata.nix;
     kanata-tray = import ./hosts/darwin/kanata-tray.nix;
     spotifyd = import ./hosts/darwin/spotifyd.nix;

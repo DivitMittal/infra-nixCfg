@@ -78,6 +78,7 @@ stdenvNoCC.mkDerivation {
     # Google: confidential client — register at https://console.cloud.google.com
     #   Enable: Gmail API. GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are read at runtime.
     description = "mutt_oauth2.py patched with Microsoft/Google credentials and rage encryption";
+    license = lib.licenses.gpl2Plus;
     mainProgram = "oauth2";
     platforms = lib.platforms.unix;
   };

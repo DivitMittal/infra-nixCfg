@@ -95,6 +95,7 @@ symlinkJoin {
 
   meta = {
     description = "Scripts to start/stop kanata-tray and Karabiner daemon as background processes on macOS";
+    license = lib.licenses.mit;
     platforms = lib.platforms.darwin;
   };
 }

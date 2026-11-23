@@ -23,15 +23,16 @@
     lib,
     ...
   }:
-    lib.attrsets.optionalAttrs (system == "aarch64-darwin" || system == "x86_64-darwin") {
-      # aarch64-darwin (ASL1) gets the CLI straight from upstream. nix-android's
-      # own flake restricts its `systems` to x86_64-linux/aarch64-darwin, so
-      # x86_64-darwin (L1) has no upstream package to alias — rebuild the same
-      # `writeShellApplication` nix-android defines for itself, pointed at a
-      # patched copy of its source (see nixAndroidSrc below), instead.
+    lib.attrsets.optionalAttrs (builtins.elem system ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"]) {
+      # aarch64-darwin (ASL1) and x86_64-linux (T3, E1's controller) get the
+      # CLI straight from upstream. nix-android's own flake restricts its
+      # `systems` to x86_64-linux/aarch64-darwin, so x86_64-darwin (L1) has no
+      # upstream package to alias — rebuild the same `writeShellApplication`
+      # nix-android defines for itself, pointed at a patched copy of its source
+      # (see nixAndroidSrc below), instead.
       packages.android-rebuild =
-        if system == "aarch64-darwin"
-        then inputs.nix-android.packages.aarch64-darwin.android-rebuild
+        if system != "x86_64-darwin"
+        then inputs.nix-android.packages.${system}.android-rebuild
         else let
           # The packaged CLI resolves `android-rebuild update`'s update-lock
           # builder as "$NIX_ANDROID_SRC#update-lock" — always against

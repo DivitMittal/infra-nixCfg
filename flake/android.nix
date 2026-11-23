@@ -6,7 +6,7 @@
 {inputs, ...}: let
   e1 = extraModules:
     inputs.nix-android.lib.mkDevice {
-      system = "x86_64-linux"; # T3
+      system = "x86_64-linux"; # T2
       modules = [../android/E1/device.nix] ++ extraModules;
       lockFile = ../android/E1/apps.lock.json;
     };
@@ -17,7 +17,7 @@ in {
     lockFile = ../android/M1/apps.lock.json;
   };
 
-  # Echo Show 5, plugged into T3 by USB; T3 is its controller.
+  # Echo Show 5, plugged into T2 by USB; T2 is its controller.
   flake.androidConfigurations.E1 = e1 [];
 
   perSystem = {
@@ -47,7 +47,7 @@ in {
         '';
     }
     // lib.attrsets.optionalAttrs (builtins.elem system ["aarch64-darwin" "x86_64-darwin" "x86_64-linux"]) {
-      # aarch64-darwin (ASL1) and x86_64-linux (T3, E1's controller) get the
+      # aarch64-darwin (ASL1) and x86_64-linux (T2, E1's controller) get the
       # CLI straight from upstream. nix-android's own flake restricts its
       # `systems` to x86_64-linux/aarch64-darwin, so x86_64-darwin (L1) has no
       # upstream package to alias — rebuild the same `writeShellApplication`

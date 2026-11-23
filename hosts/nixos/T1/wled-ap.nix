@@ -34,6 +34,8 @@ in {
     radios.${iface} = {
       band = "2g";
       channel = 6;
+      # Unset (world) regdomain caps TX and marks channels passive.
+      countryCode = "IN";
       # Keep the verified 20 MHz channel width for the ESP32.
       wifi4.capabilities = [];
       networks.${iface} = {
@@ -43,7 +45,13 @@ in {
           mode = "wpa2-sha1";
           wpaPasswordFile = config.age.secrets.t1-wled-ap.path; # ggignore: runtime path, not a password
         };
-        settings.ieee80211w = 0;
+        settings = {
+          ieee80211w = 0;
+          # rtw88_8821cu misreports TX status in AP mode, so hostapd treats
+          # delivered frames as lost and kicks the ESP32 mid-handshake.
+          disassoc_low_ack = 0;
+          skip_inactivity_poll = 1;
+        };
       };
     };
   };

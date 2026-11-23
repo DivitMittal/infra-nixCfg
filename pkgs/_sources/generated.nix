@@ -11,6 +11,17 @@
       sha256 = "sha256-IvE7dk1zlovtzJ5kplENyzL5GdlWbTUL1Yb2QtbrWDE=";
     };
   };
+  Crisp = {
+    pname = "Crisp";
+    version = "v1.7.1";
+    src = fetchFromGitHub {
+      owner = "didriksg";
+      repo = "Crisp";
+      rev = "v1.7.1";
+      fetchSubmodules = false;
+      sha256 = "sha256-goS0DCkAsoTdI9s3OEfVXjYU8fRYCiEdkMZA3c5PmT4=";
+    };
+  };
   Iris = {
     pname = "Iris";
     version = "v0.3.1";

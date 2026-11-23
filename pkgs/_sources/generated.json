@@ -14,6 +14,27 @@
     },
     "version": "1.2.9"
   },
+  "Crisp": {
+    "cargoLock": null,
+    "date": null,
+    "extract": null,
+    "name": "Crisp",
+    "passthru": null,
+    "pinned": false,
+    "src": {
+      "deepClone": false,
+      "fetchSubmodules": false,
+      "leaveDotGit": false,
+      "name": null,
+      "owner": "didriksg",
+      "repo": "Crisp",
+      "rev": "v1.7.1",
+      "sha256": "sha256-goS0DCkAsoTdI9s3OEfVXjYU8fRYCiEdkMZA3c5PmT4=",
+      "sparseCheckout": [],
+      "type": "github"
+    },
+    "version": "v1.7.1"
+  },
   "Iris": {
     "cargoLock": null,
     "date": null,

@@ -3,13 +3,7 @@
   lib,
   hostPlatform,
   ...
-}: let
-  # brew-nix ignores the cask's `binary` stanza, so crispctl (shipped inside the
-  # .app bundle) never lands on $PATH; wrap it like the vpn.nix CLI wrappers.
-  crispctlWrapper = pkgs.writeShellScriptBin "crispctl" ''
-    exec "${pkgs.brewCasks.crisp}/Applications/Crisp.app/Contents/MacOS/crispctl" "$@"
-  '';
-in {
+}: {
   home.packages = lib.attrsets.attrValues (
     {
       inherit
@@ -21,7 +15,6 @@ in {
         linearmouse # mouse/trackpad customization
         music-decoy # prevent macOS Music from auto-launching on media keys
         finetune # audio fine-tuning and volume control
-        crisp # display manager: HiDPI scaling, DDC brightness/volume, presets
         #gswitch # MUX switcher (using pmset instead)
         #bluesnooze # turns bluetooth off when asleep
         #aldente # Battery Management
@@ -35,11 +28,11 @@ in {
         menubar-dock-bin # macOS dock in menubar
         LiveWallpaperMacOS-bin # Live wallpaper for macOS
         BattOpt-bin # battery charge limiter (GUI + `battopt` CLI)
+        Crisp # display manager: HiDPI scaling, DDC brightness/volume, presets (from source; ships `crispctl`)
         #MultiSoundChanger-bin # aggregate-output volume control in menubar
         #Iris-bin # Webcam mirror
         #LosslessSwitcher-bin # Lossless audio toggle in menubar
         ;
-      crispctl = crispctlWrapper; # Crisp CLI
     }
     // lib.optionalAttrs hostPlatform.isx86_64 {
       VoltageShift = pkgs.customDarwin.VoltageShift; # Intel-only undervolting CLI

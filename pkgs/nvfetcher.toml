@@ -75,6 +75,10 @@ fetch.github = "jacobsalmela/tccutil"
 src.github = "atuan26/warpd"
 fetch.github = "atuan26/warpd"
 
+[Crisp]
+src.github = "didriksg/Crisp"
+fetch.github = "didriksg/Crisp"
+
 # ============================================================
 # Binary download packages (fetchurl) – fully managed by nvfetcher
 # $ver = raw tag string (may include leading v/V)

@@ -84,19 +84,13 @@
             ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
           };
       }
-      // lib.optionalAttrs (hostPlatform.isLinux && hostPlatform.isx86_64 && hasLegacyCli) {
-        # The upstream Linux CLI is a static x86_64 Go executable. Replace the
-        # downloader directly: API 1.39.0's wrapper also runs `file /usr/local`.
+      # Upstream publishes the Linux CLI for x86_64 only.
+      // lib.optionalAttrs (hasLegacyCli && (hostPlatform.isDarwin || hostPlatform.isx86_64)) {
+        # Replace the downloader with the CLI itself rather than placing the
+        # CLI beside it: API 1.39.0's wrapper also runs `file /usr/local`,
+        # whose output would precede everything the CLI prints.
         preBuild = ''
           install -m755 ${legacyCli} node_modules/@raycast/api/bin/ray
-          test "$(node_modules/.bin/ray version)" = ${lib.escapeShellArg apiVersion}
-        '';
-      }
-      // lib.optionalAttrs (hostPlatform.isDarwin && hasLegacyCli) {
-        # Put the CLI where the macOS downloader looks first; finding the
-        # matching version there, it runs it instead of downloading.
-        preBuild = ''
-          install -Dm755 ${legacyCli} node_modules/@raycast/api/bin/${cliDir}/ray
           test "$(node_modules/.bin/ray version)" = ${lib.escapeShellArg apiVersion}
         '';
       });

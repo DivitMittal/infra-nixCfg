@@ -56,4 +56,19 @@
 
     isLaptop = true;
   };
+
+  # Lets `ssh L1` reach L1 (hosts/darwin/L1/services/ssh.nix) as div. Only
+  # the alias is declarative — nix-win can't deploy the matching private key
+  # without committing it to the store (never do that; see .config/git/ignore
+  # in common/hosts/win/dotfiles.nix). Seed it once with
+  # utils/provision_l2_ssh_key.sh, run from a box that already holds the
+  # shared homelab identity (L1, T2, T3, ...).
+  win.files.".ssh/config".text = ''
+    Host L1
+      HostName 192.168.2.4
+      User div
+      IdentityFile ~/.ssh/id_ed25519
+      IdentitiesOnly yes
+      StrictHostKeyChecking accept-new
+  '';
 }

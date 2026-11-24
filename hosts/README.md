@@ -638,6 +638,29 @@ Inside the devshell, `deploy-home VPS1 --dry-activate` is a shorthand for
 `deploy .#VPS1-home --dry-activate`. The local `hms` and `hts` commands still
 operate on the current machine's hostname and are not remote deploy wrappers.
 
+### SSH into L1 from the rest of the fleet
+
+`hosts/darwin/L1/services/ssh.nix` enables macOS Remote Login on L1 and
+authorizes the same shared pubkey every home-lab box already trusts
+(`hosts/nixos/_homelab/base.nix`). Any box that holds the matching private
+key — `~/.ssh/agenix/id_ed25519`, present on every `homeConfigurations.*`
+host per `common/home/age.nix` — can reach it:
+
+```bash
+ssh div@192.168.2.4   # from T2, T3, L2 (NixOS boot), L1N, M1, WSL, colima
+```
+
+L2's **Windows** boot slot (`vanee`) needs that same private key copied into
+its profile first, since nix-win can't deploy it without committing it to
+the store. Run once, from a box that already holds the key:
+
+```bash
+utils/provision_l2_ssh_key.sh
+```
+
+`hosts/win/L2/main.nix` then declares a `ssh L1` alias via `win.files`, so
+`vanee@L2` only needs `ssh L1` once the key exists.
+
 ### Desk input sharing (Lan Mouse)
 
 L1 (`192.168.2.4`, wired USB adapter) is the centre of the desk. L2 Windows

@@ -715,7 +715,24 @@ T2 logs are available through `journalctl --user -u lan-mouse`.
 
 Use `lan-mouse cli list` on each machine to check active peer directions.
 Connection logs and a pointer/keyboard handoff establish actual connectivity;
-an active peer entry alone does not. Certificate replacement requires updating
+an active peer entry alone does not. On L1, if `lan-mouse.err.log` says
+`accessibility permission is required`, the agent can be running with its
+peers marked active but cannot capture the pointer. In System Settings →
+Privacy & Security → Accessibility, enable the installed
+`~/Applications/Lan Mouse Desktop.app` (use **+** to add it if missing). If
+the entry is already enabled but capture is still denied, remove it and add
+the installed bundle again. Then restart just the Lan Mouse agent:
+
+```bash
+launchctl kickstart -k "gui/$(id -u)/org.nix-community.home.lan-mouse"
+```
+
+Check the new log entries for `using capture backend: macos`, then push the
+pointer through L1's top edge to test L2. If capture starts but L2 does not
+respond, check the app's Local Network permission and L2's daemon log for a
+connection attempt at the time of the test.
+
+Certificate replacement requires updating
 the public fingerprint in `lib/lan-mouse.nix` and reapplying the affected
 configurations. Private PEM keys stay on their respective machines.
 

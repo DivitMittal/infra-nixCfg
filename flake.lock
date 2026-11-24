@@ -19,11 +19,11 @@
     "OS-nixCfg": {
       "flake": false,
       "locked": {
-        "lastModified": 1793280340,
-        "narHash": "sha256-cYHqWaBKCOYa2Cqm++zScjXmKCM94OzeTzVPQxOlpu4=",
+        "lastModified": 1794660680,
+        "narHash": "sha256-rhCDMyE2xUbw3zmOZcokeQZ9GgUBnD2bE6LTTQSHNiU=",
         "owner": "DivitMittal",
         "repo": "OS-nixCfg",
-        "rev": "ec9ba5181971c64db6897fe52b03db1f86489139",
+        "rev": "5dc19fc047851af55be0c986c1efa9874acb96d9",
         "type": "github"
       },
       "original": {
@@ -219,6 +219,7 @@
           "actions-nix"
         ],
         "aicommit2": "aicommit2",
+        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs",
         "devshell": [
           "devshell"
         ],
@@ -252,11 +253,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795028771,
-        "narHash": "sha256-/TuaKsIEXE9ZKKoOH5ZKGLdUJ8uh63wrlsBRkCpBZdc=",
+        "lastModified": 1795532637,
+        "narHash": "sha256-1djty6ZxOIk6WnTbSSy3mu/OIA/xvXwf+T+zsVn33Fc=",
         "owner": "DivitMittal",
         "repo": "ai-nixCfg",
-        "rev": "d9d730f5dc487391b921171be639d1a2dbf449b9",
+        "rev": "00902db4a98d181645b723cb2cbaf0399b1709ca",
         "type": "github"
       },
       "original": {
@@ -273,7 +274,7 @@
         ],
         "nixpkgs": [
           "ai-nixCfg",
-          "nixpkgs"
+          "aicommit2-build-nixpkgs"
         ]
       },
       "locked": {
@@ -291,6 +292,22 @@
       }
     },
     "aicommit2-build-nixpkgs": {
+      "locked": {
+        "lastModified": 1753429684,
+        "narHash": "sha256-9h7+4/53cSfQ/uA3pSvCaBepmZaz/dLlLVJnbQ+SJjk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fd36ee82c0275fb545775cc5e4d30542899511d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fd36ee82c0275fb545775cc5e4d30542899511d",
+        "type": "github"
+      }
+    },
+    "aicommit2-build-nixpkgs_2": {
       "flake": false,
       "locked": {
         "lastModified": 1753429684,
@@ -1057,11 +1074,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790898470,
-        "narHash": "sha256-zTwuwezD0w3hpga6a6P8emidzAZFyWqlNeRBlpWOOl8=",
+        "lastModified": 1793576659,
+        "narHash": "sha256-V1h85lUaJBQoHFrB2vpXZOE0Ju1MYSnIpsehoVZYlDo=",
         "owner": "hercules-ci",
         "repo": "flake-parts",
-        "rev": "024633cd702b10285db5cb19b40ad48d2399ba60",
+        "rev": "ea2630b7470978622c7689a1ff75d2b389175399",
         "type": "github"
       },
       "original": {
@@ -1545,11 +1562,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793193205,
-        "narHash": "sha256-X6xa6sGA7RnJQuZGbFMC+K+KToWAlBDCCjJXfTwEPsw=",
+        "lastModified": 1794715309,
+        "narHash": "sha256-awkBBs5ctFKgEYjpNGpi3t/VqF589n5EWfdinRb2gNI=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "095fef2f265c3c0da4fe315efba8f8a04495ab34",
+        "rev": "a1293da7dd8e497e08d26173f97e2976b36a31ea",
         "type": "github"
       },
       "original": {
@@ -1859,11 +1876,11 @@
     },
     "kolu": {
       "locked": {
-        "lastModified": 1793581554,
-        "narHash": "sha256-Z31KhxJvHb8TIwaUPtwb+it69WAY7wOBCrgGEaX7Qqw=",
+        "lastModified": 1793662054,
+        "narHash": "sha256-eAe62+98PtWb+IJlVEU5V6Uxj56m5d43BNmlLpcz7IE=",
         "owner": "juspay",
         "repo": "kolu",
-        "rev": "113ab7f7e84194e50039e6c2cc848cc4046c14e5",
+        "rev": "d0782947a0aa6a9db511671e9c2c13e376e4e6bf",
         "type": "github"
       },
       "original": {
@@ -1943,11 +1960,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1793509770,
-        "narHash": "sha256-R7AdVzt96shNlCC0BzHCfBwPteMIXv1pgtm8D0+hSh0=",
+        "lastModified": 1794721205,
+        "narHash": "sha256-2EnEIzGteNjjEcAuoM8aDLwVZpaoTthHHUnLeblChAg=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "1d279cd249b5048f6b6282aa81d6edde3b77eaf9",
+        "rev": "9178bae7d9e74074b08ffd0a77c4c1e376fa3179",
         "type": "github"
       },
       "original": {
@@ -2253,11 +2270,11 @@
         "qmd": "qmd"
       },
       "locked": {
-        "lastModified": 1793383524,
-        "narHash": "sha256-arWBoGbFd5AW+RsJ/wmsWiB0DMMM1S9Ji94xNOFOobw=",
+        "lastModified": 1794343178,
+        "narHash": "sha256-w2QNvMMwuYaWYXLNUIR179iLYj5jigwxx10i2GH64sU=",
         "owner": "openclaw",
         "repo": "nix-openclaw",
-        "rev": "4b261b08c173467dc41db7b43d8265529c435055",
+        "rev": "b04843a59efe524bc01a14aed1d5b977dc811334",
         "type": "github"
       },
       "original": {
@@ -2292,11 +2309,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793200720,
-        "narHash": "sha256-edXzeTx+chRxTJ0dA4KotHajzROryp9MOxTmLw5kQxE=",
+        "lastModified": 1793931695,
+        "narHash": "sha256-BijKCThkKOEjPvcbaFGCoygMX1MalNN877G/v4IT9Nw=",
         "owner": "openclaw",
         "repo": "nix-steipete-tools",
-        "rev": "1aca1077466fc9bff1bf098716fa8e1b8eb89574",
+        "rev": "e43d472439287ff09758498d234be8fca9910319",
         "type": "github"
       },
       "original": {
@@ -2444,11 +2461,11 @@
     },
     "nixpkgs-2605": {
       "locked": {
-        "lastModified": 1793147889,
-        "narHash": "sha256-+//qXhkXCKTFoVCHAYhoEP1ZnPSx/b4IHdLI1ZMz3UU=",
+        "lastModified": 1794217284,
+        "narHash": "sha256-Ya0ojDh1BF5zgyZRlehygC0ZvvEg2WaGZWn1xiNozmM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "36173dbc6ff2b383c4d03b002fd1ea58e2e4dbcd",
+        "rev": "f4244ef33645badc8157562b5e80748929b396c2",
         "type": "github"
       },
       "original": {
@@ -2877,11 +2894,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1793345420,
-        "narHash": "sha256-e/yiZ31gXRROBDcnOtT3YwDQ73NVG9Cepccbt86LIn8=",
+        "lastModified": 1793977579,
+        "narHash": "sha256-WrSODdZFVIs/Hh2NzC0bY+ROByi0bATg8WfePX8dPj8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "885ba4d038f10c3d17d7a92e8c3cc185b99c9158",
+        "rev": "4fe25e12eb9f4c744966dd3de5a05246cf098601",
         "type": "github"
       },
       "original": {
@@ -3218,11 +3235,11 @@
         "nixpkgs-x86_64-darwin": "nixpkgs-x86_64-darwin"
       },
       "locked": {
-        "lastModified": 1793494352,
-        "narHash": "sha256-Sl3iFnRg/kD5V6FOKsSN6110JLmqPM4tov/XZk/4Dzw=",
+        "lastModified": 1794669110,
+        "narHash": "sha256-fjsGFgpPj/yN4J5lmRRGZcAZNsPQ+3piGTQSIDFBd9g=",
         "owner": "lukasl-dev",
         "repo": "pi.nix",
-        "rev": "0ae16f9c17428c65eb1886a70afdfe56170eec9c",
+        "rev": "06ee2f93bfe681252165c926457243931be21ff0",
         "type": "github"
       },
       "original": {
@@ -3537,7 +3554,7 @@
         "actions-nix": "actions-nix",
         "agenix": "agenix",
         "ai-nixCfg": "ai-nixCfg",
-        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs",
+        "aicommit2-build-nixpkgs": "aicommit2-build-nixpkgs_2",
         "android-kvm": "android-kvm",
         "areofyl-fetch": "areofyl-fetch",
         "brew-api": "brew-api",
@@ -3936,11 +3953,11 @@
     "talon-community": {
       "flake": false,
       "locked": {
-        "lastModified": 1793456387,
-        "narHash": "sha256-MdkkOZzTUR/EDLg21CF/gGCNCJogM6/5uIreV0rRN2E=",
+        "lastModified": 1794717629,
+        "narHash": "sha256-+so/ycyNwrbx0isqpkqb+GUKlrPENOA5PwwZaKdHB4s=",
         "owner": "talonhub",
         "repo": "community",
-        "rev": "d17b8616b32c62dff3d3858341ccec0cb6a040ef",
+        "rev": "c5ab7aeee675800f31ce0f3876896cbc09036f2a",
         "type": "github"
       },
       "original": {
@@ -4002,11 +4019,11 @@
         "wezterm": "wezterm"
       },
       "locked": {
-        "lastModified": 1793748330,
-        "narHash": "sha256-KYiC7RY172kAK5RyTDas7K7ypzPWdqI85cVWNYhl8vU=",
+        "lastModified": 1795532653,
+        "narHash": "sha256-Vxb8DojJ/YOwaIC2YSGBZwoEiEjWZmt7loF1ypep6/w=",
         "owner": "DivitMittal",
         "repo": "term-nixCfg",
-        "rev": "4e3e58fddba7a4277b7728688eb0a1e7df9991a6",
+        "rev": "41b7c70518ee4d17177ca0ca5f545f2a0d44407c",
         "type": "github"
       },
       "original": {

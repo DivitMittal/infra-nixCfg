@@ -11,6 +11,8 @@ in {
   apps.fdroid.packages = [
     "info.plateaukao.einkbro"
     "com.nononsenseapps.feeder"
+    # Replaces Onyx's ~70 MB LatinIME; TLTR layout applied via b1-keyboard.
+    "juloo.keyboard2"
   ];
 
   # Use Aurora's upstream signing channel for compatibility with Obtainium updates.

@@ -1,6 +1,6 @@
 {
   "abi": "arm64-v8a",
-  "lockedAt": 1795520593,
+  "lockedAt": 1795547310,
   "packages": {
     "info.plateaukao.einkbro": {
       "versionCode": 160701,
@@ -36,6 +36,24 @@
         "https://ftp.agdsn.de/fdroid/repo/com.nononsenseapps.feeder_4191.apk",
         "https://ftp.fau.de/fdroid/repo/com.nononsenseapps.feeder_4191.apk",
         "https://ftp.gwdg.de/pub/android/fdroid/repo/com.nononsenseapps.feeder_4191.apk"
+      ]
+    },
+    "juloo.keyboard2": {
+      "versionCode": 58,
+      "versionName": "2.2.1",
+      "url": "https://f-droid.org/repo/juloo.keyboard2_58_0fd96da.apk",
+      "sha256": "14296902591e5e3c8f9040b3fc8a309d0071cd0fa4085c159f1187a48722881d",
+      "repoFingerprint": "43238d512c1e5eb2d6569f4a3afbf5523418b82e0a3ed1552770abb9a9c9ccab",
+      "signerSha256": [
+        "0fd96daf7a70981edc7af42d14a20ff19e90514c9966de93abb7af251453efc4"
+      ],
+      "preferredSigner": "0fd96daf7a70981edc7af42d14a20ff19e90514c9966de93abb7af251453efc4",
+      "size": 852628,
+      "mirrors": [
+        "https://fdroid.tetaneutral.net/fdroid/repo/juloo.keyboard2_58_0fd96da.apk",
+        "https://ftp.agdsn.de/fdroid/repo/juloo.keyboard2_58_0fd96da.apk",
+        "https://ftp.fau.de/fdroid/repo/juloo.keyboard2_58_0fd96da.apk",
+        "https://ftp.gwdg.de/pub/android/fdroid/repo/juloo.keyboard2_58_0fd96da.apk"
       ]
     },
     "app.inkos": {

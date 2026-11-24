@@ -123,6 +123,36 @@ The front-button mapping follows
 The broad RAM/debloat presets, root wake daemon, and GUI flashing fallbacks are
 not dependencies of this profile. No external desktop utility is executed.
 
+### Keyboard
+
+[Unexpected Keyboard](https://github.com/Julow/Unexpected-Keyboard)
+(`juloo.keyboard2`, declared in `apps.nix`) replaces Onyx's bundled LatinIME.
+`keyboard/layout.xml` is the [TLTR](https://github.com/DivitMittal/TLTR) QWERTY
+layout, deployed and made the default IME declaratively. Grant **Shell**
+superuser access in Magisk for the CLI.
+
+```sh
+nix run .#b1-keyboard -- --serial SERIAL plan
+nix run .#b1-keyboard -- --serial SERIAL apply
+```
+
+Unexpected Keyboard has no file-watching custom-layout mechanism; its layout
+is one JSON-encoded string in its own SharedPreferences file
+(`/data/data/juloo.keyboard2/shared_prefs/juloo.keyboard2_preferences.xml`,
+key `layouts`). `apply` writes that file directly as root, restores its
+owner/SELinux context, force-stops the app so it reloads, then enables and
+sets Unexpected Keyboard as the default IME, retrying `ime set` a few times
+to ride out `InputMethodManagerService`'s enabled-method cache catching up
+with a just-issued `ime enable`. `plan` only reads state back.
+
+`keyboard/layout.xml` is a close relative of
+`hosts/droid/M1/keyboard/layout.xml` (Termux Launcher's embedded keyboard on
+M1), not the same file: the M1 variant's space-key diagonal swipes call
+Termux Launcher's own window/session-switching commands (`tool:...`), which
+the standalone Unexpected Keyboard app would type as literal text instead of
+running. This copy drops those five swipes and keeps everything else
+identical. Update both files together when the shared TLTR design changes.
+
 ## Select debloat entries
 
 The reference is [RodrickRK/boox-debloat](https://github.com/RodrickRK/boox-debloat),

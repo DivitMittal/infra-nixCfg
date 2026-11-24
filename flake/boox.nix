@@ -39,6 +39,14 @@
         '';
       };
 
+      b1-keyboard = pkgs.writeShellApplication {
+        name = "b1-keyboard";
+        runtimeInputs = [pkgs.android-tools pkgs.python3];
+        text = ''
+          exec python3 -B ${source}/keyboard.py --profile ${profile} --layout ${source + /keyboard/layout.xml} "$@"
+        '';
+      };
+
       # Acquiring an image never boots, flashes or modifies the reader.
       b1-recovery = pkgs.fetchurl {
         name = "b1-twrp-${identity.recovery.version}.img";
@@ -51,6 +59,14 @@
         nativeBuildInputs = [pkgs.python3];
       } ''
         python3 -B -m unittest discover -s ${source} -p test_controller.py
+        touch "$out"
+      '';
+
+    checks.b1-keyboard =
+      pkgs.runCommand "b1-keyboard-tests" {
+        nativeBuildInputs = [pkgs.python3];
+      } ''
+        python3 -B -m unittest discover -s ${source} -p test_keyboard.py
         touch "$out"
       '';
   };

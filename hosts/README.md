@@ -266,12 +266,19 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 
 ### Home lab: roles and bring-up order
 
-| Host | Hardware                         | Role                                                 | LAN address                     |
-| ---- | -------------------------------- | ---------------------------------------------------- | ------------------------------- |
-| T1   | HP t640, lowest spec + USB 3 NIC | Edge router: ImmortalWrt VM (DMZ; PPPoE optional)    | host `192.168.2.3`, router `.1` |
-| T2   | HP t640, highest spec            | Sway GUI + API-backed AI agents + k3s worker         | DHCP, `T2.lan`                  |
-| T3   | HP t640, medium spec             | k3s server + RSSHub `:31200`, SSH portfolio `:30022` | DHCP, `T3.lan`                  |
-| MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
+| Host | Hardware                                    | Role                                                 | LAN address                    |
+| ---- | ------------------------------------------- | ---------------------------------------------------- | ------------------------------ |
+| T1   | HP t640, 8 GiB RAM, 128 GB NVMe + USB 3 NIC | Edge router: ImmortalWrt VM (DMZ; PPPoE optional)     | host `192.168.2.3`, router `.1` |
+| T2   | HP t640, 32 GiB RAM, 256 GB NVMe             | Sway GUI + API-backed AI agents + k3s worker         | `192.168.2.171`                 |
+| T3   | HP t640, 16 GiB RAM, 256 GB NVMe             | k3s server + RSSHub `:31200`, SSH portfolio `:30022` | `192.168.2.8`                   |
+| MON1 | Lenovo S100 (Atom, 2 GiB; repo inventory)    | Prometheus `:9090`, Grafana `:3000`, blackbox probes | `192.168.2.5`                   |
+
+T1/T2/T3 hardware was checked over SSH on 2026-11-22 using CPU information,
+SMBIOS memory-device records and block-device capacity. All three use a Ryzen
+Embedded R1505G (2 cores / 4 threads). OS-visible RAM is approximately 5.7,
+29.3 and 13.6 GiB respectively; T3's former 4 GiB inventory is obsolete.
+MON1 hardware was not reverified in that check because its SSH host key was
+not present in the local trusted-host inventory.
 
 All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter
 for MON1 to scrape); the t640s also share `_homelab/t640.nix` (systemd-boot,

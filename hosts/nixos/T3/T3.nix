@@ -1,4 +1,5 @@
-# T3 — the medium-spec t640: home-lab services, plus overflow capacity for
+# T3 — HP t640, Ryzen R1505G (2 cores / 4 threads), 16 GiB RAM, 256 GB NVMe
+# (live inventory 2026-11-22): home-lab services, plus overflow capacity for
 # API-backed AI agents (host tuning in hosts/nixos/_homelab/agents.nix; agent
 # CLIs from ai-nixCfg via the tty+dev home-manager profile).
 #

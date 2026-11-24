@@ -41,7 +41,9 @@ in {
   windows = {
     L2 = {
       config = settingsFor "L2";
-      # Relative to %USERPROFILE%; installed by nix-win (hosts/win/L2/lan-mouse.nix).
+      # Windows can hide software-injected mouse input without a physical mouse.
+      mouseKeys = true;
+      # Relative to %USERPROFILE%; the default nix-win deployment installs it.
       executable = "AppData\\Local\\lan-mouse\\bin\\lan-mouse.exe";
       task = {
         name = "Lan Mouse";

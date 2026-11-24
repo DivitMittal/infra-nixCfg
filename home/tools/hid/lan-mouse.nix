@@ -32,8 +32,11 @@ in {
 
   programs.lan-mouse = {
     enable = true;
-    package = inputs.lan-mouse.packages.${hostPlatform.system}.default.overrideAttrs (_: {
+    package = inputs.lan-mouse.packages.${hostPlatform.system}.default.overrideAttrs (old: {
       buildInputs = [];
+      patches = (old.patches or []) ++ lib.optionals hostPlatform.isDarwin [./lan-mouse-0.11-compat.patch];
+      # This pinned crate has no unit/doc tests; verify Darwin with live handoffs.
+      doCheck = !hostPlatform.isDarwin;
       # Disabling the GTK frontend must not also disable Linux input support.
       cargoBuildFlags = ["--no-default-features"] ++ lib.optionals hostPlatform.isLinux waylandFeatures;
       cargoTestFlags = ["--no-default-features"] ++ lib.optionals hostPlatform.isLinux waylandFeatures;

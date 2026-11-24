@@ -690,6 +690,25 @@ until the next login or `Start-ScheduledTask 'Lan Mouse'`. Its daemon log is
 `%LOCALAPPDATA%\lan-mouse\daemon.log`; L1 logs to `~/.cache/lan-mouse.err.log`.
 T2 logs are available through `journalctl --user -u lan-mouse`.
 
+For a manual alternative to the Lan Mouse portion of DSC, build
+`nix build .#lan-mouse-windows`, copy `L2.json`, `Apply.ps1` and `Cursor.ps1`
+from `result/` into the same Windows directory, and run `./Apply.ps1` in
+PowerShell as the logged-in desktop user. The script requires the existing
+Lan Mouse executable at `%LOCALAPPDATA%\lan-mouse\bin\lan-mouse.exe` and an
+inbound UDP 4242 firewall rule on the active network profile. It backs up
+changed configuration and replaces the same `Lan Mouse` task DSC manages.
+Do not use both to manage that task; rerun `win-deploy L2` to return it to DSC.
+
+The manual apply also registers a separate `Lan Mouse Cursor` login task.
+It applies the declared `mouseKeys = true` in the interactive session so the
+pointer can remain visible without a physical mouse, and writes diagnostic
+state to `%LOCALAPPDATA%\lan-mouse\cursor-state.json`. DSC does not manage
+this task; remove it separately and turn off Mouse Keys to undo the workaround.
+
+On Darwin, Lan Mouse skips the optional outbound `Hello` event (ID 11),
+which causes the Windows 0.11 release to disconnect. DTLS authentication
+is unchanged.
+
 Use `lan-mouse cli list` on each machine to check active peer directions.
 Connection logs and a pointer/keyboard handoff establish actual connectivity;
 an active peer entry alone does not. Certificate replacement requires updating

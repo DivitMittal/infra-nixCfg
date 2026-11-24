@@ -10,14 +10,36 @@
   # which throws on x86_64-darwin. Same derivation, our pkgs.
   mkRayCastExtension = pkgs.callPackage "${inputs.vicinae}/nix/mkRayCastExtension.nix" {};
 
-  # Older API tarballs contain only a downloader in bin/ray. Pin the matching
-  # Linux CLI as a fixed-output fetch, before the sandboxed npm build runs.
-  legacyLinuxCliHashes = {
-    "1.39.0" = "sha256-7TUjuicfSRvPpcHwgyCQ2lO2eRX7VSpxF+oS8ZEPF3I=";
-    "1.46.0" = "sha256-gBhzA5gN7gRbOzWYGZM1eU829W7oQUk6PIHKFB3g7ho=";
-    "1.47.3" = "sha256-oJwgzYXpfr6Zr1fYdbbO4aVimUR+sqpIJG/ZMpZNPGg=";
-    "1.80.0" = "sha256-lVkAElCQH1RSsZN+yLPyEjjOGILhrem+IL1KW6kyC7s=";
+  # Older API tarballs contain only a downloader in bin/ray, which curls the
+  # real CLI into bin/<dir>/ray at build time; the sandbox has no network.
+  # Pin each CLI as a fixed-output fetch instead, keyed by the directory the
+  # downloader uses: linux, x86 (Intel macOS) or arm64 (Apple silicon).
+  legacyCliHashes = {
+    linux = {
+      "1.39.0" = "sha256-7TUjuicfSRvPpcHwgyCQ2lO2eRX7VSpxF+oS8ZEPF3I=";
+      "1.46.0" = "sha256-gBhzA5gN7gRbOzWYGZM1eU829W7oQUk6PIHKFB3g7ho=";
+      "1.47.3" = "sha256-oJwgzYXpfr6Zr1fYdbbO4aVimUR+sqpIJG/ZMpZNPGg=";
+      "1.80.0" = "sha256-lVkAElCQH1RSsZN+yLPyEjjOGILhrem+IL1KW6kyC7s=";
+    };
+    x86 = {
+      "1.39.0" = "sha256-eybncsn/jIhQYDHFz4SKT7SNG6eZVSq16oSriaX2BHY=";
+      "1.46.0" = "sha256-hv9hiSks8lPp2JaF78khusvTDVZl+hL4aeV9qLFA7eQ=";
+      "1.47.3" = "sha256-ItUS75BhpdV9RwF7vyVa9dz1AmFSBHg2uRz4+r0+Wss=";
+      "1.80.0" = "sha256-zQsTHLjJlBm7R8Y19ktTaW01DEWnAghCPVM4uzVnKgc=";
+    };
+    arm64 = {
+      "1.39.0" = "sha256-Ow9zH5QlXK2W2NOsv00GqJs6Y+X9YeYMhCTXPVwjODw=";
+      "1.46.0" = "sha256-5fZxhtuQAq02awkfh8EpZhL7F7IW5rc60YysgtKYoy8=";
+      "1.47.3" = "sha256-QVM3F2aYNcCYN4Y5f3NKyIJK3d619nCz8cidkLR5DZI=";
+      "1.80.0" = "sha256-lkjHnpluadt5r/h+Xr5NWJlABdqpCeP7jXY1WQy0PMw=";
+    };
   };
+  cliDir =
+    if hostPlatform.isLinux
+    then "linux"
+    else if hostPlatform.isAarch64
+    then "arm64"
+    else "x86";
 
   # Always fetch the source ourselves (rather than letting mkRayCastExtension's
   # default fetchFromGitHub run) since `name` (the extension's package.json
@@ -39,9 +61,10 @@
       + "/extensions/${folder}";
     lock = builtins.fromJSON (builtins.readFile (src + "/package-lock.json"));
     apiVersion = lock.packages."node_modules/@raycast/api".version;
-    legacyLinuxCli = pkgs.fetchurl {
-      url = "https://cli.raycast.com/${apiVersion}/linux/ray";
-      hash = legacyLinuxCliHashes.${apiVersion};
+    hasLegacyCli = builtins.hasAttr apiVersion (legacyCliHashes.${cliDir} or {});
+    legacyCli = pkgs.fetchurl {
+      url = "https://cli.raycast.com/${apiVersion}/${cliDir}/ray";
+      hash = legacyCliHashes.${cliDir}.${apiVersion};
     };
   in
     mkRayCastExtension ({
@@ -61,11 +84,13 @@
             ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
           };
       }
-      // lib.optionalAttrs (hostPlatform.isLinux && hostPlatform.isx86_64 && builtins.hasAttr apiVersion legacyLinuxCliHashes) {
-        # The upstream Linux CLI is a static x86_64 Go executable. Replace the
-        # downloader directly: API 1.39.0's wrapper also runs `file /usr/local`.
+      # Upstream publishes the Linux CLI for x86_64 only.
+      // lib.optionalAttrs (hasLegacyCli && (hostPlatform.isDarwin || hostPlatform.isx86_64)) {
+        # Replace the downloader with the CLI itself rather than placing the
+        # CLI beside it: API 1.39.0's wrapper also runs `file /usr/local`,
+        # whose output would precede everything the CLI prints.
         preBuild = ''
-          install -m755 ${legacyLinuxCli} node_modules/@raycast/api/bin/ray
+          install -m755 ${legacyCli} node_modules/@raycast/api/bin/ray
           test "$(node_modules/.bin/ray version)" = ${lib.escapeShellArg apiVersion}
         '';
       });

@@ -18,9 +18,14 @@ target="vanee@192.168.2.6"
 identity="${L2_SSH_IDENTITY:-$HOME/.ssh/agenix/id_ed25519}"
 ssh_opts=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new -i "$identity" -o IdentitiesOnly=yes)
 
-ssh "${ssh_opts[@]}" "$target" 'if (!(Test-Path .ssh)) { New-Item -ItemType Directory .ssh | Out-Null }'
+## The remote default shell is cmd.exe (not PowerShell) — plain cmd syntax,
+## no nested-quoting through powershell -Command (that's the gotcha
+## nix-win-dsc-gotchas warns about; use -EncodedCommand if this ever needs
+## real PowerShell).
+ssh "${ssh_opts[@]}" "$target" 'if not exist .ssh mkdir .ssh'
 scp -q "${ssh_opts[@]}" "$identity" "$identity.pub" "$target:.ssh/"
 # Win32-OpenSSH refuses a private key readable by anyone but its owner.
-ssh "${ssh_opts[@]}" "$target" 'icacls "$HOME\.ssh\id_ed25519" /inheritance:r /grant:r "$($env:USERNAME):F" | Out-Null'
+ssh "${ssh_opts[@]}" "$target" \
+  'icacls "%USERPROFILE%\.ssh\id_ed25519" /inheritance:r /grant:r %USERNAME%:F'
 
 echo "Copied $(basename "$identity") to $target:.ssh/. Verify with: ssh $target ssh L1 true"

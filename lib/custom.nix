@@ -1,4 +1,11 @@
 {lib, ...}: {
+  # The installable must be a string, not a derivation: only the launcher is
+  # retained by the profile. nix run fetches/builds the target on first use.
+  mkNixRunBin = pkgs: name: installable:
+    pkgs.writeShellScriptBin name ''
+      exec nix run ${lib.escapeShellArg installable} -- "$@"
+    '';
+
   # Creates a $out/bin/<formula> that runs a Homebrew formula ephemerally via zerobrew.
   # Darwin-only: pkgs.customDarwin must be present.
   mkZbxBin = pkgs: formula:

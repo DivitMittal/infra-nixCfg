@@ -3,7 +3,7 @@
   lib,
   pkgs,
 }: let
-  inherit (lib.custom) scanPaths mkUvxBin mkPnpmDlxBin mkZbxBin;
+  inherit (lib.custom) scanPaths mkUvxBin mkPnpmDlxBin mkZbxBin mkNixRunBin;
   palette = import ../lib/palette.nix {inherit pkgs;};
   fixture = ./fixtures/scan-paths;
 
@@ -66,6 +66,44 @@ in {
 
   testMkPnpmDlxBinExecsPnpmDlx = {
     expr = contains "${pkgs.pnpm}/bin/pnpm dlx wrangler@latest \"$@\"" (mkPnpmDlxBin pkgs "wrangler" "wrangler@latest").text;
+    expected = true;
+  };
+
+  ## ── mkNixRunBin ────────────────────────────────────────────────────────────
+  testMkNixRunBinName = {
+    expr = (mkNixRunBin pkgs "zlib" "example#zlib-cli").name;
+    expected = "zlib";
+  };
+
+  testMkNixRunBinEscapesInstallableAndForwardsArguments = {
+    expr = contains "exec nix run 'path:/a b#zlib-cli' -- \"$@\"" (mkNixRunBin pkgs "zlib" "path:/a b#zlib-cli").text;
+    expected = true;
+  };
+
+  testMkNixRunBinDoesNotReferenceTarget = {
+    expr = builtins.hasAttr (plain (toString pkgs.hello)) (builtins.getContext (mkNixRunBin pkgs "hello" "nixpkgs#hello").text);
+    expected = false;
+  };
+
+  testZlibHomeInstallsOnlyLauncher = {
+    expr = let
+      module = import ../home/media/books.nix {
+        inherit lib pkgs;
+        self.outPath = "/example/config";
+      };
+    in
+      map (p: p.name) module.home.packages;
+    expected = ["zlib"];
+  };
+
+  testZlibLauncherUsesSourceSnapshot = {
+    expr = let
+      module = import ../home/media/books.nix {
+        inherit lib pkgs;
+        self.outPath = "/example/config";
+      };
+    in
+      contains "exec nix run '/example/config#zlib-cli' -- \"$@\"" (builtins.head module.home.packages).text;
     expected = true;
   };
 

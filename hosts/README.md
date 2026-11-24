@@ -676,9 +676,10 @@ wlroots emulation even though the GTK frontend is disabled. T2 requires a
 logged-in Sway session; Lan Mouse starts with `sway-session.target`, not at the
 login greeter. L1 starts its LaunchAgent at login. Home Manager installs and
 registers `~/Applications/Lan Mouse Desktop.app` and associates the agent with
-that app so macOS can identify it for Local Network privacy. Grant the app
-Accessibility and Local Network access in System Settings; those user grants
-are not managed by Nix. Other hosts do not join this desk automatically.
+that app so macOS can identify it for Local Network privacy. L1's nix-darwin
+activation uses the packaged `tccutil` to refresh the app's Accessibility
+grant after the bundle is installed. Grant Local Network access separately
+in System Settings. Other hosts do not join this desk automatically.
 
 T2 enables `programs.ydotool` to provide a virtual keyboard when no physical
 keyboard is attached. Lan Mouse's wlroots backend needs that keyboard's
@@ -717,15 +718,21 @@ Use `lan-mouse cli list` on each machine to check active peer directions.
 Connection logs and a pointer/keyboard handoff establish actual connectivity;
 an active peer entry alone does not. On L1, if `lan-mouse.err.log` says
 `accessibility permission is required`, the agent can be running with its
-peers marked active but cannot capture the pointer. In System Settings →
-Privacy & Security → Accessibility, enable the installed
-`~/Applications/Lan Mouse Desktop.app` (use **+** to add it if missing). If
-the entry is already enabled but capture is still denied, remove it and add
-the installed bundle again. Then restart just the Lan Mouse agent:
+peers marked active but cannot capture the pointer. Run the L1 host switch
+after installing the Home Manager bundle, or refresh just this grant and
+restart the agent:
 
 ```bash
+sudo /run/current-system/sw/bin/tccutil -s kTCCServiceAccessibility \
+  -i org.divitmittal.lan-mouse -e org.divitmittal.lan-mouse
 launchctl kickstart -k "gui/$(id -u)/org.nix-community.home.lan-mouse"
 ```
+
+If the tool cannot update the system TCC database, use System Settings →
+Privacy & Security → Accessibility to enable the installed
+`~/Applications/Lan Mouse Desktop.app` (use **+** to add it if missing). If
+the entry is already enabled but capture is still denied, remove it and add
+the installed bundle again, then restart the agent as above.
 
 Check the new log entries for `using capture backend: macos`, then push the
 pointer through L1's top edge to test L2. If capture starts but L2 does not

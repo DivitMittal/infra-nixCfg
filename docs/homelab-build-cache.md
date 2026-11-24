@@ -62,12 +62,16 @@ printed in the journal). It mints only a ten-minute in-memory bootstrap token
 (pull, create-cache, configure-cache on `darwin`); it never mints, logs or
 stores CI tokens, and never touches `infra`.
 
-The separate darwin-offload workflow is manual, builds L1 or ASL1 Darwin
+The separate darwin-offload workflow builds L1 on pushes to master that change
+configuration, package, or flake sources, and accepts manual L1 or ASL1 dispatches.
+It builds Darwin
 and Home Manager closures on native runners (macos-15-intel for L1,
 macos-15 Apple Silicon for ASL1), and never activates them.
 The target is allowlisted and host architecture checked; both builds use max-jobs=2/cores=2, and timeout
 is six hours. This job excludes Magic Nix Cache uploads and the shared infra
 Attic setup; Cachix remains pull-only.
+Tailscale and Attic binaries come from the pinned nixpkgs cache, avoiding the
+Tailscale action's Go source build on macOS.
 
 When ATTIC_DARWIN_TOKEN, TS_OAUTH_CLIENT_ID, TS_OAUTH_SECRET and the
 DARWIN_CACHE_PUBLIC_KEY variable are all present, the job joins the tailnet
@@ -79,6 +83,24 @@ an independent store with `require-sigs` and only the pinned key trusted,
 and only then pushes both closures with `attic push homelab:darwin` and
 confirms them with `nix path-info`. Every private-cache step is
 `continue-on-error`.
+Once that probe passes, `attic watch-store` feeds completed dependencies to the
+private cache during the build, so interrupted builds can reuse their work.
+
+Successful cache uploads also publish `deployment-paths.txt` and
+`source-revision.txt` as a 30-day artifact. Fetch the exact outputs on the Mac
+without re-evaluating the flake or rebuilding:
+
+```bash
+python3 utils/darwin_cached_pull.py <successful-run-id> --target L1
+```
+
+The helper checks the workflow, successful conclusion, source revision, target
+architecture, and both output paths before downloading with the pinned signing
+key. It prints activation commands; downloading does not activate anything.
+`common/home/darwin-cache.nix` configures Darwin clients with the private cache,
+its public signing key, and an age-managed, pull-only netrc credential. CI's
+push token and the client credential expire after 90 days and must be rotated
+before expiry.
 
 If any of those steps does not succeed (secret absent, T3 offline, ACL
 missing), the existing fallback runs: both closures are exported together,
@@ -92,6 +114,29 @@ The workflow intentionally does not import PR84's lock refresh or package
 changes. Current master may still fail Intel evaluation until the separate
 PR84 compatibility work is resolved. Building both target outputs also
 requires the corresponding outputs to evaluate on this pinned revision.
+
+### Bootstrap deployment on 2026-11-21
+
+T3's private cache was provisioned using the checked-in provisioning helper;
+the signing key is pinned in the Darwin client module and GitHub's `dev`
+environment. A local authenticated push and signature-verified pull into an
+independent store passed. CI credentials are encrypted in
+`ci/infra-nixCfg/attic_darwin_token.age`; client credentials are encrypted in
+`homelab/attic-darwin-pull.age`.
+
+T1 had not yet deployed its declared Tailscale module. A narrow bootstrap
+service at `/etc/systemd/system.control/attic-cache-router-bootstrap.service`
+runs Tailscale from `/nix/var/nix/profiles/attic-cache-router`, preserves state
+in `/var/lib/tailscale`, and enables the declared forwarding settings through
+`/etc/sysctl.d/90-attic-cache-router.conf`. Enrollment used the existing
+OpenTofu stack; its encrypted recovery state and router key were updated.
+The router is tagged `tag:homelab-router` and its LAN route is approved.
+
+The bootstrap service conflicts with the normal `tailscaled.service` and
+skips startup once that unit exists. After deploying T1's declared module,
+remove the bootstrap unit, its `multi-user.target.wants` symlink under
+`system.control`, the extra sysctl file, and the bootstrap Nix profile.
+Do not remove `/var/lib/tailscale`; the normal service reuses its enrollment.
 
 ## Credential and policy handoff
 

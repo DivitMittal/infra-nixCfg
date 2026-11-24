@@ -75,7 +75,18 @@
       hostName = "T2";
       system = "x86_64-linux";
       inherit class;
-      additionalModules = fullModules ++ [./_homelab-package-fixes.nix];
+      additionalModules =
+        fullModules
+        ++ [
+          ./_homelab-package-fixes.nix
+          # Same kolu crash loop as T3 below (unset KOLU_STATE_DIR), confirmed
+          # from T2's journal on 2026-11-24: every one of the last several
+          # boots ends mid crash-loop with no clean shutdown logged, pointing
+          # at this restart storm (restart counters past 5000+ per boot) as
+          # what's taking the box down. T3 got this fix after its 2026-11-20
+          # hang; T2 never did. Off until fixed upstream.
+          ({lib, ...}: {services.kolu.enable = lib.mkForce false;})
+        ];
     };
 
     T3 = mkCfg {

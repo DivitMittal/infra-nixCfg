@@ -83,7 +83,40 @@ working e-ink/touch and root ADB, but still uses the stock prebuilt 4.19.157 ker
 It provides a useful route to investigate our own partition backups after device
 verification. It does not provide matching kernel source or a ReSukiSU/SUSFS
 build. Do not substitute shared pre-patched boot images for our own stock images.
-Rooting/recovery tests remain explicit maintenance operations after receipt.
+B1 booted the pinned TWRP image in RAM and we verified read access to both
+slots' stock boot, vbmeta and recovery partitions. The backups stay outside
+Git. Magisk 31.1 was patched on B1 from its own stock boot image, tested in RAM
+and flashed to `boot_a`. TWRP was then flashed to `recovery_a`, booted from
+that partition, and verified by readback. B1 retains stock recovery on slot B.
+Before any recovery write, verify the serial, read
+`is-userspace` and `current-slot` in Fastboot, and check the stock backups.
+Use the explicit recovery partition for the selected slot. Restore that
+slot's original recovery image to undo the change.
+
+### Magisk modules
+
+Declare module IDs, pinned archives, and the desired enabled state in
+`magisk.nix`. Use a Nix-built ZIP or a hash-pinned download matching the ID
+in `module.prop`. Grant **Shell** superuser access in Magisk for the CLI.
+
+```sh
+nix run .#b1-magisk -- --serial SERIAL plan
+nix run .#b1-magisk -- --serial SERIAL apply
+```
+
+Planning is read-only and returns 3 when actions are pending. Apply stages
+changed archives through Magisk and sets the enabled state. The controller
+records each archive's SHA-256 in the module after a successful install, so
+it can track provenance even when an upstream installer transforms the ZIP
+contents. An existing UI install is adopted by reinstalling it once. Reboot
+explicitly to activate changes. Removing an entry leaves it unmanaged. Set
+`enable = false` and apply to disable it.
+
+The `b1-media` output builds the first managed module, which supplies
+standby and shutdown art and an uncompressed boot animation. Edit
+`media/build.py` to customize the artwork. To use the 758 × 1024 image
+without the overlay, copy `B1-standby.png` from the same output into
+`/sdcard/Pictures/Screensaver/` and select it in BOOX's screensaver settings.
 
 The front-button mapping follows
 [Zeusx212's native Onyx setting interface](https://github.com/Zeusx212/onyx-c69hd-button-remap).

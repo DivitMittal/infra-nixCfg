@@ -5,6 +5,7 @@ import shlex
 import subprocess
 import unittest
 from unittest.mock import patch
+from xml.etree import ElementTree as ET
 
 import deploy
 
@@ -71,7 +72,8 @@ class FakeDevice:
         if args[0] in ("mkdir", "chown", "chmod", "restorecon"):
             return ""
         if args[0] == "sh" and args[1] == "-c":
-            return "yes" if deploy.PREFS in self.files else ""
+            prefs = shlex.split(args[2])[3]
+            return "yes" if prefs in self.files else ""
         if args[0] == "cp":
             self.files[args[2]] = self.files.pop(args[1])
             return ""
@@ -102,13 +104,14 @@ class DeployTests(unittest.TestCase):
     def test_plan_is_read_only_and_reports_pending_changes(self):
         device = FakeDevice()
         self.assertEqual(deploy.reconcile(device, LAYOUT.read_text(), False), 3)
-        self.assertNotIn(deploy.PREFS, device.files)
+        self.assertFalse(device.files)
         self.assertEqual(device.default_ime, "com.onyx/.inputmethod.OnyxIME")
 
     def test_apply_installs_layout_and_switches_ime_then_matches_on_replay(self):
         device = FakeDevice()
         self.assertEqual(deploy.reconcile(device, LAYOUT.read_text(), True), 0)
-        self.assertIn(deploy.PREFS, device.files)
+        for prefs in deploy.PREF_STORES.values():
+            self.assertIn(prefs, device.files)
         self.assertEqual(device.default_ime, deploy.IME_ID)
         self.assertIn(deploy.IME_ID, device.enabled_imes)
         self.assertEqual(deploy.reconcile(device, LAYOUT.read_text(), False), 0)
@@ -127,8 +130,37 @@ class DeployTests(unittest.TestCase):
     def test_written_preference_round_trips_through_json_and_xml_escaping(self):
         device = FakeDevice()
         deploy.reconcile(device, LAYOUT.read_text(), True)
-        _, current = deploy.read_prefs(device)
-        self.assertEqual(current, deploy.desired_layouts(LAYOUT.read_text()))
+        for prefs in deploy.PREF_STORES.values():
+            root, current = deploy.read_prefs(device, prefs)
+            self.assertEqual(current, deploy.desired_layouts(LAYOUT.read_text()))
+            self.assertEqual(root.find("int[@name='version']").get("value"), "4")
+
+    def test_matching_settings_do_not_mask_stock_live_layout(self):
+        device = FakeDevice()
+        layout = LAYOUT.read_text()
+        deploy.reconcile(device, layout, True)
+        settings_before = device.files[deploy.SETTINGS_PREFS]
+        device.files[deploy.IME_PREFS] = (b'<map><int name="version" value="4"/>'
+            b'<string name="layouts">["system"]</string>'
+            b'<boolean name="need_migration" value="false"/>'
+            b'<int name="keyboard_height" value="42"/></map>')
+        self.assertEqual(deploy.reconcile(device, layout, False), 3)
+        self.assertEqual(deploy.reconcile(device, layout, True), 0)
+        self.assertEqual(device.files[deploy.SETTINGS_PREFS], settings_before)
+        root = ET.fromstring(device.files[deploy.IME_PREFS])
+        self.assertEqual(root.find("int[@name='keyboard_height']").get("value"), "42")
+        self.assertEqual(deploy.reconcile(device, layout, False), 0)
+
+    def test_initializes_layouts_only_store_written_by_old_deployer(self):
+        device = FakeDevice()
+        layout = LAYOUT.read_text()
+        deploy.reconcile(device, layout, True)
+        root, _ = deploy.read_prefs(device, deploy.SETTINGS_PREFS)
+        root.remove(root.find("int[@name='version']"))
+        device.files[deploy.SETTINGS_PREFS] = ET.tostring(root, encoding="utf-8")
+        self.assertEqual(deploy.reconcile(device, layout, False), 3)
+        self.assertEqual(deploy.reconcile(device, layout, True), 0)
+        self.assertEqual(deploy.reconcile(device, layout, False), 0)
 
     def test_require_root_reports_whichever_su_is_missing(self):
         device = FakeDevice()

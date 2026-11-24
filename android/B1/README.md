@@ -137,11 +137,11 @@ nix run .#b1-keyboard -- --serial SERIAL plan
 nix run .#b1-keyboard -- --serial SERIAL apply
 ```
 
-Unexpected Keyboard has no file-watching custom-layout mechanism; its layout
-is one JSON-encoded string in its own SharedPreferences file
-(`/data/data/juloo.keyboard2/shared_prefs/juloo.keyboard2_preferences.xml`,
-key `layouts`). `apply` stops the app before changing the layout, writes that
-file as root, restores its owner and SELinux context, then enables and
+Unexpected Keyboard 2.2.1 stores the `layouts` preference in two places:
+the settings screen uses credential-protected storage under `/data/user/0`,
+while the running keyboard reads device-protected storage under `/data/user_de/0`.
+`apply` stops the app before reconciling both copies, restores their ownership
+and SELinux context, then enables and
 sets Unexpected Keyboard as the default IME, retrying `ime set` a few times
 to ride out `InputMethodManagerService`'s enabled-method cache catching up
 with a just-issued `ime enable`. Only after verifying that Unexpected

@@ -1,6 +1,4 @@
-# Optional bundle for EPUBs, research PDFs, AI web conversations and RSS.
-# Import from device.nix after confirming its ABI, then android-rebuild update
-# with --lock android/B1/apps.lock.json before building or switching.
+# Reading apps and on-device APK sources for B1.
 {config, ...}: let
   sources = builtins.fromJSON (builtins.readFile ./koreader/sources.json);
   architecture =
@@ -14,6 +12,15 @@ in {
     "info.plateaukao.einkbro"
     "com.nononsenseapps.feeder"
   ];
+
+  # Use Aurora's upstream signing channel for compatibility with Obtainium updates.
+  apps.release."com.aurora.store".url = "https://gitlab.com/api/v4/projects/6922885/uploads/245eec8867a47057cbc54535f73b32ee/AuroraStore-4.8.4.apk";
+  apps.release."dev.imranr.obtainium".url = "https://github.com/ImranR98/Obtainium/releases/download/v1.7.5/app-arm64-v8a-release.apk";
+
+  apps.release."app.inkos".url = "https://github.com/gezimos/inkOS/releases/download/v0.6/app.inkos_v0.6-Signed.apk";
+
+  # Aurora delivers Play apps through its on-device installer.
+  apps.attended = ["com.openai.chatgpt"];
 
   # F-Droid's flavor disables user patches; keep the official package identity.
   apps.release."org.koreader.launcher".url = "https://github.com/koreader/koreader/releases/download/${sources.koreaderVersion}/koreader-android-${architecture}-${sources.koreaderVersion}.apk";

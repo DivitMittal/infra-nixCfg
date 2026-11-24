@@ -4,10 +4,10 @@ Controller-side Android management through nix-android, alongside M1 and E1.
 This profile is on `feat/boox-c69`, based on `feat/nix-android-device` (PR #40).
 The owner confirms the C69_M_STAR Android 11 firmware documented by the
 community, for AI conversations, EPUBs, research papers and RSS. B1 is declared
-as ARM64. The reader has not arrived; `identity.json` records the expected model,
-ABI, firmware fingerprint, kernel and SDK for verification before changes.
-The default manifest sets a five-minute screen timeout and the front-button
-mapping; app installation and debloating remain opt-in.
+as ARM64. The received reader matches the model, ABI, firmware fingerprint,
+kernel and SDK in `identity.json`. The manifest sets a five-minute screen timeout
+and the front-button mapping, manages the reading apps, and disables selected
+packages.
 
 ## First connection
 
@@ -96,7 +96,8 @@ The reference is [RodrickRK/boox-debloat](https://github.com/RodrickRK/boox-debl
 specifically `apps.json` at revision
 `e045a46d0d694f94814838aac1a33b7e601e7382`. It targets **C69_M_STAR education
 firmware**, not every C69 HD. `catalog.nix` records its candidates and protected
-packages. No candidate is selected by default.
+packages. The B1 manifest selects printing, print recommendations, the Android
+Easter egg, the education app, Onyx Mail, NFC and the two Onyx diagnostic apps.
 
 After checking the package is present and unnecessary on this device, start with
 one entry in `device.nix`, for example:
@@ -142,14 +143,26 @@ tools requires a separate, firmware-compatible procedure.
 
 ## Reading apps and library
 
-The optional `apps.nix` bundle declares KOReader from its official GitHub release and EinkBro/Feeder from F-Droid:
+The `apps.nix` module pins KOReader, inkOS, Aurora Store and Obtainium from
+their upstream releases and EinkBro and Feeder from F-Droid.
 
 | Use                               | App      | Workflow                                                              |
 | --------------------------------- | -------- | --------------------------------------------------------------------- |
 | EPUBs                             | KOReader | Local books; OPDS for a hosted library later                          |
 | Research papers                   | KOReader | PDF margin crop, zoom or reflow; retain the original PDF              |
 | AI conversations and web articles | EinkBro  | Bookmark the preferred hosted AI service; test login and rendering    |
+| Android home screen               | inkOS    | Choose inkOS as the default Home app on B1 if desired                 |
 | RSS                               | Feeder   | Offline articles and OPML subscriptions; independent local feed state |
+
+ChatGPT is an attended package. On a fresh B1, verify the device with
+`b1-device inspect` and review the plan before installing the pinned APKs.
+
+```sh
+nix run .#android-rebuild -- bootstrap --flake .#B1 --serial SERIAL
+```
+
+Bootstrap pauses while ChatGPT is missing. Install OpenAI's ChatGPT through
+Aurora Store, then rerun the B1 plan and apply.
 
 [KOReader](https://github.com/koreader/koreader) supports EPUB/PDF and e-ink
 reading. [EinkBro](https://github.com/plateaukao/einkbro) avoids unnecessary UI
@@ -167,8 +180,7 @@ service is deployed and reachable before adding it. Desktop Calibre is also
 configured in `home/gui/docs.nix`; use it as the main EPUB library. No Calibre
 OPDS server is declared by this change.
 
-After the identity check succeeds, uncomment `./apps.nix` in `device.nix` and resolve pins.
-The bundle is disabled initially and its APKs are not locked yet. KOReader uses
+The device imports `apps.nix` and resolves APKs from `apps.lock.json`. KOReader uses
 `org.koreader.launcher`: the F-Droid flavor (`org.koreader.launcher.fdroid`)
 disables user patches. See [the KOReader setup](koreader/README.md) for the
 pinned plugins, Lua profiles and their deployment:

@@ -2,7 +2,7 @@
 {
   imports = [
     ./debloat.nix
-    # ./apps.nix # Enable after confirming the ABI, then resolve the app lock.
+    ./apps.nix
   ];
 
   device.name = "B1";
@@ -25,8 +25,16 @@
     system.screen_off_timeout = 300000;
   };
 
-  # Select individual entries only after comparing the snapshot with catalog.nix.
-  # Disabling retains the system APK and its data; removing an entry does NOT
-  # re-enable it. See README.md for recovery and firmware compatibility limits.
-  boox.disabledPackages = [];
+  # B1 is a reader. Disable optional apps and printing, plus diagnostics and
+  # NFC that were already disabled on the received unit.
+  boox.disabledPackages = [
+    "com.android.bips"
+    "com.android.egg"
+    "com.android.nfc"
+    "com.android.printservice.recommendation"
+    "com.bia.tt"
+    "com.onyx.android.production.test"
+    "com.onyx.factorytest"
+    "com.onyx.mail"
+  ];
 }

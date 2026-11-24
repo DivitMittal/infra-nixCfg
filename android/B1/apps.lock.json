@@ -1,1 +1,85 @@
-{ "abi": "arm64-v8a", "lockedAt": 0, "packages": {} }
+{
+  "abi": "arm64-v8a",
+  "lockedAt": 1795520593,
+  "packages": {
+    "info.plateaukao.einkbro": {
+      "versionCode": 160701,
+      "versionName": "16.7.1",
+      "url": "https://f-droid.org/repo/info.plateaukao.einkbro_160701.apk",
+      "sha256": "a4ca2948714fe2ea641aa33d258bdaf02d873840a30e20faa54dc9be2e6cac57",
+      "repoFingerprint": "43238d512c1e5eb2d6569f4a3afbf5523418b82e0a3ed1552770abb9a9c9ccab",
+      "signerSha256": [
+        "5ed1905785aef4e02bcaa99f26c76e8f6a78044a033efc3003549e747b6879c1"
+      ],
+      "preferredSigner": "5ed1905785aef4e02bcaa99f26c76e8f6a78044a033efc3003549e747b6879c1",
+      "size": 4819292,
+      "mirrors": [
+        "https://fdroid.tetaneutral.net/fdroid/repo/info.plateaukao.einkbro_160701.apk",
+        "https://ftp.agdsn.de/fdroid/repo/info.plateaukao.einkbro_160701.apk",
+        "https://ftp.fau.de/fdroid/repo/info.plateaukao.einkbro_160701.apk",
+        "https://ftp.gwdg.de/pub/android/fdroid/repo/info.plateaukao.einkbro_160701.apk"
+      ]
+    },
+    "com.nononsenseapps.feeder": {
+      "versionCode": 4191,
+      "versionName": "2.25.0",
+      "url": "https://f-droid.org/repo/com.nononsenseapps.feeder_4191.apk",
+      "sha256": "6f52c11138b230d81ccaf2a73ffa1d8fcf036e6be90be8622dfa3ae2d8aee2f8",
+      "repoFingerprint": "43238d512c1e5eb2d6569f4a3afbf5523418b82e0a3ed1552770abb9a9c9ccab",
+      "signerSha256": [
+        "a80df8170d6c891ec9a055211df640a855d451052307bf29cdce3fef9afa94fd"
+      ],
+      "preferredSigner": "a80df8170d6c891ec9a055211df640a855d451052307bf29cdce3fef9afa94fd",
+      "size": 61177127,
+      "mirrors": [
+        "https://fdroid.tetaneutral.net/fdroid/repo/com.nononsenseapps.feeder_4191.apk",
+        "https://ftp.agdsn.de/fdroid/repo/com.nononsenseapps.feeder_4191.apk",
+        "https://ftp.fau.de/fdroid/repo/com.nononsenseapps.feeder_4191.apk",
+        "https://ftp.gwdg.de/pub/android/fdroid/repo/com.nononsenseapps.feeder_4191.apk"
+      ]
+    },
+    "app.inkos": {
+      "versionCode": 101013,
+      "versionName": "0.6",
+      "url": "https://github.com/gezimos/inkOS/releases/download/v0.6/app.inkos_v0.6-Signed.apk",
+      "sha256": "8e09698279a857651b38590315952eb6c4bd6451f7dd22ff4f7a1893d83a051f",
+      "signerSha256": [
+        "3b2dbdab77c9c3544e59d61097f48d3ac3fb5fe7c0df1cc89192216e4e9c1599"
+      ],
+      "source": "url:https://github.com/gezimos/inkOS/releases/download/v0.6/app.inkos_v0.6-Signed.apk"
+    },
+    "com.aurora.store": {
+      "versionCode": 76,
+      "versionName": "4.8.4",
+      "url": "https://gitlab.com/api/v4/projects/6922885/uploads/245eec8867a47057cbc54535f73b32ee/AuroraStore-4.8.4.apk",
+      "sha256": "8a1ed9aa09631290da91cb793e0517b0f20dc70239ac94ae6682cd94f91a4bad",
+      "signerSha256": [
+        "4c626157ad02bda3401a7263555f68a79663fc3e13a4d4369a12570941aa280f"
+      ],
+      "source": "url:https://gitlab.com/api/v4/projects/6922885/uploads/245eec8867a47057cbc54535f73b32ee/AuroraStore-4.8.4.apk"
+    },
+    "dev.imranr.obtainium": {
+      "versionCode": 33633,
+      "versionName": "1.7.5",
+      "url": "https://github.com/ImranR98/Obtainium/releases/download/v1.7.5/app-arm64-v8a-release.apk",
+      "sha256": "dd80da62348d5ad57a8d53ef4247f90d4f58c396a4ab797218ca3eb6d3b96918",
+      "signerSha256": [
+        "b353601f6a1d5fd6603ae2f50be80cf301367b86b6ab8b1f66243da96cd57362"
+      ],
+      "source": "url:https://github.com/ImranR98/Obtainium/releases/download/v1.7.5/app-arm64-v8a-release.apk"
+    },
+    "org.koreader.launcher": {
+      "versionCode": 119462,
+      "versionName": "v2026.07.1",
+      "url": "https://github.com/koreader/koreader/releases/download/v2026.07.1/koreader-android-arm64-v2026.07.1.apk",
+      "sha256": "89cecbe06eacd2ff7d91e37152d6beeb52809f2ca38060b6515ed8b00d152412",
+      "signerSha256": [
+        "fd492a4fe001f17058b826da4358a1dceac38d26686f342522c5a497bcd4dccc"
+      ],
+      "source": "url:https://github.com/koreader/koreader/releases/download/v2026.07.1/koreader-android-arm64-v2026.07.1.apk"
+    }
+  },
+  "repoTimestamps": {
+    "https://f-droid.org/repo": 1795453653400
+  }
+}

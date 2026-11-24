@@ -15,6 +15,7 @@ MANAGED = (
     "settings/b1.lua",
     "news/feed_config.lua",
     "plugins/koassistant.koplugin",
+    "plugins/zenos.koplugin",
     ".b1-manifest.sha256",
 )
 PACKAGE = "org.koreader.launcher"

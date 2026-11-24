@@ -1,8 +1,8 @@
 # B1 KOReader: reading, research and AI
 
 This bundle is tailored to Android 11 on the C69 HD: EPUBs, research PDFs,
-selected-passage AI conversations and occasional RSS-to-EPUB downloads. It has
-been built and tested on the controller; it has not run on the physical reader.
+selected-passage AI conversations and occasional RSS-to-EPUB downloads. The
+reading patch and KOAssistant loaded on B1. ZenOS still needs an on-device test.
 
 ## What is managed
 
@@ -10,6 +10,7 @@ been built and tested on the controller; it has not run on the physical reader.
 | --------------- | --------------------------------------------------------------------------------------- |
 | KOReader        | Official GitHub Android release `v2026.07.1`, package `org.koreader.launcher`           |
 | KOAssistant     | Release `v0.24.1`, archive SHA-256 pinned in `sources.json`                             |
+| ZenOS           | Release `v4.3.2`, pinned UI for the KOReader home screen, library, and reader controls  |
 | EPUB defaults   | Font size 24, 110% line spacing, modest margins                                         |
 | PDF defaults    | Automatic margin crop, paged movement, original layout                                  |
 | Profiles        | `B1 EPUB`, `B1 Paper original`, `B1 Paper reflow`                                       |
@@ -18,8 +19,8 @@ been built and tested on the controller; it has not run on the physical reader.
 | RSS             | Built-in News downloader enabled; three KOReader release items as a small starting feed |
 | Other built-ins | Profiles, gestures, OPDS and reading statistics enabled                                 |
 
-KOReader's Android F-Droid flavor disables user patches. The optional B1 app
-bundle therefore declares the official GitHub APK instead. See
+KOReader's Android F-Droid flavor disables user patches. The B1 app bundle
+therefore declares the official GitHub APK instead. See
 [KOReader's user-patch documentation](https://github.com/koreader/koreader/wiki/User-patches).
 If migrating from F-Droid, preserve its reader data, books and annotations first;
 the official app is a different Android package. This deployment does not
@@ -88,9 +89,10 @@ It refuses to force-stop a running reader. The default invocation only reviews.
 path if that is how the reader exposes it.
 
 Deployment uploads to a staging folder and checks every payload checksum before
-replacing five managed paths. Existing versions, `settings.reader.lua` and
-`settings/profiles.lua` are backed up under `koreader/.b1-backups/<timestamp>/` on
-the reader. The plugin directory is replaced as a unit to avoid stale code;
+replacing the managed files and plugin directories. Existing versions,
+`settings.reader.lua` and `settings/profiles.lua` are backed up under
+`koreader/.b1-backups/<timestamp>/` on the reader. The KOAssistant and ZenOS
+plugin directories are each replaced as a unit to avoid stale code;
 other plugins, books, sidecars, history, highlights and API settings remain
 outside the managed paths. Repeating deployment restores the repository's
 managed files, with another backup. Retain those backups until verified.
@@ -98,6 +100,11 @@ managed files, with another backup. Retain those backups until verified.
 Replacement failure attempts to restore managed paths while ADB remains
 reachable. A disconnected device can require manual recovery. This is not an
 atomic device-wide rollback, and backups on shared storage are not encrypted.
+
+ZenOS adds a home screen, library views, and reading controls inside KOReader.
+Disable or remove Project: Title before launching with ZenOS because the two
+plugins modify the same cover browser. Update ZenOS through `sources.json` and
+redeploy to keep the reader aligned with the pinned bundle.
 
 ## Daily workflow and recovery
 

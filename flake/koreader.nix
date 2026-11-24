@@ -6,6 +6,9 @@ _: {
     assistant = pkgs.fetchurl {
       inherit (pins.koassistant) url sha256;
     };
+    zenos = pkgs.fetchurl {
+      inherit (pins.zenos) url sha256;
+    };
   in {
     packages.b1-koreader =
       pkgs.runCommand "b1-koreader-${pins.koreaderVersion}" {
@@ -13,7 +16,9 @@ _: {
       } ''
         mkdir -p "$out/plugins"
         unzip -q ${assistant} -d "$out/plugins"
+        unzip -q ${zenos} -d "$out/plugins"
         test -f "$out/plugins/koassistant.koplugin/main.lua"
+        test -f "$out/plugins/zenos.koplugin/main.lua"
         cp -R ${source + /payload}/. "$out/"
         chmod -R u+w "$out"
         cd "$out"

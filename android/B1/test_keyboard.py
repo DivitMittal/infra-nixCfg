@@ -1,118 +1,138 @@
-"""Device-free regression checks for the declarative Unexpected Keyboard deploy."""
+"""B1-specific CLI wiring and stock keyboard safeguards."""
 
 from pathlib import Path
 import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 
+import deploy
 import keyboard
-from controller import Controller
-
-LAYOUT = Path(__file__).with_name("keyboard") / "layout.xml"
+from test_controller import FakeController
 
 
-class FakeDevice(Controller):
-    def __init__(self, installed=True, ime_set_races=0):
-        super().__init__("B1-test", {"expectedProperties": {}, "kernelPrefix": "", "observedProperties": []})
-        self.commands = []
-        self.installed = installed
-        self.files = {}
-        self.default_ime = "com.onyx/.inputmethod.OnyxIME"
-        self.enabled_imes = ["com.onyx/.inputmethod.OnyxIME"]
-        self.ime_set_races = ime_set_races
+LAYOUT = Path(deploy.__file__).with_name("layout.xml")
 
-    def adb(self, *args):
-        self.commands.append(args)
-        if args[0] == "push":
-            _, local, remote = args
-            self.files[remote] = Path(local).read_bytes()
-            return "1 file pushed"
-        return "device"
+
+class RootAwareFakeController(FakeController):
+    def __init__(self, mismatch=None, rooted=True, user="0", packages=(),
+                 enabled=deploy.IME_ID, default=deploy.IME_ID, stuck=False):
+        super().__init__(mismatch=mismatch)
+        self.rooted = rooted
+        self.user = user
+        self.packages = set(packages)
+        self.enabled = enabled
+        self.default = default
+        self.stuck = stuck
 
     def shell(self, *args):
-        self.commands.append(args)
-        if args[:2] == ("pm", "path"):
-            if not self.installed:
-                raise subprocess.CalledProcessError(1, args)
-            return "package:/data/app/juloo.keyboard2.apk"
-        if args[0] == "ime" and args[1] == "list":
-            return "\n".join(self.enabled_imes)
-        if args[0] == "ime" and args[1] == "enable":
-            self.enabled_imes.append(args[2])
-            return ""
-        if args[0] == "ime" and args[1] == "set":
-            if self.ime_set_races > 0:
-                self.ime_set_races -= 1
-                return "Unknown input method ... cannot be selected for user #0"
-            self.default_ime = args[2]
-            return ""
-        if args[:3] == ("settings", "get", "secure"):
-            return self.default_ime
-        if args[0] == "am":
-            return ""
-        if args[0] in ("mktemp", "rm"):
-            return "/data/local/tmp/b1-keyboard.fake"
+        if args == ("am", "get-current-user"):
+            return self.user
         if args[0] == "su":
-            return self._root(args[2])
-        raise AssertionError(f"Unexpected command: {args}")
-
-    def _root(self, joined):
-        import shlex
-
-        args = shlex.split(joined)
-        if args[0] == "id" and args[1] == "-u":
+            if not self.rooted:
+                raise subprocess.CalledProcessError(1, args)
             return "0"
-        if args[0] == "stat":
-            return "10042"
-        if args[0] == "mktemp":
-            return "/data/local/tmp/b1-keyboard.fake"
-        if args[0] == "mkdir" or args[0] == "chown" or args[0] == "chmod" or args[0] == "restorecon":
+        if args == ("pm", "list", "packages", "-e", "--user", "0"):
+            return "\n".join(f"package:{package}" for package in self.packages)
+        if args == ("settings", "get", "secure", "enabled_input_methods"):
+            return self.enabled
+        if args == ("settings", "get", "secure", "default_input_method"):
+            return self.default
+        if args[:4] == ("pm", "disable-user", "--user", "0"):
+            self.commands.append(args)
+            if not self.stuck:
+                self.packages.remove(args[4])
             return ""
-        if args[0] == "sh" and args[1] == "-c":
-            return "yes" if keyboard.PREFS in self.files else ""
-        if args[0] == "cp":
-            self.files[args[2]] = self.files.pop(args[1])
-            return ""
-        if args[0] == "cat":
-            return self.files[args[1]].decode()
-        raise AssertionError(f"Unexpected root command: {args}")
+        return super().shell(*args)
+
+    @property
+    def disabled(self):
+        return [command[-1] for command in self.commands if command[:2] == ("pm", "disable-user")]
 
 
-class KeyboardTests(unittest.TestCase):
-    def test_refuses_without_the_app_installed(self):
-        with self.assertRaisesRegex(RuntimeError, "is not installed"):
-            keyboard.reconcile(FakeDevice(installed=False), LAYOUT.read_text(), False)
+def run_main(command, device=None, **controller_kwargs):
+    profile_path = Path(__file__).with_name("identity.json")
+    with patch.object(keyboard, "Controller", return_value=device or RootAwareFakeController(**controller_kwargs)), \
+            patch.object(sys, "argv", ["b1-keyboard", "--profile", str(profile_path),
+                                       "--layout", str(LAYOUT), "--serial", "B1-test", command]):
+        return keyboard.main()
 
-    def test_plan_is_read_only_and_reports_pending_changes(self):
-        device = FakeDevice()
-        self.assertEqual(keyboard.reconcile(device, LAYOUT.read_text(), False), 3)
-        self.assertNotIn(keyboard.PREFS, device.files)
-        self.assertEqual(device.default_ime, "com.onyx/.inputmethod.OnyxIME")
 
-    def test_apply_installs_layout_and_switches_ime_then_matches_on_replay(self):
-        device = FakeDevice()
-        self.assertEqual(keyboard.reconcile(device, LAYOUT.read_text(), True), 0)
-        self.assertIn(keyboard.PREFS, device.files)
-        self.assertEqual(device.default_ime, keyboard.IME_ID)
-        self.assertIn(keyboard.IME_ID, device.enabled_imes)
-        self.assertEqual(keyboard.reconcile(device, LAYOUT.read_text(), False), 0)
+class KeyboardCliTests(unittest.TestCase):
+    def test_refuses_before_reconcile_on_firmware_mismatch(self):
+        with patch.object(deploy, "reconcile") as reconcile:
+            with self.assertRaisesRegex(RuntimeError, "identity mismatch"):
+                run_main("plan", mismatch="ro.build.fingerprint")
+        reconcile.assert_not_called()
 
-    def test_apply_retries_ime_set_through_the_enable_cache_race(self):
-        device = FakeDevice(ime_set_races=2)
-        with patch("keyboard.time.sleep"):
-            self.assertEqual(keyboard.reconcile(device, LAYOUT.read_text(), True), 0)
-        self.assertEqual(device.default_ime, keyboard.IME_ID)
+    def test_refuses_before_reconcile_without_root(self):
+        with patch.object(deploy, "reconcile") as reconcile:
+            with self.assertRaisesRegex(RuntimeError, "root access"):
+                run_main("plan", rooted=False)
+        reconcile.assert_not_called()
 
-    def test_apply_gives_up_if_the_ime_set_race_never_resolves(self):
-        device = FakeDevice(ime_set_races=99)
-        with patch("keyboard.time.sleep"), self.assertRaisesRegex(RuntimeError, "Expected default IME"):
-            keyboard.reconcile(device, LAYOUT.read_text(), True)
+    def test_plumbs_the_layout_file_into_the_shared_reconciler(self):
+        with patch.object(deploy, "reconcile", return_value=0) as reconcile:
+            self.assertEqual(run_main("apply"), 0)
+        device, layout_text, apply = reconcile.call_args.args
+        self.assertEqual(layout_text, LAYOUT.read_text())
+        self.assertTrue(apply)
 
-    def test_written_preference_round_trips_through_json_and_xml_escaping(self):
-        device = FakeDevice()
-        keyboard.reconcile(device, LAYOUT.read_text(), True)
-        _, current = keyboard.read_prefs(device)
-        self.assertEqual(current, keyboard.desired_layouts(LAYOUT.read_text()))
+    def test_non_owner_refuses_before_shared_reconciliation(self):
+        device = RootAwareFakeController(user="10", packages=keyboard.STOCK_PACKAGES)
+        with patch.object(deploy, "reconcile") as reconcile:
+            with self.assertRaisesRegex(RuntimeError, "owner user"):
+                run_main("apply", device)
+        reconcile.assert_not_called()
+        self.assertEqual(device.disabled, [])
+
+    def test_plan_reports_stock_and_shared_drift_without_disabling(self):
+        for stock, shared, expected in [((), 0, 0), ((), 3, 3), (keyboard.STOCK_PACKAGES, 0, 3)]:
+            with self.subTest(stock=stock, shared=shared):
+                device = RootAwareFakeController(packages=stock)
+                with patch.object(deploy, "reconcile", return_value=shared) as reconcile:
+                    self.assertEqual(run_main("plan", device), expected)
+                self.assertFalse(reconcile.call_args.args[2])
+                self.assertEqual(device.disabled, [])
+
+    def test_apply_disables_only_present_enabled_stock_after_reconciliation(self):
+        for stock in [(keyboard.STOCK_PACKAGES[0],), keyboard.STOCK_PACKAGES]:
+            with self.subTest(stock=stock):
+                unrelated = "com.onyx.kime.other"
+                device = RootAwareFakeController(packages=(*stock, unrelated), enabled="", default="null")
+
+                def reconcile(device, layout_text, apply):
+                    self.assertTrue(apply)
+                    device.enabled = device.default = deploy.IME_ID
+                    return 0
+
+                with patch.object(deploy, "reconcile", side_effect=reconcile):
+                    self.assertEqual(run_main("apply", device), 0)
+                    self.assertEqual(run_main("apply", device), 0)
+                self.assertEqual(device.disabled, list(stock))
+                self.assertEqual(device.packages, {unrelated})
+
+    def test_apply_rejects_unverified_replacement(self):
+        for state in ({"enabled": deploy.IME_ID + "Other"}, {"default": "null"}):
+            with self.subTest(state=state):
+                device = RootAwareFakeController(packages=keyboard.STOCK_PACKAGES, **state)
+                with patch.object(deploy, "reconcile", return_value=0):
+                    with self.assertRaisesRegex(RuntimeError, "must be enabled and default"):
+                        run_main("apply", device)
+                self.assertEqual(device.disabled, [])
+
+    def test_apply_stops_after_reported_reconcile_failure(self):
+        device = RootAwareFakeController(packages=keyboard.STOCK_PACKAGES)
+        with patch.object(deploy, "reconcile", return_value=1):
+            self.assertEqual(run_main("apply", device), 1)
+        self.assertEqual(device.disabled, [])
+
+    def test_apply_stops_if_disable_does_not_take_effect(self):
+        device = RootAwareFakeController(packages=keyboard.STOCK_PACKAGES, stuck=True)
+        with patch.object(deploy, "reconcile", return_value=0):
+            with self.assertRaisesRegex(RuntimeError, "still enabled"):
+                run_main("apply", device)
+        self.assertEqual(device.disabled, [keyboard.STOCK_PACKAGES[0]])
 
 
 if __name__ == "__main__":

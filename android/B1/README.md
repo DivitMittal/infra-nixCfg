@@ -126,10 +126,11 @@ not dependencies of this profile. No external desktop utility is executed.
 ### Keyboard
 
 [Unexpected Keyboard](https://github.com/Julow/Unexpected-Keyboard)
-(`juloo.keyboard2`, declared in `apps.nix`) replaces Onyx's bundled LatinIME.
-`keyboard/layout.xml` is the [TLTR](https://github.com/DivitMittal/TLTR) QWERTY
-layout, deployed and made the default IME declaratively. Grant **Shell**
-superuser access in Magisk for the CLI.
+(`juloo.keyboard2`, declared in `apps.nix`) replaces Onyx's bundled keyboards.
+The shared `android/keyboard/layout.xml` is the
+[TLTR](https://github.com/DivitMittal/TLTR) QWERTY layout. Run the CLI with
+B1 switched to its Android owner user (user 0), and grant **Shell** superuser
+access in Magisk.
 
 ```sh
 nix run .#b1-keyboard -- --serial SERIAL plan
@@ -139,19 +140,40 @@ nix run .#b1-keyboard -- --serial SERIAL apply
 Unexpected Keyboard has no file-watching custom-layout mechanism; its layout
 is one JSON-encoded string in its own SharedPreferences file
 (`/data/data/juloo.keyboard2/shared_prefs/juloo.keyboard2_preferences.xml`,
-key `layouts`). `apply` writes that file directly as root, restores its
-owner/SELinux context, force-stops the app so it reloads, then enables and
+key `layouts`). `apply` stops the app before changing the layout, writes that
+file as root, restores its owner and SELinux context, then enables and
 sets Unexpected Keyboard as the default IME, retrying `ime set` a few times
 to ride out `InputMethodManagerService`'s enabled-method cache catching up
-with a just-issued `ime enable`. `plan` only reads state back.
+with a just-issued `ime enable`. Only after verifying that Unexpected
+Keyboard is enabled and default for user 0 does `apply` run
+`pm disable-user --user 0` on any enabled `com.onyx.kime` or
+`com.onyx.latinime` packages. Missing or already disabled packages are skipped.
+This retains the APKs and app data and does not change other users' package
+state. `plan` is read-only and exits with status 3 if either the shared
+keyboard configuration or the stock package state needs changes.
 
-`keyboard/layout.xml` is a close relative of
+The shared layout is a close relative of
 `hosts/droid/M1/keyboard/layout.xml` (Termux Launcher's embedded keyboard on
 M1), not the same file: the M1 variant's space-key diagonal swipes call
 Termux Launcher's own window/session-switching commands (`tool:...`), which
 the standalone Unexpected Keyboard app would type as literal text instead of
 running. This copy drops those five swipes and keeps everything else
 identical. Update both files together when the shared TLTR design changes.
+
+To recover a bundled keyboard, re-enable the package that exists on your
+firmware, then find its component ID and enable/select it for user 0:
+
+```sh
+adb -s SERIAL shell pm enable --user 0 com.onyx.kime       # if installed
+adb -s SERIAL shell pm enable --user 0 com.onyx.latinime   # if installed
+adb -s SERIAL shell ime list -a -s --user 0
+adb -s SERIAL shell ime enable --user 0 STOCK_IME_ID
+adb -s SERIAL shell ime set --user 0 STOCK_IME_ID
+```
+
+Replace `STOCK_IME_ID` with the full component ID from the list. The next
+`b1-keyboard apply` will switch back to Unexpected Keyboard and disable the
+stock packages again.
 
 ## Select debloat entries
 

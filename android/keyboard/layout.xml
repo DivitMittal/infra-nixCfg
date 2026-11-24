@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  TLTR for the standalone Unexpected Keyboard app (juloo.keyboard2).
+  TLTR for the standalone Unexpected Keyboard app (juloo.keyboard2), shared
+  by both B1 and M1's keyboard deploy scripts (android/{B1,M1}/keyboard.py,
+  via the device-agnostic reconciler in android/keyboard/deploy.py).
   https://github.com/DivitMittal/TLTR
   https://github.com/Julow/Unexpected-Keyboard
 
   Same TLTR QWERTY layout as hosts/droid/M1/keyboard/layout.xml (which targets
-  Termux Launcher's embedded keyboard, ~/.termux/keyboard/layout.xml). Kept as
-  a separate file because the two are declared on different branches/flake
-  modules; update both together when the layout changes.
+  Termux Launcher's embedded keyboard, ~/.termux/keyboard/layout.xml, on a
+  different branch/flake module). Update both together when the layout
+  changes: the layout format is relative-unit based (not device-pixel
+  based), so one file suits every screen; only the Termux-Launcher-specific
+  actions differ between the two variants (see below).
 
   QWERTY for the letters; TLTR's layers stay positional, so TR and TL sit on the
   same keys as on the Piantor/kanata layout whatever letter is printed there. The

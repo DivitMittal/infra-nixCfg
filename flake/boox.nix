@@ -5,6 +5,7 @@
     ...
   }: let
     source = ../android/B1;
+    keyboard = ../android/keyboard;
     identity = builtins.fromJSON (builtins.readFile (source + /identity.json));
     profile = pkgs.writeText "b1-device-profile.json" (builtins.toJSON (identity
       // {
@@ -43,7 +44,8 @@
         name = "b1-keyboard";
         runtimeInputs = [pkgs.android-tools pkgs.python3];
         text = ''
-          exec python3 -B ${source}/keyboard.py --profile ${profile} --layout ${source + /keyboard/layout.xml} "$@"
+          export PYTHONPATH=${keyboard}
+          exec python3 -B ${source}/keyboard.py --profile ${profile} --layout ${keyboard}/layout.xml "$@"
         '';
       };
 
@@ -66,6 +68,7 @@
       pkgs.runCommand "b1-keyboard-tests" {
         nativeBuildInputs = [pkgs.python3];
       } ''
+        export PYTHONPATH=${keyboard}
         python3 -B -m unittest discover -s ${source} -p test_keyboard.py
         touch "$out"
       '';

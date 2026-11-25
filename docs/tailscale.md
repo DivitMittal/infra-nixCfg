@@ -52,6 +52,8 @@ and removes it after an attempt. These commands do not activate any host.
 The resulting policy adds:
 
 - `tag:homelab-router`, owned by tailnet admins, for T1 alone.
+- `tag:homelab-t3`, owned by tailnet admins, for T3's ordinary client. This
+  tag does not approve routes or add access grants.
 - Automatic approval of `192.168.2.0/24` for that router tag.
 - Admin ownership for `tag:ci`, preserving any existing owners.
 - A grant from `tag:ci` to TCP `192.168.2.8:8080`.
@@ -103,6 +105,14 @@ Existing files are never overwritten. Register the recipients in the private
 secrets manifest, commit those encrypted files, and update the secrets input
 before deploying T1. Importing an existing OAuth client cannot recover its
 secret; the provider generates a new dedicated client here.
+
+For T3, set `TF_VAR_enable_t3_enrollment=true`, review and apply the plan,
+then run `nix run .#tailscale-personal -- export-t3` and follow the same
+private input handoff for `homelab/T3-tailscale.age`. Deploy within the key's
+one-hour lifetime. If it expires before first use, review a fresh plan from
+`rotate-t3`. Leave the existing T1 enrollment alone when its tagged device
+already has `192.168.2.0/24` in `tailscale status --json` under
+`Self.PrimaryRoutes`.
 
 `forge-tofu` owns delivery to the existing `infra-nixCfg` GitHub `dev`
 environment. Move `TS_OAUTH_CLIENT_ID` and `TS_OAUTH_SECRET` from its

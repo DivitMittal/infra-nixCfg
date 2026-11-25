@@ -139,6 +139,21 @@ class TailnetOperations(unittest.TestCase):
                 manage.export_secrets(self.root, router_only=True)
         self.assertEqual(router.read_text(), "preserve enrolled router")
 
+    def test_t3_export_writes_only_encrypted_t3_key(self):
+        os.environ["TAILSCALE_AGE_RECIPIENT"] = "test-recipient"
+        os.environ["TAILSCALE_SECRETS_DIR"] = str(self.root / "secrets")
+        values = {"t3_auth_key": {"value": "test-t3-key"}}
+        results = [
+            subprocess.CompletedProcess([], 0, json.dumps(values).encode()),
+            subprocess.CompletedProcess([], 0, b"encrypted-t3"),
+        ]
+        with patch.object(manage.subprocess, "run", side_effect=results) as run, contextlib.redirect_stdout(io.StringIO()):
+            manage.export_secrets(self.root, t3_only=True)
+        self.assertEqual(run.call_args.kwargs["input"], b"test-t3-key")
+        homelab = self.root / "secrets/homelab"
+        self.assertEqual(list(homelab.iterdir()), [homelab / "T3-tailscale.age"])
+        self.assertEqual((homelab / "T3-tailscale.age").read_bytes(), b"encrypted-t3")
+
 
 if __name__ == "__main__":
     unittest.main()

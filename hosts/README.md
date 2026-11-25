@@ -273,6 +273,38 @@ bootstrap-remote VPS2 --target root@2a0e:97c0:3e3:34d::1 --yes-destroy-disk
 | T3   | HP t640, medium spec             | k3s server + RSSHub `:31200`, SSH portfolio `:30022` | DHCP, `T3.lan`                  |
 | MON1 | Lenovo S100 (Atom, 2 GiB)        | Prometheus `:9090`, Grafana `:3000`, blackbox probes | DHCP, `MON1.lan`                |
 
+Household services live on T1. Lab applications live on T3 and can use T2 as a
+k3s worker. MON1 monitors the hosts independently. Keep home automation under
+T1's systemd so it can start and recover independently of the k3s control plane.
+
+#### Home Assistant on T1
+
+`T1/home-assistant.nix` declares the Home Assistant container, Mosquitto, MQTT
+topic permissions, and persistent storage. The stack is enabled once the
+pinned private flake input contains both `secrets/homelab/mqtt-home-assistant.age`
+and `secrets/homelab/mqtt-wled-desk.age`. Publish the encrypted entries in the
+secrets repo, update that input, and evaluate T1 in CI before rolling out the
+host change. Keep TCP 8123 and 1883 off WAN port forwards.
+
+1. Open `http://192.168.2.3:8123` on the trusted LAN and create the owner account.
+2. Add the MQTT integration using broker `192.168.2.3:1883` and username
+   `home-assistant`. Enter the decrypted client password at onboarding.
+3. Add WLED using its device IP. The container uses a bridged network, so use
+   manual setup for the light and MQTT discovery for the sensors. In WLED MQTT
+   settings, use the same broker with username `wled-desk` and device topic
+   `wled/desk`. Leave the firmware's discovery prefix as `homeassistant`.
+   Check that temperature and humidity update after the ESP32 restarts.
+4. Keep Home Assistant backups off T1. Nix owns the base YAML. Onboarding,
+   integration credentials, UI automations, and history persist under
+   `/var/lib/home-assistant`. MQTT persistence is under `/var/lib/mosquitto`.
+
+On T1, check the services with
+`systemctl status podman-home-assistant mosquitto`. For Kubernetes practice,
+use the lab workloads on T3. Start with
+`sudo k3s kubectl -n rsshub get deployments,pods,services,pvc -o wide` and
+`sudo k3s kubectl -n rsshub logs deployment/rsshub --tail=30`, then trace
+those objects back to [the Nix manifest](nixos/T3/rsshub.nix).
+
 All four share `hosts/nixos/_homelab/base.nix` (key-only SSH, node-exporter
 for MON1 to scrape); the t640s also share `_homelab/t640.nix` (systemd-boot,
 disko layout), and T2/T3 add `_homelab/agents.nix` (user lingering,

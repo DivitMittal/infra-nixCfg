@@ -20,11 +20,12 @@
       exec ${pkgs.uv}/bin/uv tool run ${args} "$@"
     '';
 
-  # Creates a $out/bin/<name> that ephemerally runs a JS package via `pnpm dlx`.
-  # Uses pkgs.pnpm from nixpkgs.
-  mkPnpmDlxBin = pkgs: name: pkg:
+  # Runs an npm CLI on demand. Keep Node available for executables that use
+  # a Node shebang rather than forcing them to run under Bun.
+  mkBunxBin = pkgs: name: pkg:
     pkgs.writeShellScriptBin name ''
-      exec ${pkgs.pnpm}/bin/pnpm dlx ${pkg} "$@"
+      export PATH=${lib.makeBinPath [pkgs.nodejs]}:"$PATH"
+      exec ${pkgs.bun}/bin/bunx --package ${lib.escapeShellArg pkg} ${lib.escapeShellArg name} "$@"
     '';
 
   ## Intro: Scans a directory and returns a list of paths to all Nix modules (directories or .nix files)

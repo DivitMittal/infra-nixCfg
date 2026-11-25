@@ -6,7 +6,7 @@ Shared library functions and the platform's single source-of-truth design-system
 
 ```
 lib/
-├── custom.nix      # lib.custom.* helpers (mkZbxBin, mkUvxBin, mkPnpmDlxBin, scanPaths)
+├── custom.nix      # lib.custom.* helpers (mkZbxBin, mkUvxBin, mkBunxBin, mkNixRunBin, scanPaths)
 └── palette.nix     # Source-of-truth cyberpunk palette (base16 + fonts + opacity + wallpaper)
 ```
 
@@ -14,12 +14,12 @@ lib/
 
 Extends nixpkgs' `lib` via `flake.nix → specialArgs.lib`. Access at call sites as `lib.custom.<helper>`.
 
-| Helper         | Purpose                                                                                                                      |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `mkZbxBin`     | Wrap a Homebrew formula in `pkgs.writeShellScriptBin` running it ephemerally via `zerobrew`. Darwin-only.                    |
-| `mkUvxBin`     | Wrap a Python tool in `pkgs.writeShellScriptBin` running it ephemerally via `uv tool run`.                                   |
-| `mkPnpmDlxBin` | Wrap a JS package in `pkgs.writeShellScriptBin` running it ephemerally via `pnpm dlx`.                                       |
-| `scanPaths`    | Auto-import all `.nix` files in a directory (excluding `default.nix`). **Deprecated** — use `inputs.import-tree` everywhere. |
+| Helper      | Purpose                                                                                                                      |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `mkZbxBin`  | Wrap a Homebrew formula in `pkgs.writeShellScriptBin` running it ephemerally via `zerobrew`. Darwin-only.                    |
+| `mkUvxBin`  | Wrap a Python tool in `pkgs.writeShellScriptBin` running it ephemerally via `uv tool run`.                                   |
+| `mkBunxBin` | Run an npm CLI on demand via `bunx --package`, with Node available for its shebang.                                          |
+| `scanPaths` | Auto-import all `.nix` files in a directory (excluding `default.nix`). **Deprecated** — use `inputs.import-tree` everywhere. |
 
 The first three are partially-applied with `pkgs` inside `flake/mkCfg.nix` so call sites only need to pass the formula/tool name and arguments.
 

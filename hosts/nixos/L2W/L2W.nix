@@ -10,7 +10,6 @@
   environment.systemPackages = with pkgs; [
     # Toolchains
     nodejs
-    pnpm
     bun
     uv
     python3

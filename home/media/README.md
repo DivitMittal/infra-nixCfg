@@ -31,9 +31,9 @@ other roots retain it. This is deferred installation, not store-free execution.
 | Czkawka                  | `home/tools/cleanup.nix`    | A pinned `nix run` launcher for whichever CLI or GUI binary you actually use. Likewise consider `kondo` if it's an occasional cleanup command.                  |
 | `speedtest-go`, `iperf3` | `home/tty/network/misc.nix` | Pinned `nix run` if used only for benchmarks. Keep diagnostic tools eager if you need them to troubleshoot a broken connection.                                 |
 
-`wrangler` and `dl-librescore` already use `pnpm dlx ...@latest`, so switching
-those to `bunx` only makes sense if you want to standardize runners and have
-verified the cold-cache launch. `markitdown`, `visidata`, and several PDF tools
+`wrangler` and `dl-librescore` use `mkBunxBin` with an explicit `@latest` tag
+for on-demand installs. Prefer pinned package versions for scripted use.
+`markitdown`, `visidata`, and several PDF tools
 already use the `uvx` pattern. Keep services, activation dependencies, and
 commands used by key bindings or unattended scripts pinned and available
 without a first-run download.

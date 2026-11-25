@@ -3,7 +3,7 @@
   lib,
   pkgs,
 }: let
-  inherit (lib.custom) scanPaths mkUvxBin mkPnpmDlxBin mkZbxBin mkNixRunBin;
+  inherit (lib.custom) scanPaths mkUvxBin mkBunxBin mkZbxBin mkNixRunBin;
   palette = import ../lib/palette.nix {inherit pkgs;};
   fixture = ./fixtures/scan-paths;
 
@@ -58,14 +58,19 @@ in {
     expected = true;
   };
 
-  ## ── mkPnpmDlxBin ───────────────────────────────────────────────────────────
-  testMkPnpmDlxBinName = {
-    expr = (mkPnpmDlxBin pkgs "wrangler" "wrangler@latest").name;
+  ## ── mkBunxBin ──────────────────────────────────────────────────────────────
+  testMkBunxBinName = {
+    expr = (mkBunxBin pkgs "wrangler" "wrangler@latest").name;
     expected = "wrangler";
   };
 
-  testMkPnpmDlxBinExecsPnpmDlx = {
-    expr = contains "${pkgs.pnpm}/bin/pnpm dlx wrangler@latest \"$@\"" (mkPnpmDlxBin pkgs "wrangler" "wrangler@latest").text;
+  testMkBunxBinSelectsPackageAndForwardsArguments = {
+    expr = contains "${pkgs.bun}/bin/bunx --package @angular/cli@latest ng \"$@\"" (mkBunxBin pkgs "ng" "@angular/cli@latest").text;
+    expected = true;
+  };
+
+  testMkBunxBinProvidesNodeForShebangs = {
+    expr = contains "export PATH=${pkgs.nodejs}/bin:\"$PATH\"" (mkBunxBin pkgs "wrangler" "wrangler@latest").text;
     expected = true;
   };
 

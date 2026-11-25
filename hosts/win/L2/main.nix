@@ -11,7 +11,7 @@
   win.user.name = "vanee";
 
   # vanee's Windows-side apps, from what was installed on 2026-11-19. CLI
-  # toolchains that were also installed here (node, bun, pnpm, uv, rust,
+  # toolchains that were also installed here (node, bun, uv, rust,
   # ripgrep, lazygit, yazi, croc, ouch, ffmpeg, claude-code, codex) are
   # declared in WSL instead: hosts/nixos/L2W. Not declared, and left as is:
   # apm and warp (purpose unclear), openssh (held), firefox and

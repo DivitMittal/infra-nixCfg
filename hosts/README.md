@@ -679,7 +679,10 @@ registers `~/Applications/Lan Mouse Desktop.app` and associates the agent with
 that app so macOS can identify it for Local Network privacy. L1's nix-darwin
 activation uses the packaged `tccutil` to refresh the app's Accessibility
 grant after the bundle is installed. Grant Local Network access separately
-in System Settings. Other hosts do not join this desk automatically.
+in System Settings. L1 and L2 use the official v0.11.0 release artifacts.
+Update these together: a newer source build can report the same version but
+send an event L2 rejects as `invalid event id`, after a successful DTLS
+connection. Other hosts do not join this desk automatically.
 
 T2 enables `programs.ydotool` to provide a virtual keyboard when no physical
 keyboard is attached. Lan Mouse's wlroots backend needs that keyboard's

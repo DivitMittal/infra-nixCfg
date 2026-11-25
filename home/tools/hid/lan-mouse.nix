@@ -11,7 +11,38 @@
   # L2 here is the separate NixOS boot; its Windows boot uses the exported spec.
   deskHost = builtins.elem hostName ["L1" "T2"];
   waylandFeatures = ["--features" "layer_shell_capture,wlroots_emulation"];
+  # Use the same upstream release as L2 Windows. A newer source build can
+  # still report 0.11.0 but send protocol events that L2 cannot decode.
+  upstreamApp =
+    pkgs.runCommand "lan-mouse-0.11.0" {
+      nativeBuildInputs = [pkgs.unzip];
+      src = pkgs.fetchurl {
+        url = "https://github.com/feschber/lan-mouse/releases/download/v0.11.0/lan-mouse-macos-intel.zip";
+        hash = "sha256-0kw4zPUAYatxCCYAPBnRDhJDQV/6GPQh1EmLK4WMi2Q=";
+      };
+      meta.mainProgram = "lan-mouse";
+    } ''
+      mkdir -p "$out/Applications" "$out/bin"
+      unzip -q "$src" 'Lan Mouse.app/*' -d "$out/Applications"
+      ln -s "$out/Applications/Lan Mouse.app/Contents/MacOS/lan-mouse" "$out/bin/lan-mouse"
+    '';
+  package =
+    if hostPlatform.system == "x86_64-darwin"
+    then upstreamApp
+    else
+      inputs.lan-mouse.packages.${hostPlatform.system}.default.overrideAttrs (_: {
+        buildInputs = [];
+        # Disabling the GTK frontend must not also disable Linux input support.
+        cargoBuildFlags = ["--no-default-features"] ++ lib.optionals hostPlatform.isLinux waylandFeatures;
+        cargoTestFlags = ["--no-default-features"] ++ lib.optionals hostPlatform.isLinux waylandFeatures;
+      });
   macApp = "${config.home.homeDirectory}/Applications/Lan Mouse Desktop.app";
+  # The built package wraps its binary; the upstream release ships it unwrapped.
+  macBinary = "${package}/bin/${
+    if hostPlatform.system == "x86_64-darwin"
+    then "lan-mouse"
+    else ".lan-mouse-wrapped"
+  }";
   macBundleId = "org.divitmittal.lan-mouse";
   macAppInfo = pkgs.writeText "lan-mouse-Info.plist" ''
     <?xml version="1.0" encoding="UTF-8"?>
@@ -32,12 +63,7 @@ in {
 
   programs.lan-mouse = {
     enable = true;
-    package = inputs.lan-mouse.packages.${hostPlatform.system}.default.overrideAttrs (_: {
-      buildInputs = [];
-      # Disabling the GTK frontend must not also disable Linux input support.
-      cargoBuildFlags = ["--no-default-features"] ++ lib.optionals hostPlatform.isLinux waylandFeatures;
-      cargoTestFlags = ["--no-default-features"] ++ lib.optionals hostPlatform.isLinux waylandFeatures;
-    });
+    inherit package;
     systemd = hostPlatform.isLinux;
     launchd = hostPlatform.isDarwin;
     settings = desk.settingsFor (
@@ -76,9 +102,14 @@ in {
     (lib.hm.dag.entryBetween ["setupLaunchAgents"] ["writeBoundary"] ''
       app=${lib.escapeShellArg macApp}
       $DRY_RUN_CMD mkdir -p "$app/Contents/MacOS" ${lib.escapeShellArg config.xdg.cacheHome}
-      # Copy the native daemon so its executable belongs to the app bundle;
-      # the GTK environment wrapper is unnecessary for this CLI-only build.
-      $DRY_RUN_CMD cp -f ${config.programs.lan-mouse.package}/bin/.lan-mouse-wrapped "$app/Contents/MacOS/.lan-mouse.new"
+      ${lib.optionalString (hostPlatform.system == "x86_64-darwin") ''
+        # The upstream binary links against the libraries bundled next to it.
+        releaseContents=${lib.escapeShellArg "${upstreamApp}/Applications/Lan Mouse.app/Contents"}
+        $DRY_RUN_CMD cp -Rf "$releaseContents/Frameworks" "$releaseContents/Resources" "$app/Contents/"
+        $DRY_RUN_CMD chmod -R u+w "$app/Contents/Frameworks" "$app/Contents/Resources"
+      ''}
+      # Copy the daemon so its executable belongs to the registered bundle.
+      $DRY_RUN_CMD cp -f ${macBinary} "$app/Contents/MacOS/.lan-mouse.new"
       $DRY_RUN_CMD chmod 755 "$app/Contents/MacOS/.lan-mouse.new"
       $DRY_RUN_CMD mv -f "$app/Contents/MacOS/.lan-mouse.new" "$app/Contents/MacOS/lan-mouse"
       $DRY_RUN_CMD cp -f ${macAppInfo} "$app/Contents/Info.plist"

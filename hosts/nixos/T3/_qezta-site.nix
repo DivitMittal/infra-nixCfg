@@ -1,8 +1,7 @@
 # Static qezta.com build. Not a module: the leading underscore keeps
 # import-tree from evaluating it. qezta-endpoints.nix imports it.
 #
-# Qezta/site exports no package. The lockfile is pnpm 9.0, fetched with this
-# nixpkgs' pnpm (11.9.0 when the hash was taken, fetcherVersion 3).
+# The adjacent Bun lockfile was migrated from the pinned upstream lock.
 {
   pkgs,
   src,
@@ -12,19 +11,16 @@ pkgs.stdenv.mkDerivation {
   version = "0.0.1";
   inherit src;
 
-  nativeBuildInputs = [
-    pkgs.nodejs
-    pkgs.pnpmConfigHook
-    pkgs.pnpm
-  ];
+  nativeBuildInputs = [pkgs.bun pkgs.nodejs];
 
-  pnpmDeps = pkgs.fetchPnpmDeps {
-    inherit src;
+  bunDeps = import ./_bun-site-deps.nix {
+    inherit pkgs src;
     pname = "qezta-site";
-    version = "0.0.1";
-    inherit (pkgs) pnpm;
-    fetcherVersion = 3;
-    hash = "sha256-TfzYZ2JocnvBoH32wFuoFSVPC2fbV4ifJRIimrBIQyM=";
+    lockfile = ./_qezta-site.bun.lock;
+    hashes = {
+      x86_64-linux = "sha256-g34U4UJ7MDgIZwUQ2f//PxfVUrcJyfZhU75niPscsCE=";
+      x86_64-darwin = "sha256-ouj0hGPynxSKFDwtA+paz0oZQv4xrY8bexcIrrne0Q4=";
+    };
   };
 
   postPatch = ''
@@ -47,7 +43,9 @@ pkgs.stdenv.mkDerivation {
 
   buildPhase = ''
     runHook preBuild
-    pnpm run build
+    cp -R "$bunDeps" node_modules
+    chmod -R u+w node_modules
+    bun run build
     runHook postBuild
   '';
 

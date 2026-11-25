@@ -8,24 +8,23 @@ pkgs.stdenv.mkDerivation {
   version = "0.0.2";
   inherit src;
 
-  nativeBuildInputs = [
-    pkgs.nodejs
-    pkgs.pnpmConfigHook
-    pkgs.pnpm
-  ];
+  nativeBuildInputs = [pkgs.bun pkgs.nodejs];
 
-  pnpmDeps = pkgs.fetchPnpmDeps {
-    inherit src;
+  bunDeps = import ./_bun-site-deps.nix {
+    inherit pkgs src;
     pname = "divit-ipfs";
-    version = "0.0.2";
-    inherit (pkgs) pnpm;
-    fetcherVersion = 3;
-    hash = "sha256-u/pYln38HEV17lAWvEj6vXlmalzWKKc8QdElYCrZfus=";
+    lockfile = ./_divit-ipfs.bun.lock;
+    hashes = {
+      x86_64-linux = "sha256-k0CKfdWzvdtVqeTwe7wrVbq0tqiB6/BBBLhdO3x8kJQ=";
+      x86_64-darwin = "sha256-dG7PgHOSYB6G037h7qjdo8f/fVbnKqWgGhbK5zPRBso=";
+    };
   };
 
   buildPhase = ''
     runHook preBuild
-    pnpm run build:ipfs
+    cp -R "$bunDeps" node_modules
+    chmod -R u+w node_modules
+    bun run build:ipfs
     runHook postBuild
   '';
 

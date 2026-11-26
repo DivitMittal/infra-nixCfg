@@ -120,7 +120,7 @@ in {
         }
         {
           type = "Custom";
-          format = "The Qezta torus logo, including its animated version, is a trademark of Qezta.";
+          format = "The Qezta torus logo™, including its animated version, is a trademark of Qezta.";
         }
       ];
     };

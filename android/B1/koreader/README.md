@@ -62,8 +62,7 @@ committed, synced or sent to an external notes service.
 
 ## Build, review and deploy
 
-First verify B1 with `b1-device inspect`, enable `./apps.nix` in `android/B1/device.nix`, resolve
-`android/B1/apps.lock.json`, review the nix-android plan and install the apps as
+First verify B1 with `b1-device inspect`, review the nix-android plan and install the apps as
 described in the parent README. The APK declaration pins the KOReader release;
 the lock records the selected APK's hash and signer. The configuration bundle
 itself is independent of the reader's ABI.
@@ -81,6 +80,19 @@ python3 android/B1/koreader/deploy.py --serial SERIAL --apply
 Use your controller's system in the check attribute if it differs from L1's
 `x86_64-darwin`. New files must be tracked by Git for Git-backed flake references.
 `--bundle /nix/store/...-b1-koreader-...` reuses an already-built bundle.
+
+To check the installed files without closing KOReader or writing to the reader:
+
+```sh
+python3 android/B1/koreader/deploy.py --serial SERIAL --verify
+# WSL with USB ADB running on Windows:
+python3 android/B1/koreader/deploy.py --adb /mnt/c/path/to/platform-tools/adb.exe --serial SERIAL --verify
+```
+
+Verification compares the device's manifest to the built bundle, then checks
+every listed payload file. It does not validate the UI or detect extra files.
+For `--apply`, use an ADB client that can read the bundle's local paths. Windows
+ADB cannot read a WSL `/nix/store/...` path as supplied by Linux Python.
 
 Exit KOReader from its menu before deployment. The script requires the official
 app, a stopped process, and an initialized `/sdcard/koreader/settings.reader.lua`.

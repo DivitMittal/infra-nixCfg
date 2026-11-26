@@ -3,6 +3,7 @@
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 from pathlib import Path, PurePosixPath
 import shlex
 import subprocess
@@ -22,13 +23,14 @@ PACKAGE = "org.koreader.launcher"
 
 
 class Reader:
-    def __init__(self, serial, root):
+    def __init__(self, serial, root, adb_path="adb"):
         self.serial = serial
         self.root = root
+        self.adb_path = adb_path
 
     def adb(self, *args, check=True):
         return subprocess.run(
-            ["adb", "-s", self.serial, *args],
+            [self.adb_path, "-s", self.serial, *args],
             check=check, text=True, capture_output=True,
         )
 
@@ -55,6 +57,19 @@ class Reader:
                 raise RuntimeError("Could not verify that KOReader is stopped.")
         if not self.exists(self.root + "/settings.reader.lua"):
             raise RuntimeError("KOReader data folder is not initialized. Launch once, grant storage access, then exit.")
+
+    def verify_bundle(self, bundle):
+        manifest = ".b1-manifest.sha256"
+        expected = hashlib.sha256((bundle / manifest).read_bytes()).hexdigest()
+        remote = self.shell("sha256sum", self.root + "/" + manifest, check=False)
+        if remote.returncode != 0 or not remote.stdout.split():
+            raise RuntimeError("Could not read the installed KOReader manifest; check ADB authorization and the data path.")
+        if remote.stdout.split()[0] != expected:
+            raise RuntimeError("The installed KOReader manifest differs from the chosen bundle.")
+        result = self.shell("sh", "-c", 'cd "$1" && sha256sum -c .b1-manifest.sha256', "sh", self.root, check=False)
+        if result.returncode != 0:
+            failed = [line for line in result.stdout.splitlines() if not line.endswith(": OK")]
+            raise RuntimeError("KOReader payload checksum verification failed: " + ("; ".join(failed) or result.stderr.strip() or str(result.returncode)))
 
     def deploy(self, bundle):
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
@@ -110,23 +125,31 @@ class Reader:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serial", required=True)
+    parser.add_argument("--adb", default="adb", help="ADB executable (Windows adb.exe also works for verification from WSL)")
     parser.add_argument("--data-dir", choices=("/sdcard/koreader", "/storage/emulated/0/koreader"), default="/sdcard/koreader")
     parser.add_argument("--bundle", type=Path, help="Use an already-built bundle instead of invoking Nix")
-    parser.add_argument("--apply", action="store_true", help="Back up and install; the default only reviews")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--apply", action="store_true", help="Back up and install; the default only reviews")
+    mode.add_argument("--verify", action="store_true", help="Check the installed manifest and payload without writing anything")
     args = parser.parse_args()
-    reader = Reader(args.serial, args.data_dir)
-    reader.preflight()
+    reader = Reader(args.serial, args.data_dir, args.adb)
+    if not args.verify:
+        reader.preflight()
     bundle = args.bundle
     if bundle is None:
         repo = Path(__file__).resolve().parents[3]
         output = subprocess.run(
-            ["nix", "build", "--no-link", "--print-out-paths", ".#b1-koreader"],
+            ["nix", "build", "--no-link", "--no-write-lock-file", "--print-out-paths", "path:.#b1-koreader"],
             cwd=repo, check=True, text=True, capture_output=True,
         )
         bundle = Path(output.stdout.strip())
     for relative in MANAGED:
         if not (bundle / relative).exists():
             raise RuntimeError(f"Incomplete bundle: {relative}")
+    if args.verify:
+        reader.verify_bundle(bundle)
+        print("Installed KOReader manifest and payload match the selected bundle.")
+        return
     print(f"Reader: {args.serial}; data: {args.data_dir}; bundle: {bundle}")
     for relative in MANAGED:
         state = "replace (with backup)" if reader.exists(args.data_dir + "/" + relative) else "create"

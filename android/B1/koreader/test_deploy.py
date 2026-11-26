@@ -1,7 +1,9 @@
 """Check deployment gates, transfer ordering and rollback without invoking ADB."""
 
 from pathlib import Path, PureWindowsPath
+import hashlib
 import subprocess
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -38,6 +40,32 @@ class FakeReader(Reader):
 
 
 class DeployTests(unittest.TestCase):
+    def test_verify_bundle_checks_pinned_manifest_before_payload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bundle = Path(directory)
+            data = b"test manifest\n"
+            (bundle / ".b1-manifest.sha256").write_bytes(data)
+            digest = hashlib.sha256(data).hexdigest()
+            for actual, status, message in (
+                (digest, 0, None),
+                ("wrong", 0, "manifest differs"),
+                (digest, 1, "settings/b1.lua: FAILED"),
+            ):
+                with self.subTest(actual=actual, status=status), patch.object(Reader, "shell", side_effect=(
+                    subprocess.CompletedProcess([], 0, actual + "  .b1-manifest.sha256\n", ""),
+                    subprocess.CompletedProcess([], status, "patches/2-b1-reading.lua: OK\nsettings/b1.lua: FAILED\n" if status else "", ""),
+                )) as shell:
+                    reader = Reader("serial", "/sdcard/koreader")
+                    if message:
+                        with self.assertRaisesRegex(RuntimeError, message):
+                            reader.verify_bundle(bundle)
+                    else:
+                        reader.verify_bundle(bundle)
+                    self.assertEqual(shell.call_count, 2 if actual == digest else 1)
+                    self.assertEqual(shell.call_args_list[0].args, ("sha256sum", "/sdcard/koreader/.b1-manifest.sha256"))
+                    if actual == digest:
+                        self.assertIn("sha256sum -c", shell.call_args_list[1].args[2])
+
     def test_preflight_is_read_only_and_requires_official_stopped_app(self):
         reader = FakeReader()
         reader.preflight()

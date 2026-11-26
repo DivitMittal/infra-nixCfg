@@ -41,12 +41,49 @@ class FakeController(Controller):
             return self.profile["kernelPrefix"] + "+"
         if args[0] == "settings":
             return "null" if args[-1] == "KEYCODE_BACK" else "2147483647"
+        if args == ("pm", "list", "packages", "--user", "0", "--show-versioncode"):
+            return "package:juloo.keyboard2 versionCode:58\r\npackage:com.openai.chatgpt versionCode:10\r\n"
+        if args == ("pm", "list", "packages", "-d", "--user", "0"):
+            return "package:juloo.keyboard2"
+        if args == ("am", "get-current-user"):
+            return "0"
         if args[0] == "am":
             return "Broadcast completed: result=0"
         raise AssertionError(f"Unexpected command: {args}")
 
 
 class ControllerTests(unittest.TestCase):
+    def test_audit_only_reads_and_reports_missing_and_disabled_packages(self):
+        reader = FakeController()
+        output = io.StringIO()
+        with patch("controller.subprocess.run") as run, redirect_stdout(output):
+            self.assertEqual(reader.converge("audit", "."), 0)
+        run.assert_not_called()
+        audit = json.loads(output.getvalue())
+        self.assertEqual(audit["currentUser"], "0")
+        self.assertTrue(audit["chatGPTInstalledUser0"])
+        self.assertEqual(audit["pinnedAppsUser0"]["juloo.keyboard2"], {
+            "installedVersionCode": 58, "minimumVersionCode": 58, "disabled": True,
+        })
+        self.assertIsNone(audit["pinnedAppsUser0"]["org.koreader.launcher"]["installedVersionCode"])
+        self.assertTrue(all(command[:2] == ("settings", "get") for command in reader.commands if command[0] == "settings"))
+
+    def test_audit_refuses_wrong_device_before_inventory(self):
+        reader = FakeController(mismatch="ro.product.model")
+        with self.assertRaisesRegex(RuntimeError, "identity mismatch"):
+            reader.converge("audit", ".")
+        self.assertFalse(any(command[0] in ("pm", "am", "settings") for command in reader.commands))
+
+    def test_unauthorized_adb_names_required_action(self):
+        adb = "C:/Android SDK/adb.exe"
+        reader = Controller("B1-test", profile(), adb)
+        with patch("controller.subprocess.run", side_effect=subprocess.CalledProcessError(
+            1, [], stderr="error: device unauthorized.\n",
+        )) as run:
+            with self.assertRaisesRegex(RuntimeError, "authorize this computer"):
+                reader.verify()
+        self.assertEqual(run.call_args.args[0], [adb, "-s", "B1-test", "get-state"])
+
     def test_inspection_never_runs_nix_or_writes_settings(self):
         reader = FakeController()
         with patch("controller.subprocess.run") as run, redirect_stdout(io.StringIO()):

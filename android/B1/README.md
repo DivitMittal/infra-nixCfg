@@ -11,9 +11,38 @@ packages.
 
 ## First connection
 
-Requirements: this flake's Nix environment, a USB data cable, and USB debugging
-authorized on the reader. Enable debugging through the device's app-management
-or developer settings, depending on its firmware.
+A USB data cable and authorization on the reader are required. Enable debugging
+through its app-management or developer settings, depending on the firmware.
+If `adb devices -l` shows `unauthorized`, unlock B1 and accept the USB debugging
+prompt on B1. This is separate from Windows administrator privileges. If the
+prompt is missing, unplug and reconnect the unlocked reader. If needed, revoke
+USB debugging authorizations on B1 and reconnect (this forgets other controllers).
+
+### Read-only USB audit on Windows or WSL
+
+Install Android SDK Platform-Tools and Python 3 on Windows, or use Python 3 in
+WSL and call the Windows `adb.exe` there. Windows owns the USB connection; the
+WSL route does not require passing the USB device through to Linux. Use the
+same Windows `adb.exe` that listed the reader and its exact serial:
+
+```powershell
+& 'C:\path\to\platform-tools\adb.exe' devices -l
+python android/B1/controller.py --adb 'C:\path\to\platform-tools\adb.exe' --serial SERIAL audit
+```
+
+```sh
+python3 android/B1/controller.py --adb /mnt/c/path/to/platform-tools/adb.exe --serial SERIAL audit
+```
+
+The audit verifies firmware identity and reads the timeout, button settings,
+default IME, pinned app versions and ChatGPT presence for user 0. It does not
+write to the reader, read app data, or require root or Nix. A successful audit
+means it collected state, not that the state matches the desired profile.
+Use the Nix controller below for the actual convergence plan. On WSL, use
+`nix build path:.#b1-koreader --no-link` if Nix cannot resolve the Windows path
+in a Git worktree's `.git` file.
+
+### Full inventory on a Nix controller
 
 Run from this worktree's root:
 
@@ -48,9 +77,10 @@ Use `--flake /path/to/this/checkout` if running outside the repository root.
 
 The default settings retain **Back** on a short front-button press and use
 **Recent Apps** on a long press, replacing the nonfunctional frontlight action
-on this hardware. The screen sleeps after **five minutes** of inactivity.
-Side buttons, display density, radio settings, Google services and keyboards
-retain their existing configuration.
+on this hardware. The screen timeout is **five minutes**, and the global
+side-key short-press customization toggle is set to `0`. Display density, radio
+settings and Google services are not managed; the separate keyboard tool below
+manages the IME.
 
 `plan` uses nix-android's read-only plan and preserves exit 3 for pending changes.
 `apply` saves original values of every managed setting outside Git with private
@@ -58,8 +88,10 @@ permissions, runs nix-android, and sends `onyx.action.refresh_keymapping` only
 when the switch succeeds. The reload runs even when the manifest already matches,
 so retrying apply can recover from an interrupted reload. Prefer this wrapper to
 calling `android-rebuild switch` directly, which does not send the Onyx reload.
-These are reported community interfaces; read-back and physical button behavior
-still need verification when B1 arrives.
+ADB readback confirms stored values, not what the hardware does. On the reader,
+verify a short press goes Back, a long press opens Recents, and the screen
+sleeps at the configured timeout. Open a text field to check TLTR input and open
+an EPUB and PDF in KOReader to check rendering and the installed plugin menus.
 
 Original values are in
 `${XDG_STATE_HOME:-$HOME/.local/state}/infra-nixCfg/B1/before-apply-*/settings.json`.

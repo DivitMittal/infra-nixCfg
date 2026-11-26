@@ -18,7 +18,17 @@
         export PYTHONPATH=${keyboard}
         python3 -B -m unittest discover -s ${keyboard} -p test_deploy.py
         python3 -B -m unittest discover -s ${../android/M1} -p test_keyboard.py
+        python3 -B -m unittest discover -s ${../android/M1} -p test_ksu.py
         touch "$out"
       '';
+
+    packages.m1-ksu = pkgs.writeShellApplication {
+      name = "m1-ksu";
+      runtimeInputs = [pkgs.android-tools pkgs.python3];
+      text = ''
+        export PYTHONPATH=${keyboard}
+        exec python3 -B ${../android/M1}/ksu.py "$@"
+      '';
+    };
   };
 }

@@ -24,8 +24,12 @@ not interchangeable. M1 should use `ksud module install` (or the manager-support
 equivalent exposed by the installed ReSukiSU build), while B1 continues to use
 `magisk --install-module`.
 
-The M1 tool should keep the existing plan/apply and identity checks, pin each
-module ZIP by hash, and record that hash after installation. A module that changes
+`m1-ksu` implements this boundary. Declare module IDs, ZIP paths, and enabled
+state in a JSON manifest, then run `nix run .#m1-ksu -- --manifest manifest.json
+--serial SERIAL plan`. Planning exits 3 for a missing module, hash drift, or
+enabled-state drift. Apply uses `ksud module install`, then `enable` or
+`disable`, and records the ZIP SHA-256. It neither removes undeclared modules
+nor reboots M1. A module that changes
 `system/` also needs the appropriate KernelSU metamodule before its files can be
 mounted. Modules should remain staged until an explicit reboot unless the selected
 module and installed ReSukiSU version both support hot installation. Do not treat

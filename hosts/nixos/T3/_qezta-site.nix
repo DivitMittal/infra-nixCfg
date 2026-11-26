@@ -18,7 +18,7 @@ pkgs.stdenv.mkDerivation {
     pname = "qezta-site";
     lockfile = ./_qezta-site.bun.lock;
     hashes = {
-      x86_64-linux = "sha256-g34U4UJ7MDgIZwUQ2f//PxfVUrcJyfZhU75niPscsCE=";
+      x86_64-linux = "sha256-ZVFGj9l7m+bYy23yniYLvfAej6iVuD/68SA2K1+N+dI=";
       x86_64-darwin = "sha256-ouj0hGPynxSKFDwtA+paz0oZQv4xrY8bexcIrrne0Q4=";
     };
   };
@@ -27,13 +27,6 @@ pkgs.stdenv.mkDerivation {
     substituteInPlace svelte.config.js \
       --replace-fail 'adapter: adapter({ precompress: true })' 'adapter: adapter({ precompress: true }),
     paths: { relative: true }'
-    substituteInPlace src/app.html \
-      --replace-fail 'href="/favicon.ico"' 'href="favicon.ico"' \
-      --replace-fail 'href="/cursor_trail_vertex.glsl"' 'href="cursor_trail_vertex.glsl"' \
-      --replace-fail 'href="/cursor_trail_fragment.glsl"' 'href="cursor_trail_fragment.glsl"' \
-      --replace-fail 'src="/cursor_trail.js"' 'src="cursor_trail.js"'
-    substituteInPlace src/routes/+page.svelte \
-      --replace-fail 'const logoSrc = "/qezta.gif";' 'const logoSrc = "qezta.gif";'
     substituteInPlace src/routes/+layout.svelte \
       --replace-fail "import { injectAnalytics } from '@vercel/analytics/sveltekit';" "" \
       --replace-fail "import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';" "" \
@@ -45,6 +38,7 @@ pkgs.stdenv.mkDerivation {
     runHook preBuild
     cp -R "$bunDeps" node_modules
     chmod -R u+w node_modules
+    patchShebangs node_modules
     bun run build
     runHook postBuild
   '';

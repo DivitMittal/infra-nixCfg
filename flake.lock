@@ -3435,11 +3435,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795112355,
-        "narHash": "sha256-2vzlz6YhpBNJd9XBE8qCgguYvPA44x6tp8OFbiNpFHs=",
+        "lastModified": 1795720067,
+        "narHash": "sha256-liYyouqFJKW2ilL8isb3+n5D2/W0BTbkSSdec8ixq3E=",
         "owner": "Qezta",
         "repo": "ssh",
-        "rev": "b4b5a2a953c8f8d740f9ad8658a278a04451051b",
+        "rev": "dacc8b39b2b4afac100bfef948ec003e24e9edea",
         "type": "github"
       },
       "original": {

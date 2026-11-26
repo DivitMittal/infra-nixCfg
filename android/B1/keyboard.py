@@ -36,9 +36,10 @@ def main():
     parser.add_argument("--profile", type=Path, required=True)
     parser.add_argument("--layout", type=Path, required=True)
     parser.add_argument("--serial", required=True)
+    parser.add_argument("--adb", default="adb", help="ADB executable")
     parser.add_argument("command", choices=("plan", "apply"), nargs="?", default="plan")
     args = parser.parse_args()
-    device = Controller(args.serial, json.loads(args.profile.read_text()))
+    device = Controller(args.serial, json.loads(args.profile.read_text()), args.adb)
     device.verify()
     require_owner(device)
     deploy.require_root(device)
@@ -71,6 +72,6 @@ if __name__ == "__main__":
     except subprocess.CalledProcessError as error:
         print(f"B1 keyboard: {(error.stderr or '').strip() or error}", file=sys.stderr)
         sys.exit(1)
-    except (OSError, ParseError, ValueError, RuntimeError, KeyError) as error:
+    except (OSError, ParseError, ValueError, RuntimeError, KeyError, subprocess.TimeoutExpired) as error:
         print(f"B1 keyboard: {error}", file=sys.stderr)
         sys.exit(1)

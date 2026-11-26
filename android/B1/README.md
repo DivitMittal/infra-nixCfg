@@ -42,6 +42,17 @@ Use the Nix controller below for the actual convergence plan. On WSL, use
 `nix build path:.#b1-koreader --no-link` if Nix cannot resolve the Windows path
 in a Git worktree's `.git` file.
 
+The TLTR and Magisk plans can also use the same Windows ADB client from WSL,
+with existing Shell superuser permission on B1:
+
+```sh
+nix run path:.#b1-keyboard -- --adb /mnt/c/path/to/platform-tools/adb.exe --serial SERIAL plan
+nix run path:.#b1-magisk -- --adb /mnt/c/path/to/platform-tools/adb.exe --serial SERIAL plan
+```
+
+For Magisk `apply`, use an ADB client that can read the Nix-built ZIP's local
+path. The Windows client above is sufficient for `plan`, which transfers nothing.
+
 ### Full inventory on a Nix controller
 
 Run from this worktree's root:

@@ -15,7 +15,7 @@ pkgs.stdenv.mkDerivation {
     pname = "divit-ipfs";
     lockfile = ./_divit-ipfs.bun.lock;
     hashes = {
-      x86_64-linux = "sha256-k0CKfdWzvdtVqeTwe7wrVbq0tqiB6/BBBLhdO3x8kJQ=";
+      x86_64-linux = "sha256-mDw+LEcqGB2G18TIzXr5rPE23MtKGVFYc7DaZDWO8Ls=";
       x86_64-darwin = "sha256-dG7PgHOSYB6G037h7qjdo8f/fVbnKqWgGhbK5zPRBso=";
     };
   };
@@ -24,6 +24,7 @@ pkgs.stdenv.mkDerivation {
     runHook preBuild
     cp -R "$bunDeps" node_modules
     chmod -R u+w node_modules
+    patchShebangs node_modules
     bun run build:ipfs
     runHook postBuild
   '';

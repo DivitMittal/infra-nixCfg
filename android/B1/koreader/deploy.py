@@ -3,7 +3,7 @@
 
 import argparse
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shlex
 import subprocess
 import sys
@@ -67,13 +67,13 @@ class Reader:
             original = self.root + "/" + relative
             if self.exists(original):
                 target = backup + "/" + relative
-                self.shell("mkdir", "-p", str(Path(target).parent))
+                self.shell("mkdir", "-p", str(PurePosixPath(target).parent))
                 self.shell("cp", "-p", original, target)
 
         # Finish all transfers before replacing any managed paths.
         for relative in MANAGED:
             target = stage + "/" + relative
-            self.shell("mkdir", "-p", str(Path(target).parent))
+            self.shell("mkdir", "-p", str(PurePosixPath(target).parent))
             self.adb("push", str(bundle / relative), target)
         self.shell("chmod", "-R", "u+rwX", stage)
         self.shell("sh", "-c", 'cd "$1" && sha256sum -c .b1-manifest.sha256', "sh", stage)
@@ -83,7 +83,7 @@ class Reader:
             for relative in MANAGED:
                 target = self.root + "/" + relative
                 old = backup + "/" + relative
-                self.shell("mkdir", "-p", str(Path(target).parent), str(Path(old).parent))
+                self.shell("mkdir", "-p", str(PurePosixPath(target).parent), str(PurePosixPath(old).parent))
                 had_original = self.exists(target)
                 if had_original:
                     self.shell("mv", target, old)

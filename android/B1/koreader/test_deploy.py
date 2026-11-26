@@ -1,6 +1,6 @@
 """Check deployment gates, transfer ordering and rollback without invoking ADB."""
 
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import subprocess
 import unittest
 from unittest.mock import patch
@@ -61,6 +61,23 @@ class DeployTests(unittest.TestCase):
         with self.assertRaises(subprocess.CalledProcessError):
             reader.deploy(Path("/bundle"))
         self.assertFalse(any(command[0] in ("mv", "rm") for command in reader.commands))
+
+    def test_windows_bundle_keeps_android_directory_paths_posix(self):
+        reader = FakeReader()
+        bundle = PureWindowsPath(r"C:\bundle")
+        with patch("deploy.Path", PureWindowsPath):
+            reader.deploy(bundle)
+
+        _, _, stage, backup = reader.commands[0]
+        mkdirs = [command[2:] for command in reader.commands if command[:2] == ("mkdir", "-p")]
+        self.assertEqual(mkdirs[:3], [(stage, backup), (backup,), (backup + "/settings",)])
+        for index, relative in enumerate(MANAGED):
+            with self.subTest(relative=relative):
+                directory = relative.rpartition("/")[0]
+                suffix = "/" + directory if directory else ""
+                self.assertEqual(mkdirs[3 + index], (stage + suffix,))
+                self.assertEqual(mkdirs[3 + len(MANAGED) + index], (reader.root + suffix, backup + suffix))
+                self.assertIn(("push", str(bundle / relative), stage + "/" + relative), reader.commands)
 
     def test_failed_replacement_restores_both_previous_files(self):
         reader = FakeReader(fail="replace")

@@ -14,3 +14,19 @@ as B1 and makes it the default input method for Android's owner user. It
 updates and checks both the settings screen's preferences and the live input
 method's direct-boot preferences. It does not modify Termux Launcher's
 embedded layout or disable M1's other input methods.
+
+## Kernel module management
+
+M1's planned declarative root-module management should target ReSukiSU/KernelSU,
+not B1's Magisk wrapper. The shared module format, `/data/adb/modules` layout,
+and disable/remove markers are compatible, but installation and activation are
+not interchangeable. M1 should use `ksud module install` (or the manager-supported
+equivalent exposed by the installed ReSukiSU build), while B1 continues to use
+`magisk --install-module`.
+
+The M1 tool should keep the existing plan/apply and identity checks, pin each
+module ZIP by hash, and record that hash after installation. A module that changes
+`system/` also needs the appropriate KernelSU metamodule before its files can be
+mounted. Modules should remain staged until an explicit reboot unless the selected
+module and installed ReSukiSU version both support hot installation. Do not treat
+a Magisk module ZIP as automatically installable or behavior-compatible on M1.

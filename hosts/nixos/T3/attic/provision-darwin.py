@@ -65,7 +65,7 @@ def mint_bootstrap(config):
 
 
 def ensure_private(admin):
-    status, _ = request(API, admin)
+    status, body = request(API, admin)
     if status == 404:
         status, _ = request(API, admin, "POST", {
             "keypair": "Generate", "is_public": False, "store_dir": "/nix/store",
@@ -76,10 +76,11 @@ def ensure_private(admin):
         print("Created private cache darwin")
     elif status != 200:
         raise RuntimeError(f"Cache inspection failed (HTTP {status})")
-    # Re-asserting privacy is safe on every run and never regenerates the keypair.
-    status, _ = request(API, admin, "PATCH", {"is_public": False})
-    if status not in (200, 204):
-        raise RuntimeError(f"Private cache configuration failed (HTTP {status})")
+    elif json.loads(body).get("is_public") is not False:
+        # Changing visibility does not regenerate the keypair.
+        status, _ = request(API, admin, "PATCH", {"is_public": False})
+        if status not in (200, 204):
+            raise RuntimeError(f"Private cache configuration failed (HTTP {status})")
     status, body = request(API, admin)
     config = json.loads(body) if status == 200 else {}
     if config.get("is_public") is not False:

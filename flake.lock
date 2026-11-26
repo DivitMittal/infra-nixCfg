@@ -4019,11 +4019,11 @@
         "wezterm": "wezterm"
       },
       "locked": {
-        "lastModified": 1795532653,
-        "narHash": "sha256-Vxb8DojJ/YOwaIC2YSGBZwoEiEjWZmt7loF1ypep6/w=",
+        "lastModified": 1795567355,
+        "narHash": "sha256-uXuQDmP//OAC1h8t3uALCQInG2xG9ymITNsECN3JHxM=",
         "owner": "DivitMittal",
         "repo": "term-nixCfg",
-        "rev": "41b7c70518ee4d17177ca0ca5f545f2a0d44407c",
+        "rev": "9cc4b0dca6ec1f9587f03e5f2a3faf396938c229",
         "type": "github"
       },
       "original": {

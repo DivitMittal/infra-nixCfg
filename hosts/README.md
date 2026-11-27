@@ -309,6 +309,46 @@ measured from S1's per-port counters on 2026-11-19, so re-measure after
 recabling. Neither switch is fully monitorable: S1 (Easy Smart) has no SNMP,
 so MON1 only pings it and probes its web UI, and S2 can't be monitored at all.
 
+### M1 (phone) on Ethernet
+
+M1 joins the LAN through its USB-C Ethernet adapter (Realtek, built into the
+kernel). The router reserves `192.168.2.7` for the adapter's MAC
+(`homelab.macs.M1-eth`), so `deploy .#M1` works as soon as it's plugged in.
+That depends on a few things outside this flake:
+
+- sshd starts at boot from `~/.termux/boot/sshd` (`common/hosts/droid/ssh.nix`),
+  which needs the `com.termux.launcher.nix.boot` add-on installed and opened
+  once.
+- Android must not stop the app in the background: keep it on the battery
+  allowlist (`adb shell dumpsys deviceidle whitelist +com.termux.launcher.nix`).
+- Turn off "Mobile data always active" so Ethernet carries the traffic:
+  `adb shell settings put global mobile_data_always_on 0`. Android already
+  prefers Ethernet once it passes the internet check through R1.
+
+Without Ethernet, use the USB route: `adb forward tcp:18022 tcp:8022`, then
+`deploy .#M1-adb` (or `ssh M1-adb` if you have a matching SSH alias). If your
+workstation cannot build `aarch64-linux`, copy the inputs over and build on
+the phone. The copy command below assumes that SSH alias is configured:
+
+```sh
+HOME_ON_PHONE=/data/data/com.termux.launcher.nix/files/home
+meta=$(nix flake archive --json --dry-run .)
+nix copy --no-check-sigs --to "ssh-ng://M1-adb?remote-program=$HOME_ON_PHONE/.nix-profile/bin/nix-daemon" \
+  "$(jq -r .path <<<"$meta")" "$(jq -r '.inputs["infra-nixCfg-secrets"].path' <<<"$meta")"
+# on the phone:
+nix build --impure "path:<archived source>#nixOnDroidConfigurations.M1.activationPackage" && ./result/activate
+```
+
+`--impure` is required: nix-on-droid's own modules call `builtins.storePath`,
+which `nix-on-droid switch` also builds around with `--impure`. Only the flake
+source and `infra-nixCfg-secrets` are copied: every other input is public and
+the phone downloads it compressed, which is far faster than `nix flake archive
+--to` pushing all of them uncompressed over adb.
+
+For a nix-android controller while Ethernet occupies the USB-C port, the
+`adb-tcp-on` shortcut enables a persistent ADB listener. Use it only on a
+trusted LAN with authorized ADB keys, and run `adb-tcp-off` when finished.
+
 ### T1 (HP t640 thin client) — PXE/facter bootstrap
 
 `T1` is a diskless-by-default thin client bootstrapped over PXE. Unlike the VPS

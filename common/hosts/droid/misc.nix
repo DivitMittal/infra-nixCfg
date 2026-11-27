@@ -11,45 +11,51 @@
   environment.etcBackupExtension = ".bak";
   environment.motd = "";
 
-  environment.packages = lib.attrsets.attrValues {
-    inherit
-      (pkgs)
-      ## GNU
-      bc
-      gnugrep
-      inetutils
-      gawk
-      which
-      gzip
-      wget
-      gnupatch
-      gnupg
-      binutils
-      gnumake
-      groff
-      indent
-      ## uutils
-      uutils-tar # gnutar
-      uutils-sed # gnused
-      uutils-hostname # hostname
-      uutils-login # login
-      uutils-procps # procps
-      uutils-coreutils-noprefix # coreutils
-      uutils-diffutils # diffutils
-      uutils-findutils # findutils
-      uutils-util-linux # util-linux
-      ## Others
-      zip
-      unzip
-      curl
-      vim
-      git
-      tzdata
-      openssh
-      ## Nix
-      home-manager
-      ;
-  };
+  environment.packages =
+    lib.attrsets.attrValues {
+      inherit
+        (pkgs)
+        ## GNU
+        bc
+        gnugrep
+        inetutils
+        gawk
+        which
+        gzip
+        wget
+        gnupatch
+        gnupg
+        binutils
+        gnumake
+        groff
+        indent
+        ## Others
+        zip
+        unzip
+        curl
+        vim
+        git
+        tzdata
+        openssh
+        ## Nix
+        home-manager
+        ;
+    }
+    # The uutils tools replace GNU ones that nix-on-droid and inetutils also
+    # ship (sed, hostname, …); hiPrio settles those buildEnv collisions.
+    ++ map lib.hiPrio (lib.attrsets.attrValues {
+      inherit
+        (pkgs)
+        uutils-tar # gnutar
+        uutils-sed # gnused
+        uutils-login # login
+        uutils-procps # procps
+        uutils-coreutils-noprefix # coreutils
+        uutils-diffutils # diffutils
+        uutils-findutils # findutils
+        uutils-util-linux # util-linux
+        ;
+    });
   environment.extraOutputsToInstall = ["info"]; # "doc" "devdoc"
 
   # Make home-manager use the flake's home-manager

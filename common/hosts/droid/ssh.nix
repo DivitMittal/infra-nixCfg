@@ -20,6 +20,9 @@
     AuthorizedKeysFile ${home}/.ssh/authorized_keys
     PasswordAuthentication no
     KbdInteractiveAuthentication no
+    # sshd hands sessions a bare /usr/bin:/bin, so non-interactive commands
+    # (deploy-rs, `ssh M1 cmd`) and fish's own config can't find anything.
+    SetEnv PATH=${home}/.nix-profile/bin:/usr/bin:/bin
   '';
 
   sshd-start = pkgs.writeScriptBin "sshd-start" ''

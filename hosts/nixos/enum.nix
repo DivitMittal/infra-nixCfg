@@ -66,7 +66,7 @@
       inherit class;
       hostName = "T1";
       system = "x86_64-linux";
-      additionalModules = homelabT640;
+      additionalModules = homelabT640 ++ [./_homelab/wake-t2.nix];
     };
     T2 = mkCfg {
       inherit class;
@@ -78,7 +78,7 @@
       inherit class;
       hostName = "T3";
       system = "x86_64-linux";
-      additionalModules = homelabT640 ++ [./_homelab/agents.nix ./_homelab/wired-link.nix];
+      additionalModules = homelabT640 ++ [./_homelab/agents.nix ./_homelab/wired-link.nix ./_homelab/wake-t2.nix];
     };
     MON1 = mkCfg {
       inherit class;

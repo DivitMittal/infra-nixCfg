@@ -34,11 +34,13 @@
     # here at deploy time and injected onto T640 over SSH; it never touches
     # the Nix store or the declarative UCI JSON (which only ever contains
     # the CHANGEME placeholders from hosts/openwrt/T640/modules/network.nix).
-    # Neither secret exists yet in infra-nixCfg-secrets — create both
-    # (secrets/network/T640-wan1.age, secrets/network/T640-wan2.age) before
-    # the first real deploy.
-    t640Wan1Secret = inputs.infra-nixCfg-secrets + "/secrets/network/T640-wan1.age";
-    t640Wan2Secret = inputs.infra-nixCfg-secrets + "/secrets/network/T640-wan2.age";
+    # One file per line that exists in infra-nixCfg-secrets
+    # (secrets/network/T640-wanN.age); the router's PPPoE line count must
+    # match (pppoeLines in hosts/openwrt/T640/modules/network.nix).
+    t640WanSecrets = builtins.filter (x: builtins.pathExists x.file) (map (n: {
+      inherit n;
+      file = inputs.infra-nixCfg-secrets + "/secrets/network/T640-wan${toString n}.age";
+    }) [1 2]);
 
     nuci = "${uci.nuci}/bin/nuci";
     mkCommand = {
@@ -89,10 +91,11 @@
             echo "missing agenix identity at $identity" >&2
             exit 1
           }
-          ${pkgs.rage}/bin/rage --decrypt -i "$identity" ${t640Wan1Secret} \
-            | "$ssh" "''${ssh_opts[@]}" "$target" 'umask 077 && cat > /etc/nuci/wan1-credentials'
-          ${pkgs.rage}/bin/rage --decrypt -i "$identity" ${t640Wan2Secret} \
-            | "$ssh" "''${ssh_opts[@]}" "$target" 'umask 077 && cat > /etc/nuci/wan2-credentials'
+          ${lib.concatMapStringsSep "\n" (w: ''
+            ${pkgs.rage}/bin/rage --decrypt -i "$identity" ${w.file} \
+              | "$ssh" "''${ssh_opts[@]}" "$target" 'umask 077 && cat > /etc/nuci/wan${toString w.n}-credentials'
+          '')
+          t640WanSecrets}
         }
 
         case "$mode" in

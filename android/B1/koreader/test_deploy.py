@@ -1,0 +1,125 @@
+"""Check deployment gates, transfer ordering and rollback without invoking ADB."""
+
+from pathlib import Path, PureWindowsPath
+import hashlib
+import subprocess
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from deploy import MANAGED, Reader
+
+
+class FakeReader(Reader):
+    def __init__(self, running=False, official=True, fail=None):
+        super().__init__("reader-test", "/sdcard/koreader")
+        self.commands = []
+        self.running = running
+        self.official = official
+        self.fail = fail
+
+    def adb(self, *args, check=True):
+        self.commands.append(args)
+        if args[0] == "get-state":
+            return subprocess.CompletedProcess(args, 0, "device\n", "")
+        if args[0] == "push" and self.fail == "push":
+            raise subprocess.CalledProcessError(1, args)
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    def shell(self, *args, check=True):
+        self.commands.append(args)
+        if args[:2] == ("pm", "path"):
+            output = "package:/data/app/koreader.apk\n" if self.official else ""
+            return subprocess.CompletedProcess(args, 0, output, "")
+        if args[0] == "pidof":
+            return subprocess.CompletedProcess(args, 0 if self.running else 1, "42\n" if self.running else "", "")
+        if args[0] == "mv" and self.fail == "replace" and "/.b1-stage-" in args[1] and args[1].endswith("settings/b1.lua"):
+            self.fail = None  # a transient failure: allow rollback commands through
+            raise subprocess.CalledProcessError(1, args)
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+
+class DeployTests(unittest.TestCase):
+    def test_verify_bundle_checks_pinned_manifest_before_payload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            bundle = Path(directory)
+            data = b"test manifest\n"
+            (bundle / ".b1-manifest.sha256").write_bytes(data)
+            digest = hashlib.sha256(data).hexdigest()
+            for actual, status, message in (
+                (digest, 0, None),
+                ("wrong", 0, "manifest differs"),
+                (digest, 1, "settings/b1.lua: FAILED"),
+            ):
+                with self.subTest(actual=actual, status=status), patch.object(Reader, "shell", side_effect=(
+                    subprocess.CompletedProcess([], 0, actual + "  .b1-manifest.sha256\n", ""),
+                    subprocess.CompletedProcess([], status, "patches/2-b1-reading.lua: OK\nsettings/b1.lua: FAILED\n" if status else "", ""),
+                )) as shell:
+                    reader = Reader("serial", "/sdcard/koreader")
+                    if message:
+                        with self.assertRaisesRegex(RuntimeError, message):
+                            reader.verify_bundle(bundle)
+                    else:
+                        reader.verify_bundle(bundle)
+                    self.assertEqual(shell.call_count, 2 if actual == digest else 1)
+                    self.assertEqual(shell.call_args_list[0].args, ("sha256sum", "/sdcard/koreader/.b1-manifest.sha256"))
+                    if actual == digest:
+                        self.assertIn("sha256sum -c", shell.call_args_list[1].args[2])
+
+    def test_preflight_is_read_only_and_requires_official_stopped_app(self):
+        reader = FakeReader()
+        reader.preflight()
+        self.assertTrue(all(command[0] in ("get-state", "pm", "pidof", "test") for command in reader.commands))
+        with self.assertRaisesRegex(RuntimeError, "Exit KOReader"):
+            FakeReader(running=True).preflight()
+        with self.assertRaisesRegex(RuntimeError, "official GitHub"):
+            FakeReader(official=False).preflight()
+
+    def test_all_transfers_complete_before_replacing_managed_paths(self):
+        reader = FakeReader()
+        reader.deploy(Path("/bundle"))
+        pushes = [i for i, command in enumerate(reader.commands) if command[0] == "push"]
+        moves = [i for i, command in enumerate(reader.commands) if command[0] == "mv"]
+        self.assertEqual(len(pushes), len(MANAGED))
+        self.assertLess(max(pushes), min(moves))
+        self.assertTrue(any(command[0] == "sh" and "sha256sum" in command[2] for command in reader.commands))
+
+    def test_transfer_failure_does_not_replace_live_files(self):
+        reader = FakeReader(fail="push")
+        with self.assertRaises(subprocess.CalledProcessError):
+            reader.deploy(Path("/bundle"))
+        self.assertFalse(any(command[0] in ("mv", "rm") for command in reader.commands))
+
+    def test_windows_bundle_keeps_android_directory_paths_posix(self):
+        reader = FakeReader()
+        bundle = PureWindowsPath(r"C:\bundle")
+        with patch("deploy.Path", PureWindowsPath):
+            reader.deploy(bundle)
+
+        _, _, stage, backup = reader.commands[0]
+        mkdirs = [command[2:] for command in reader.commands if command[:2] == ("mkdir", "-p")]
+        self.assertEqual(mkdirs[:3], [(stage, backup), (backup,), (backup + "/settings",)])
+        for index, relative in enumerate(MANAGED):
+            with self.subTest(relative=relative):
+                directory = relative.rpartition("/")[0]
+                suffix = "/" + directory if directory else ""
+                self.assertEqual(mkdirs[3 + index], (stage + suffix,))
+                self.assertEqual(mkdirs[3 + len(MANAGED) + index], (reader.root + suffix, backup + suffix))
+                self.assertIn(("push", str(bundle / relative), stage + "/" + relative), reader.commands)
+
+    def test_failed_replacement_restores_both_previous_files(self):
+        reader = FakeReader(fail="replace")
+        with self.assertRaisesRegex(RuntimeError, "Managed paths restored"):
+            reader.deploy(Path("/bundle"))
+        restored = [command[2] for command in reader.commands if command[0] == "mv" and "/.b1-backups/" in command[1]]
+        self.assertEqual(set(restored), {reader.root + "/" + name for name in MANAGED[:2]})
+
+    def test_remote_arguments_are_shell_quoted(self):
+        reader = Reader("serial", "/sdcard/koreader")
+        with patch.object(reader, "adb") as adb:
+            reader.shell("test", "-e", "/sdcard/koreader/a b;echo bad")
+        adb.assert_called_once_with("shell", "test -e '/sdcard/koreader/a b;echo bad'", check=True)
+
+
+if __name__ == "__main__":
+    unittest.main()

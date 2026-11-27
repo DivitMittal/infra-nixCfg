@@ -1,0 +1,22 @@
+{
+  "Re-Malwack": {"enable": true},
+  "nomount": {"enable": true},
+  "zygisk_vector": {"enable": true},
+  "music-morphe-jhc-arm64": {"enable": true},
+  "googlephotos-jhc": {"enable": true},
+  "hma_oss_zygisk": {"enable": true},
+  "zygisk-detach": {"enable": true},
+  "playintegrityfix": {"enable": true},
+  "reddit-morphe-jhc": {"enable": true},
+  "livebootmagisk": {"enable": true},
+  "susfs4ksu": {"enable": true},
+  "youtube-morphe-jhc": {"enable": true},
+  "susfs_manager": {"enable": true},
+  "system_app_nuker": {"enable": true},
+  "HideNavBar": {"enable": true},
+  "rclone": {"enable": true},
+  "zygisksu": {"enable": true},
+  "ih8SecureLock": {"enable": true},
+  "teesim": {"enable": true},
+  "BetterKnownInstalled": {"enable": true}
+}

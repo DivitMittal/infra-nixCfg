@@ -1,0 +1,13 @@
+{
+  "koreaderVersion": "v2026.07.1",
+  "koassistant": {
+    "version": "v0.24.1",
+    "url": "https://github.com/zeeyado/koassistant.koplugin/releases/download/v0.24.1/koassistant.koplugin.zip",
+    "sha256": "a2630b01c0f4b2642f1a9a7257f20b3ab3150580df6f29a9f115a99b3868d54e"
+  },
+  "zenos": {
+    "version": "v4.3.2",
+    "url": "https://github.com/xZenLabs/zen-os/releases/download/v4.3.2/zenos.koplugin.zip",
+    "sha256": "3782a354400fb03f25aa7d745bf31633de0b15dfea99c9342be73687fc8d8a83"
+  }
+}

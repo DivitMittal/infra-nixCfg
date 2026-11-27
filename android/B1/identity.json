@@ -1,0 +1,20 @@
+{
+  "expectedProperties": {
+    "ro.product.model": "C69_M_STAR",
+    "ro.product.cpu.abi": "arm64-v8a",
+    "ro.board.platform": "bengal",
+    "ro.build.version.sdk": "30",
+    "ro.build.fingerprint": "Onyx/C69_M_STAR/C69_M_STAR:11/2023-07-20_17-44_3.2.2-bridge_1d80e860a/5465:user/dev-keys"
+  },
+  "kernelPrefix": "4.19.157-perf",
+  "observedProperties": [
+    "ro.boot.flash.locked",
+    "ro.boot.verifiedbootstate",
+    "ro.boot.slot_suffix"
+  ],
+  "recovery": {
+    "version": "power-studio-v1.1.4",
+    "url": "https://github.com/Zeusx212/onyx-c69hd-power-studio/releases/download/v1.1.4/twrp_c69hd_recovery.img",
+    "sha256": "570a296b27c0d79712c4a3e02a2e6ccaa30042de6b5d624f82d0ff93cd9ae57f"
+  }
+}

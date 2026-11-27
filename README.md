@@ -95,7 +95,7 @@ From the checkout, run `nix develop .#nix-tools` to put the following tools on y
 - [`nixtopsy`](https://github.com/manic-systems/nixtopsy): Explore a closure interactively to understand why a dependency is present or taking up space.
 - [`rom`](https://github.com/manic-systems/rom): Watch Nix build progress without changing the rebuild workflow.
 
-The shell is available on Linux and macOS. On Intel macOS, nixploit and rom are left out because the Nix packages available for that platform can't build them yet.
+The shell is available on Linux and macOS, with all five tools on every platform. Intel Macs stay on the repo's nixpkgs 26.05 pin. The Rust tools are built there with a current Rust from [rust-overlay](https://github.com/oxalica/rust-overlay), because the Rust in that pin is too old.
 
 For a one-off command, try `nix develop .#nix-tools -c dix --help`. Entering the shell does not activate a configuration, schedule vulnerability scans, or run garbage collection. The default devshell and `hms`, `hts`, and deploy workflows are unchanged.
 

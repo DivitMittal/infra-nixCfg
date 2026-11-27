@@ -29,12 +29,28 @@ in {
       "PKMS"
     ];
     uci = pkgs.callPackage "${inputs.openwrt-nix}/nix" {};
-    # The unstable pin no longer provides dix for Intel Macs.
+    # Intel Macs track the 26.05 pin (unstable dropped dix there, and its
+    # rustc is too old for nixploit), so pair it with a current stable Rust
+    # from rust-overlay instead of dropping tools.
+    isIntelDarwin = system == "x86_64-darwin";
     operatorPkgs =
-      if system == "x86_64-darwin"
+      if isIntelDarwin
       then inputs.nixpkgs-2605.legacyPackages.${system}
       else pkgs;
-    operatorTools = import ../pkgs/operator-tools.nix {pkgs = operatorPkgs;};
+    operatorRustPlatform =
+      if isIntelDarwin
+      then let
+        toolchain = (inputs.rust-overlay.lib.mkRustBin {} operatorPkgs).stable.latest.minimal;
+      in
+        operatorPkgs.makeRustPlatform {
+          cargo = toolchain;
+          rustc = toolchain;
+        }
+      else operatorPkgs.rustPlatform;
+    operatorTools = import ../pkgs/operator-tools.nix {
+      pkgs = operatorPkgs;
+      rustPlatform = operatorRustPlatform;
+    };
 
     # forward / unforward / deploy commands for a nix-on-droid host reached over
     # ADB-forwarded SSH; pairs with the `<host>-adb` nodes in hosts/deploy.nix.
@@ -108,7 +124,7 @@ in {
         name = "infra-nix-tools";
         packages =
           [operatorPkgs.nh operatorPkgs.dix]
-          ++ lib.filter (package: package != null) (lib.attrValues operatorTools);
+          ++ lib.attrValues operatorTools;
       };
     };
 

@@ -51,7 +51,7 @@
         src = pkgs.fetchFromGitHub {
           owner = "nickeb96";
           repo = "puffer-fish";
-          rev = "master";
+          rev = "83174b07de60078be79985ef6123d903329622b8";
           hash = "sha256-Dhx5+XRxJvlhdnFyimNxFyFiASrGU4ZwyefsDwtKnSg=";
         };
       }
@@ -60,8 +60,8 @@
         src = pkgs.fetchFromGitHub {
           owner = "markcial";
           repo = "upto";
-          rev = "master";
-          hash = "sha256-Lv2XtP2x9dkIkUUjMBWVpAs/l55Ztu7gIjKYH6ZzK4s=";
+          rev = "631138eb3655d52f4cb8cfbc1a19b2d71dc70d7f";
+          hash = "sha256-LuPY/q5d1kuEfFVqNrWCRIPvEsHhpravZ6BNN3SKo0c=";
         };
       }
       {
@@ -69,7 +69,7 @@
         src = pkgs.fetchFromGitHub {
           owner = "lengyijun";
           repo = "fc-fish";
-          rev = "main";
+          rev = "9457a9c47391ff712696bbef0e4a109de2a653d1";
           hash = "sha256-DQQofY5FPdy5kWctlKmi2SRTH7zL9ZpBdrdMx+iX+dA=";
         };
       }
@@ -78,7 +78,7 @@
         src = pkgs.fetchFromGitHub {
           owner = "edc";
           repo = "bass";
-          rev = "master";
+          rev = "79b62958ecf4e87334f24d6743e5766475bcf4d0";
           hash = "sha256-3d/qL+hovNA4VMWZ0n1L+dSM1lcz7P5CQJyy+/8exTc=";
         };
       }
@@ -87,7 +87,7 @@
         src = pkgs.fetchFromGitHub {
           owner = "oh-my-fish";
           repo = "plugin-osx";
-          rev = "master";
+          rev = "27039b251201ec2e70d8e8052cbc59fa0ac3b3cd";
           hash = "sha256-jSUIk3ewM6QnfoAtp16l96N1TlX6vR0d99dvEH53Xgw=";
         };
       }

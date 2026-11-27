@@ -49,6 +49,7 @@
 
 - [Overview](#overview)
 - [Quick Start](#quick-start)
+- [Nix Operator Tools](#nix-operator-tools)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Theme Pipeline](#theme-pipeline)
@@ -83,6 +84,20 @@ Each command drops you into `$SHELL` with the environment's packages prepended t
 
 > The TTY environment already includes the AI toolchain via [ai-nixCfg](https://github.com/DivitMittal/ai-nixCfg).
 > For an AI-only shell use `nix run github:DivitMittal/ai-nixCfg#ai`.
+
+## Nix Operator Tools
+
+From the checkout, run `nix develop .#nix-tools` to put the following tools on your `PATH`:
+
+- [`nh`](https://github.com/nix-community/nh): Build a NixOS, nix-darwin, or Home Manager configuration with a more readable progress display.
+- [`dix`](https://github.com/manic-systems/dix): Compare two Nix store paths to see what changed before switching.
+- [`nixploit`](https://github.com/manic-systems/nixploit): Check your own closures for known vulnerabilities and review the findings manually.
+- [`nixtopsy`](https://github.com/manic-systems/nixtopsy): Explore a closure interactively to understand why a dependency is present or taking up space.
+- [`rom`](https://github.com/manic-systems/rom): Watch Nix build progress without changing the rebuild workflow.
+
+The shell is available on Linux and macOS. On Intel macOS, nixploit and rom are left out because the Nix packages available for that platform can't build them yet.
+
+For a one-off command, try `nix develop .#nix-tools -c dix --help`. Entering the shell does not activate a configuration, schedule vulnerability scans, or run garbage collection. The default devshell and `hms`, `hts`, and deploy workflows are unchanged.
 
 ---
 

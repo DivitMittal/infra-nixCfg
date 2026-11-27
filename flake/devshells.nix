@@ -11,6 +11,7 @@ in {
   perSystem = {
     pkgs,
     config,
+    system,
     ...
   }: let
     myFlakeInputs = lib.concatStringsSep " " [
@@ -28,6 +29,12 @@ in {
       "PKMS"
     ];
     uci = pkgs.callPackage "${inputs.openwrt-nix}/nix" {};
+    # The unstable pin no longer provides dix for Intel Macs.
+    operatorPkgs =
+      if system == "x86_64-darwin"
+      then inputs.nixpkgs-2605.legacyPackages.${system}
+      else pkgs;
+    operatorTools = import ../pkgs/operator-tools.nix {pkgs = operatorPkgs;};
 
     # forward / unforward / deploy commands for a nix-on-droid host reached over
     # ADB-forwarded SSH; pairs with the `<host>-adb` nodes in hosts/deploy.nix.
@@ -96,6 +103,15 @@ in {
       }
     ];
   in {
+    devshells.nix-tools = {
+      devshell = {
+        name = "infra-nix-tools";
+        packages =
+          [operatorPkgs.nh operatorPkgs.dix]
+          ++ lib.filter (package: package != null) (lib.attrValues operatorTools);
+      };
+    };
+
     devshells.default = {
       devshell = rec {
         name = "infra-nixCfg";

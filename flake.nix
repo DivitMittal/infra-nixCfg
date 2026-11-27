@@ -70,6 +70,11 @@
     "nixpkgs-2605".url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
     nixpkgs-2505.url = "github:nixos/nixpkgs/nixos-25.05";
     #nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-25.11-darwin";
+    ## Newer Rust toolchains for Intel Darwin, whose 26.05 pin ships an older rustc
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     ## Nix User Repository (NUR)
     nur = {
       url = "github:nix-community/NUR";

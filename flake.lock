@@ -3602,6 +3602,7 @@
         "qezta-ssh": "qezta-ssh",
         "quant-nixCfg": "quant-nixCfg",
         "ragenix": "ragenix",
+        "rust-overlay": "rust-overlay_4",
         "spicetify-nix": "spicetify-nix",
         "spotatui": "spotatui",
         "stylix": "stylix",
@@ -3682,6 +3683,26 @@
     "rust-overlay_4": {
       "inputs": {
         "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795689650,
+        "narHash": "sha256-gvke5rg5P9S2TAXdOASCqEPc/OdvPKaHIGoMlbYLJ/E=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "8771c4aba509d6efb8bf376fd8cb657cce52b013",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_5": {
+      "inputs": {
+        "nixpkgs": [
           "term-nixCfg",
           "wezterm",
           "nixpkgs"
@@ -3701,7 +3722,7 @@
         "type": "github"
       }
     },
-    "rust-overlay_5": {
+    "rust-overlay_6": {
       "inputs": {
         "nixpkgs": [
           "yazi",
@@ -4430,7 +4451,7 @@
         "harfbuzz": "harfbuzz",
         "libpng": "libpng",
         "nixpkgs": "nixpkgs_13",
-        "rust-overlay": "rust-overlay_4",
+        "rust-overlay": "rust-overlay_5",
         "zlib": "zlib"
       },
       "locked": {
@@ -4457,7 +4478,7 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "rust-overlay": "rust-overlay_5"
+        "rust-overlay": "rust-overlay_6"
       },
       "locked": {
         "lastModified": 1783245985,

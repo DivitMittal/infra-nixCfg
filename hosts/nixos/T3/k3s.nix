@@ -10,9 +10,9 @@ _: {
     extraFlags = ["--tls-san=T3.lan"];
     # NodePort is sufficient; avoid reserving host ports 80/443 for Traefik.
     disable = ["traefik" "servicelb"];
-    # T3 runs on a single 4 GB stick (~3.3 GB usable after the iGPU share)
-    # until its failed 16 GB module is replaced; 1Gi here plus kubeReserved
-    # and eviction left pods barely 1.3 GB. Raise this again with more RAM.
+    # Live inventory on 2026-11-22 confirms 16 GiB installed (~13.6 GiB
+    # OS-visible). This reservation was reduced during the former 4 GiB
+    # configuration; retain the policy until host workloads are re-budgeted.
     extraKubeletConfig.systemReserved = {
       cpu = "500m";
       memory = "512Mi";

@@ -15,7 +15,7 @@ _: {
   topology.id = "router";
 
   topology.self = {
-    hardware.info = "HP t640 Thin Client (AMD Ryzen Embedded, x86_64) - PXE/netboot install via t1-netboot, hardware detected via nixos-facter. Edge router: hosts an ImmortalWrt VM (DMZ behind R0 by default, multi-PPPoE optional) (macvtap passthrough of physical NICs) — see router-vm.nix";
+    hardware.info = "HP t640 Thin Client (Ryzen R1505G, 2 cores / 4 threads, 8 GiB RAM, 128 GB NVMe; verified 2026-11-22) - PXE/netboot install via t1-netboot, hardware detected via nixos-facter. Edge router: hosts an ImmortalWrt VM (DMZ behind R0 by default, multi-PPPoE optional) (macvtap passthrough of physical NICs) — see router-vm.nix";
 
     # Two wired NICs: the onboard port (LAN, to S1) and a USB 3 gigabit
     # adapter (WAN), plus a USB Wi-Fi adapter. Interface names in

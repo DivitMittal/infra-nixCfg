@@ -1,0 +1,35 @@
+Update runnerimages +GitHubActions
+Understand deploy-rs +Nix
+Contribute local packages & modules to hm & nixpkgs +Nix
+nix-on-droid configuration +Android
+Fix home-build GA workflow +OS-nixCfg
+ISO & T2-ISO +OS-nixCfg
+Chromium setup: extra flags +OS-nixCfg
+Chromium setup: default extension vimium or vimiumC +OS-nixCfg
+Chromium setup: claude extension +OS-nixCfg
+macOS Tahoe launchd stuff +OS-nixCfg
+Migrate to Cloudflare R2 for built NixOS ISOs
+Defunct Accessibility Zoom Keyboard shortcut +macOS
+warpd
+spicetify
+
+x 2026-06-13 MCPs WhatsApp +AI
+x 2026-06-13 Claude Router +AI
+x 2026-06-13 Gemini marketplace +AI
+x 2026-06-13 Spec-driven development openspec +AI
+x 2026-06-13 Spec-driven development spec-kit +AI
+x 2026-06-13 Understand Spark +GitHub
+x 2026-06-13 Understand Spaces +GitHub
+x 2026-06-13 launchd agents cleanup +OS-nixCfg
+x 2026-06-13 tidalcycles sounds & sample fix +OS-nixCfg
+x 2026-06-13 rclone ftp +OS-nixCfg
+x 2026-06-13 colima & docker configurations +OS-nixCfg
+x 2026-06-13 nomacs settings +OS-nixCfg
+x 2026-06-13 opencode fix LSP integration +OS-nixCfg
+x 2026-06-13 opencode default models +OS-nixCfg
+x 2026-06-13 claude-code marketplace & plugins +OS-nixCfg
+x 2026-06-13 claude-code Agents & Subagents +OS-nixCfg
+x 2026-06-13 claude-code slash commands +OS-nixCfg
+x 2026-06-13 claude-code agents plan plugin remote-env skills hooks +OS-nixCfg
+x 2026-06-13 skills Claude code & opencode +OS-nixCfg
+x 2026-06-13 skills openskills +OS-nixCfg

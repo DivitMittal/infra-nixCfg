@@ -182,6 +182,12 @@ in {
             '';
             category = "home-manager";
           }
+          {
+            name = "android-rebuild";
+            help = "Runs the pinned nix-android CLI (plan/switch/status/... --flake .#M1 --serial SERIAL)";
+            command = "nix run .#android-rebuild -- \"$@\"";
+            category = "hosts";
+          }
         ]
         ++ mkAdbDeployCommands {
           host = "M1";

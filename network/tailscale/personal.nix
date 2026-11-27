@@ -50,6 +50,11 @@ _: {
       default = false;
       description = "Opt in to .lan split DNS after checking existing resolver ownership.";
     };
+    enable_t3_enrollment = {
+      type = "bool";
+      default = false;
+      description = "Create a fresh single-use key only when enrolling or re-enrolling T3.";
+    };
   };
 
   locals = {
@@ -57,6 +62,7 @@ _: {
     tag_owners = {
       "tag:ci" = "\${distinct(concat(try(local.baseline.tagOwners[\"tag:ci\"], []), [\"autogroup:admin\"]))}";
       "tag:homelab-router" = ["autogroup:admin"];
+      "tag:homelab-t3" = ["autogroup:admin"];
     };
     route_approvers = {
       "192.168.2.0/24" = "\${distinct(concat(try(local.baseline.autoApprovers.routes[\"192.168.2.0/24\"], []), [\"tag:homelab-router\"]))}";
@@ -119,6 +125,17 @@ _: {
       domain = "lan";
       nameservers = ["192.168.2.1"];
     };
+    tailscale_tailnet_key.t3 = {
+      count = "\${var.enable_t3_enrollment ? 1 : 0}";
+      description = "T3 services host";
+      reusable = false;
+      ephemeral = false;
+      preauthorized = true;
+      expiry = 3600;
+      recreate_if_invalid = "never";
+      tags = ["tag:homelab-t3"];
+      depends_on = ["tailscale_acl.personal"];
+    };
   };
   output = {
     ci_client_id = {
@@ -131,6 +148,10 @@ _: {
     };
     t1_auth_key = {
       value = "\${try(tailscale_tailnet_key.t1[0].key, null)}";
+      sensitive = true;
+    };
+    t3_auth_key = {
+      value = "\${try(tailscale_tailnet_key.t3[0].key, null)}";
       sensitive = true;
     };
   };

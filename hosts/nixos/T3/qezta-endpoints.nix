@@ -339,6 +339,7 @@ in {
     localDiscovery = false;
     settings = {
       Addresses.Gateway = "/ip4/127.0.0.1/tcp/${toString ipfsGatewayPort}";
+      Addresses.API = "/unix/run/ipfs.sock";
       Addresses.Swarm = [
         "/ip4/0.0.0.0/tcp/4001"
         "/ip4/0.0.0.0/udp/4001/quic-v1"
@@ -407,6 +408,14 @@ in {
     '';
   };
 
+  systemd.timers.qezta-ipfs-publish = {
+    wantedBy = ["timers.target"];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+
   systemd.timers.qezta-endpoints = {
     wantedBy = ["timers.target"];
     timerConfig = {
@@ -416,8 +425,7 @@ in {
     };
   };
 
-  # For the day the host firewall is turned back on. WAN :4001 is not
-  # forwarded; relay clients cover the NAT.
+  # Only the swarm has public ingress. HTTP listeners stay on loopback.
   networking.firewall.allowedTCPPorts = [4001];
   networking.firewall.allowedUDPPorts = [4001];
 

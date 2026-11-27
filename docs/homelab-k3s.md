@@ -106,9 +106,11 @@ time out after 15 minutes idle or 2 hours total.
 The Service is NodePort **30022** with `externalTrafficPolicy: Local`, which
 keeps real client addresses in the connection log. LAN test:
 `ssh -p 30022 divit@T3.lan`. Unlike the other NodePorts, this one is meant to be
-public: the remaining step is a router forward from WAN TCP 22 to
-`T3.lan:30022`, plus a DNS A record for `qezta.com` (or `ssh.qezta.com`) that
-points at the WAN address and is not proxied. The server never grants a shell
+public: the T640 OpenWrt declaration forwards WAN TCP 22 to `T3.lan:30022`.
+Qezta/infra declares the DNS-only `ssh.qezta.com` A record when
+`TF_VAR_portfolio_ssh_ipv4` is set to the verified public address. It stages
+the record in Cloudflare and also publishes it at Spaceship before the DNS
+cutover. Keep the apex on Vercel. The server never grants a shell
 and accepts any credentials by design (see Qezta/ssh `SECURITY.md`).
 
 ```sh
@@ -119,8 +121,8 @@ sudo k3s kubectl -n qezta-ssh logs deployment/ssh-portfolio
 ## Onion and IPFS endpoints
 
 Clearnet is unchanged: Vercel still serves qezta.com and divit.qezta.com
-(DNS in Qezta/infra). SSH still needs the WAN forward above for
-`ssh divit@qezta.com`.
+(DNS in Qezta/infra). Use `ssh divit@ssh.qezta.com` after activating the
+router config and publishing the DNS record.
 
 Kubernetes is only the SSH server. `hosts/nixos/T3/ssh-portfolio.nix` is the
 Deployment and the NodePort Service, and the `qezta-ssh` hidden service in
@@ -166,9 +168,17 @@ not exist until T3 activates this config.
 Kubo is a DHT client capped at 2 GiB of repo and 768 MiB of RAM. Its gateway
 is `127.0.0.1:8082` with `Gateway.NoFetch`, so it is not an open proxy and
 does not take Attic's port 8080. It does not relay other people's traffic.
-Swarm is TCP/UDP 4001. A WAN forward of 4001 is optional and not declared;
-relay clients cover the NAT. IPNS lifetime is 7 days; the publisher runs when
-the pinned store path changes, and again at boot.
+The WAN forwards TCP/UDP 4001 for the swarm, not the HTTP gateway or API.
+The API is Unix-socket-only. IPNS lifetime is 7 days; the publisher runs daily,
+at boot, and when the pinned store paths change.
+
+Before rolling out the forwards, verify the router's SSH host key through a
+trusted console and confirm that the selected WAN has a public IPv4 address
+or that R0 DMZ mode passes the ports through. CGNAT blocks direct ingress.
+From an independent internet connection, compare the public portfolio SSH
+host key with the key observed on T3's port 30022, fetch each site via its
+IPNS name, and test the onion URLs and onion SSH over Tor. Also verify that
+TCP 5001, 8082, 30022 and the router's admin SSH are not publicly reachable.
 
 Once onion hostnames exist, the site repos can advertise them with an
 `Onion-Location` header. That header is not set from this flake.

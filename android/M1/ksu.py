@@ -63,34 +63,44 @@ def install(device, module_id, archive, digest):
         device.shell("rmdir", directory)
 
 
+def flag(value, default=False):
+    if isinstance(value, str):
+        return value.lower() == "true"
+    return default if value is None else bool(value)
+
+
 def reconcile(device, declared, apply):
     installed = modules(device)
     pending = False
     for module_id, archive, digest, enabled in declared:
         current = installed.get(module_id, {})
-        current_digest = receipt(device, module_id)
-        needs_install = current_digest != digest or current.get("remove") is True
-        needs_toggle = bool(current) and enabled != (current.get("enabled", not current.get("disable", False)) is True)
-        if module_id not in installed or needs_install:
+        current_digest = receipt(device, module_id) if archive is not None else None
+        needs_install = archive is not None and (current_digest != digest or flag(current.get("remove")))
+        current_enabled = flag(current.get("enabled"), not flag(current.get("disable")))
+        needs_toggle = bool(current) and enabled != current_enabled
+        missing = module_id not in installed
+        if missing and archive is None:
+            print(f"{module_id}: missing from device")
+        elif missing or needs_install:
             print(f"{module_id}: install pinned archive ({'enabled' if enabled else 'disabled'})")
         elif needs_toggle:
             print(f"{module_id}: {'enable' if enabled else 'disable'}")
-        elif current.get("update") is True:
+        elif flag(current.get("update")):
             print(f"{module_id}: staged, reboot required")
         else:
             print(f"{module_id}: matches")
-        pending |= module_id not in installed or needs_install or needs_toggle
-        if not apply or not (module_id not in installed or needs_install or needs_toggle):
+        pending |= (missing and archive is not None) or needs_install or needs_toggle
+        if not apply or not ((missing and archive is not None) or needs_install or needs_toggle):
             continue
-        if module_id not in installed or needs_install:
+        if needs_install or (missing and archive is not None):
             install(device, module_id, archive, digest)
         if enabled:
             ksu(device, "module", "enable", module_id)
         else:
             ksu(device, "module", "disable", module_id)
         updated = modules(device).get(module_id, {})
-        updated_enabled = updated.get("enabled", not updated.get("disable", False)) is True
-        if receipt(device, module_id) != digest or updated_enabled != enabled:
+        updated_enabled = flag(updated.get("enabled"), not flag(updated.get("disable")))
+        if archive is not None and (receipt(device, module_id) != digest or updated_enabled != enabled):
             raise RuntimeError(f"{module_id}: post-apply state does not match the declaration")
         print(f"{module_id}: verified, reboot if KernelSU staged the module")
     return 3 if pending and not apply else 0
@@ -101,7 +111,11 @@ def read_manifest(path):
     for module_id, entry in json.loads(path.read_text(encoding="utf-8")).items():
         if not MODULE_ID.fullmatch(module_id) or not isinstance(entry.get("enable"), bool):
             raise ValueError(f"Invalid KernelSU declaration: {module_id}")
-        archive = Path(entry["archive"])
+        archive = entry.get("archive")
+        if archive is None:
+            declared.append((module_id, None, None, entry["enable"]))
+            continue
+        archive = Path(archive)
         with ZipFile(archive) as zipped:
             ids = [line.removeprefix("id=") for line in zipped.read("module.prop").decode().splitlines() if line.startswith("id=")]
         if ids != [module_id]:
@@ -114,10 +128,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--serial", required=True)
+    parser.add_argument("--adb", default="adb")
     parser.add_argument("command", choices=("plan", "apply"), nargs="?", default="plan")
     args = parser.parse_args()
     declared = read_manifest(args.manifest)
     device = deploy.AdbDevice(args.serial)
+    device.adb_path = args.adb
     if device.adb("get-state") != "device":
         raise RuntimeError("Unlock M1 and authorize USB debugging")
     for key, expected in {"ro.product.model": "DN2103", "ro.product.device": "denniz"}.items():

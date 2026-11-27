@@ -68,6 +68,15 @@ class KsuTests(unittest.TestCase):
         self.assertTrue(any("ksud module install" in " ".join(command) for command in device.commands))
         self.assertTrue(any("ksud module enable" in " ".join(command) for command in device.commands))
 
+    def test_parses_string_booleans_from_resukisu(self):
+        raw = json.dumps([{"id": "example-module", "enabled": "true", "remove": "false", "update": "false"}])
+        device = FakeDevice([])
+        with patch("ksu.ksu", return_value=raw):
+            self.assertEqual(ksu.modules(device)["example-module"]["enabled"], "true")
+        declared = [("example-module", Path("archive.zip"), "abc", True)]
+        with patch("ksu.modules", return_value={"example-module": json.loads(raw)[0]}), patch("ksu.receipt", return_value="abc"):
+            self.assertEqual(ksu.reconcile(device, declared, False), 0)
+
     def test_identity_mismatch_stops_before_root(self):
         device = FakeDevice([])
         with tempfile.TemporaryDirectory() as directory, patch("sys.argv", ["ksu.py", "--manifest", str(manifest(directory)), "--serial", "M1", "plan"]), \

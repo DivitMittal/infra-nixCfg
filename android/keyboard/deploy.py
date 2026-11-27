@@ -31,7 +31,7 @@ class AdbDevice:
 
     def adb(self, *args):
         return subprocess.run(
-            ["adb", "-s", self.serial, *args], check=True,
+            [getattr(self, "adb_path", "adb"), "-s", self.serial, *args], check=True,
             capture_output=True, text=True,
         ).stdout.strip()
 

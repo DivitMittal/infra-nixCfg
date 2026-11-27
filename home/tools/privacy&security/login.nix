@@ -2,15 +2,12 @@
   config,
   hostPlatform,
   pkgs,
-  lib,
   ...
-}: let
-  enable = false;
-in {
-  home.packages = lib.lists.optionals enable [pkgs.bitwarden-cli] ++ [pkgs.cotp];
+}: {
+  home.packages = [pkgs.bitwarden-cli pkgs.cotp];
 
   programs.rbw = {
-    inherit enable;
+    enable = false;
     package = pkgs.rbw;
 
     settings = {
